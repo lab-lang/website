@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">Lab</title>
+  <rect width="64" height="64" rx="16" fill="#16271f"/>
+  <path d="M24 14h16M27 14v13L17.8 44.6A4 4 0 0 0 21.3 50h21.4a4 4 0 0 0 3.5-5.4L37 27V14" fill="none" stroke="#f4f1e8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M22.5 40h19L46 48H18l4.5-8Z" fill="#b9ef5b" opacity=".92"/>
+  <circle cx="29" cy="35" r="2" fill="#b9ef5b"/>
+  <circle cx="36.5" cy="31.5" r="1.5" fill="#b9ef5b"/>
+</svg>
