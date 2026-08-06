@@ -107,12 +107,12 @@ export function HomePage() {
           </Reveal>
 
           <Reveal delay={70}>
-            <h1 className="type-display mt-6 text-[clamp(2rem,5vw,4.5rem)]">
+            <h1 className="type-display mt-6 text-[clamp(2rem,5.65vw,5.25rem)]">
               <span className="block text-pretty">
                 A programming language for biology.
               </span>
-              <span className="mt-[0.06em] block text-pretty text-[0.9em] font-light text-amber-deep">
-                A compiler for the self-driving lab.
+              <span className="mt-[0.06em] block text-pretty text-[0.85em] font-light text-amber-deep">
+                A compiler for the self-driving laboratory.
               </span>
             </h1>
           </Reveal>
