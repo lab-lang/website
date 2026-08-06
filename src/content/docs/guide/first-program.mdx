@@ -112,8 +112,7 @@ strain reporter_host:
   serial_dilutions: 2
 
 workflow assemble_reporter() -> Material<Plasmid>:
-  dependencies = []
-  product <- realize reporter from dependencies
+  product <- realize reporter
   return product
 
 workflow build_reporter_host(
@@ -154,8 +153,8 @@ symbols. Writing `components: ["J23101"]` is a type error, not a shortcut.
 The workflow body uses both of Lab's binding forms, and they are not
 interchangeable:
 
-- `dependencies = []` is deterministic evaluation. Replay may run it again,
-  because nothing in the world changed.
+- `plasmids = [construct]` is deterministic evaluation. Replay may run it
+  again, because nothing in the world changed.
 - `strain, culture <- transform reporter_host from plasmids into cells` is a durable effect. It
   records a command, waits for the completion event, and binds the result
   from that event. **Replay must never repeat it.** You cannot un-transform

@@ -48,8 +48,7 @@ workflow return several values together:
 
 ```lab
 workflow realize_p_gfp() -> (product: Material<Plasmid>, plate: Material<Plate>):
-  dependencies = []
-  product <- realize p_gfp from dependencies
+  product <- realize p_gfp
   cells <- provision DH5alpha
   strain, culture <- transform reporter_host from plasmids into cells
   culture <- recover culture for 1 h

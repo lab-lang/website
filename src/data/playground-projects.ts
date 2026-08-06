@@ -218,13 +218,11 @@ strain rfp_host:
   selection: chloramphenicol
 
 workflow assemble_p_gfp() -> Material<Plasmid>:
-  dependencies = []
-  product <- realize p_gfp from dependencies
+  product <- realize p_gfp
   return product
 
 workflow assemble_p_rfp() -> Material<Plasmid>:
-  dependencies = []
-  product <- realize p_rfp from dependencies
+  product <- realize p_rfp
   return product
 
 workflow build_gfp_host(

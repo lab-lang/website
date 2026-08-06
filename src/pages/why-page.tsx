@@ -241,30 +241,36 @@ export function WhyPage() {
           </div>
 
           {/*
+            * The Lab module sets the height of the row: it is short enough to
+            * read whole, and a program you have to scroll to see undercuts the
+            * point of showing it. The implementation beside it is absolutely
+            * positioned so its own length never feeds back into that height,
+            * and scrolls within whatever the module leaves.
+            *
             * min-w-0 on both cells: a grid track sizes to its content by
             * default, and the generated Python has lines long enough to push
             * the whole section past the edge of a phone.
             */}
           <div className="mt-10 grid gap-5 sm:mt-14 lg:grid-cols-2">
             <div className="flex min-w-0 flex-col">
-              <div className="mb-3 flex h-9 items-center">
+              {/* shrink-0, or the row's height comes out of this label instead
+                  of the panel, and the two panels start three pixels apart. */}
+              <div className="mb-3 flex h-9 shrink-0 items-center">
                 <span className="micro text-ink/40">What you write</span>
               </div>
-              <div className="h-[420px] sm:h-[560px]">
-                <Panel
-                  body={labSource}
-                  filename="build.lab"
-                  language="lab"
-                  role="written"
-                  tone="written"
-                />
-              </div>
+              <Panel
+                body={labSource}
+                filename="build.lab"
+                language="lab"
+                role="written"
+                tone="written"
+              />
             </div>
 
             <div className="flex min-w-0 flex-col">
               <div
                 aria-label="Implementation"
-                className="mb-3 flex h-9 items-center gap-1 overflow-x-auto"
+                className="mb-3 flex h-9 shrink-0 items-center gap-1 overflow-x-auto"
                 role="tablist"
               >
                 {implementations.map((option) => {
@@ -287,14 +293,20 @@ export function WhyPage() {
                   )
                 })}
               </div>
-              <div className="h-[420px] sm:h-[560px]">
-                <Panel
-                  body={implementation.body}
-                  filename={implementation.filename}
-                  language={implementation.language}
-                  role={implementation.generated ? 'generated' : undefined}
-                  tone="generated"
-                />
+              {/*
+                * Stacked, there is no module beside it to take a height from,
+                * so the fixed one applies until the two sit side by side.
+                */}
+              <div className="relative h-[420px] lg:h-auto lg:min-h-0 lg:flex-1">
+                <div className="absolute inset-0">
+                  <Panel
+                    body={implementation.body}
+                    filename={implementation.filename}
+                    language={implementation.language}
+                    role={implementation.generated ? 'generated' : undefined}
+                    tone="generated"
+                  />
+                </div>
               </div>
             </div>
           </div>

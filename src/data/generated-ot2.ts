@@ -31,8 +31,7 @@ plasmid reporter:
   accept sequence == design.sequence
 
 workflow build_reporter() -> Material<Plasmid>:
-  dependencies = []
-  product <- realize reporter from dependencies
+  product <- realize reporter
   return product`
 
 export const generatedProtocol = `"""Golden Gate assembly protocol emitted by the Lab OT-2 backend."""
