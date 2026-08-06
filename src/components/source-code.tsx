@@ -1,4 +1,11 @@
-export type SourceLanguage = 'lab' | 'python' | 'ir' | 'markdown' | 'shell'
+export type SourceLanguage =
+  | 'lab'
+  | 'python'
+  | 'ir'
+  | 'markdown'
+  | 'shell'
+  | 'toml'
+  | 'json'
 
 /**
  * Six token colours, each carrying one meaning. The durable-effect arrow gets
@@ -106,6 +113,31 @@ const GRAMMARS: Record<SourceLanguage, Grammar> = {
       return CLASS.base
     },
   },
+  toml: {
+    // The key alternative carries its leading indentation so the lookahead can
+    // anchor to the start of a line; whitespace takes a colour class either way.
+    pattern:
+      /(^\s*\[[^\]\n]+\]|#[^\n]*|"(?:[^"\\]|\\.)*"|^\s*[A-Za-z0-9_-]+(?=\s*=)|\b(?:true|false)\b|\b\d+(?:\.\d+)?\b)/gm,
+    classify: (token) => {
+      const trimmed = token.trim()
+      if (trimmed.startsWith('[')) return `${CLASS.keyword} font-medium`
+      if (trimmed.startsWith('#')) return CLASS.comment
+      if (trimmed.startsWith('"')) return CLASS.string
+      if (/^(?:true|false)$/.test(trimmed)) return CLASS.keyword
+      if (/^\d/.test(trimmed)) return CLASS.quantity
+      return CLASS.entity
+    },
+  },
+  json: {
+    pattern:
+      /("(?:[^"\\]|\\.)*"\s*:|"(?:[^"\\]|\\.)*"|\b(?:true|false|null)\b|-?\b\d+(?:\.\d+)?\b)/g,
+    classify: (token) => {
+      if (token.endsWith(':')) return CLASS.entity
+      if (token.startsWith('"')) return CLASS.string
+      if (/^(?:true|false|null)$/.test(token)) return CLASS.keyword
+      return CLASS.quantity
+    },
+  },
 }
 
 function HighlightedLine({
@@ -146,7 +178,9 @@ export function SourceCode({
   scroll?: boolean
   className?: string
 }) {
-  const grammar = GRAMMARS[language]
+  // An MDX fence can name any language; an unknown one falls back rather than
+  // taking the page down on an undefined grammar.
+  const grammar = GRAMMARS[language] ?? GRAMMARS.lab
   const lines = source.split('\n')
   const gutterWidth = String(lines.length).length
 

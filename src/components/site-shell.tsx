@@ -1,7 +1,8 @@
-import { Menu, X } from 'lucide-react'
+import { Menu, Star, X } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { REPO_URL } from '../lib/site'
+import { ThemeToggle } from './theme-toggle'
 
 const navigation = [
   { label: 'Docs', to: '/docs' },
@@ -19,7 +20,7 @@ function Mark({ size = 30 }: { size?: number }) {
       viewBox="0 0 64 64"
       width={size}
     >
-      <rect fill="currentColor" height="64" rx="15" width="64" />
+      <rect fill="var(--mark-tile)" height="64" rx="15" width="64" />
       <rect
         fill="#f0e3c9"
         fillOpacity=".34"
@@ -73,8 +74,12 @@ function Wordmark({ size = 30 }: { size?: number }) {
   )
 }
 
+/*
+ * The hit area is padded but never painted: a hover fill here would read as a
+ * toolbar of buttons. Only the label and its dot respond.
+ */
 function navClass({ isActive }: { isActive: boolean }) {
-  return `press group flex items-center gap-2 rounded-lg px-3 py-2 text-[14px] transition-colors ${isActive ? 'text-ink' : 'text-umber hover:bg-ink/6 hover:text-ink'
+  return `press group flex items-center gap-2 px-3 py-2 text-[14px] transition-colors ${isActive ? 'text-ink' : 'text-umber hover:text-ink'
     }`
 }
 
@@ -170,14 +175,23 @@ export function SiteShell({ children }: { children: ReactNode }) {
 
             <span aria-hidden="true" className="mx-2 h-5 w-px bg-ink/12" />
 
+            {/*
+              * The one painted control in the row, so the nav links beside it
+              * read as text and this reads as something to do.
+              */}
             <a
-              className="press flex items-center gap-1.5 rounded-lg border border-ink/18 px-3 py-2 text-[13px] text-umber hover:border-ink/35 hover:text-ink"
+              className="press group flex items-center gap-1.5 rounded-lg border border-ink/18 px-3 py-2 text-[13px] text-umber hover:border-amber-deep/45 hover:text-ink"
               href={REPO_URL}
               rel="noreferrer"
               target="_blank"
+              title="Star the repository on GitHub"
             >
               <GithubMark />
-              GitHub
+              Star
+              <Star
+                className="fill-transparent text-ink/30 transition-colors duration-200 group-hover:fill-amber group-hover:text-amber-deep"
+                size={13}
+              />
             </a>
           </nav>
 
@@ -223,7 +237,8 @@ export function SiteShell({ children }: { children: ReactNode }) {
                 target="_blank"
               >
                 <GithubMark size={15} />
-                GitHub
+                Star on GitHub
+                <Star className="fill-amber text-amber-deep" size={14} />
               </a>
             </div>
           </nav>
@@ -316,6 +331,9 @@ export function SiteShell({ children }: { children: ReactNode }) {
           </div>
         </div>
       </footer>
+
+      {/* Pinned to the viewport, so it rides above every route the shell wraps. */}
+      <ThemeToggle />
     </div>
   )
 }

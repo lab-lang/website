@@ -5,6 +5,12 @@
 @import '@fontsource/ibm-plex-mono/600.css';
 @import 'tailwindcss';
 
+/*
+ * Class-driven rather than the default prefers-color-scheme, so an explicit
+ * Light or Dark choice outranks the OS. The theme toggle owns the class.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   /* Ground tones read as nutrient agar and kraft label stock. */
   --color-paper: #f9efdd;
@@ -38,6 +44,71 @@
   --ease-mech: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
+/*
+ * Kept outside @theme because nothing should generate utilities from them: both
+ * are consumed by the rules below and would otherwise collide with Tailwind's
+ * own text-shadow and accent namespaces.
+ *
+ * --cast is the color depth is drawn in. It cannot be derived from ink, which
+ * inverts to near-white and would turn every shadow into a glow.
+ * --on-amber is what stays legible against an amber ground.
+ */
+:root {
+  --cast: #2b1c11;
+  --on-amber: var(--color-ink);
+
+  /*
+   * The mark's tile is a brand constant, not a themed surface — it matches the
+   * shipped public/lab-mark.svg, and the amber arrow is only legible against a
+   * dark ground. It cannot be drawn in ink, which inverts.
+   */
+  --mark-tile: #2b1c11;
+
+  /*
+   * The brand page's specimen plates. A plate exists to show an asset against
+   * the ground that asset was drawn for, so it is pinned in both themes — the
+   * light-surface mark is deep amber and would vanish on a themed plate that
+   * followed the page into dark.
+   */
+  --plate-light: #eee0c3;
+  --plate-light-edge: color-mix(in oklab, #2b1c11 14%, transparent);
+}
+
+/*
+ * Dark mode re-grounds the palette rather than restyling components: the site
+ * reaches for these tokens through semantic utilities (text-ink, bg-shell,
+ * border-ink/20) nearly everywhere, so moving the values here moves the site.
+ *
+ * Two relationships have to survive the move, because the design leans on both:
+ * shell sits a step above the page, and vessel — the instrument surface under
+ * code panels and graphs — sits below it. Vessel therefore darkens here rather
+ * than holding still; left alone it would float above the new ground and read
+ * as a raised card. The fluorophores are already tuned for that surface and do
+ * not move at all.
+ */
+html.dark {
+  --color-paper: #14100a;
+  --color-shell: #1e1710;
+  --color-sand: #241c13;
+  --color-sand-deep: #2e2418;
+
+  --color-ink: #f2e7d5;
+  --color-umber: #b3a189;
+  --color-umber-soft: #948270;
+
+  --color-amber: #e9a03a;
+  --color-amber-deep: #f0b657;
+
+  --color-vessel: #0b0805;
+  --color-vessel-raised: #17100a;
+
+  --cast: #000000;
+  --on-amber: #14100a;
+  /* Lifted off the brand value just enough that the tile's edge survives the
+   * darker ground. Any lower and the square dissolves into the page. */
+  --mark-tile: #33241a;
+}
+
 @layer base {
   * {
     border-color: color-mix(in oklab, var(--color-ink) 14%, transparent);
@@ -46,8 +117,14 @@
   html {
     scroll-behavior: smooth;
     background: var(--color-paper);
+    /* Scrollbars and form controls the browser paints itself follow the page. */
+    color-scheme: light;
     /* Landscape rotation on iOS must not inflate type. */
     -webkit-text-size-adjust: 100%;
+  }
+
+  html.dark {
+    color-scheme: dark;
   }
 
   body {
@@ -90,9 +167,18 @@
     touch-action: manipulation;
   }
 
+  /*
+   * The grain is a fixed mid-gray noise, so it lightens a dark ground as readily
+   * as it darkens a light one — but it needs more of itself to register against
+   * the deeper contrast range below.
+   */
+  html.dark body {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.085'/%3E%3C/svg%3E");
+  }
+
   ::selection {
     background: var(--color-amber);
-    color: var(--color-ink);
+    color: var(--on-amber);
   }
 }
 
@@ -251,7 +337,7 @@
 
   /* Soft depth once the header has content scrolling beneath it. */
   .nav-elevated {
-    box-shadow: 0 14px 30px -22px color-mix(in oklab, var(--color-ink) 55%, transparent);
+    box-shadow: 0 14px 30px -22px color-mix(in oklab, var(--cast) 55%, transparent);
   }
 
   /*
@@ -338,7 +424,7 @@
   .lift:hover {
     transform: translateY(-3px);
     border-color: color-mix(in oklab, var(--color-amber-deep) 42%, transparent);
-    box-shadow: 0 16px 34px color-mix(in oklab, var(--color-ink) 11%, transparent);
+    box-shadow: 0 16px 34px color-mix(in oklab, var(--cast) 11%, transparent);
   }
 
   .rule-link:hover {

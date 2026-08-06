@@ -9,6 +9,31 @@
       content="Lab is a programming language and compiler toolchain for describing biology and orchestrating work in the laboratory."
     />
     <meta name="theme-color" content="#f9efdd" />
+    <!--
+      Inline and blocking, so the stored theme is on <html> before the first
+      paint. Deferring this to React costs a flash of the light page on every
+      load. It restates the storage key, class name and theme-color from
+      src/lib/theme.ts; the two must move together.
+    -->
+    <script>
+      ;(function () {
+        try {
+          var choice = localStorage.getItem('lab-theme') || 'system'
+          var dark =
+            choice === 'dark' ||
+            (choice === 'system' &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches)
+
+          document.documentElement.classList.toggle('dark', dark)
+          document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+          document
+            .querySelector('meta[name="theme-color"]')
+            .setAttribute('content', dark ? '#14100a' : '#f9efdd')
+        } catch (error) {
+          // An unreadable preference just leaves the page on its light default.
+        }
+      })()
+    </script>
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Lab — a programming language for biology" />
     <meta

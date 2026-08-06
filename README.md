@@ -105,6 +105,14 @@ repeating the JSX per file.
 
 ## Playground compiler integration
 
-The playground currently performs clearly labeled structural inspection only. It does not claim to parse or compile source.
+The playground runs the real compiler frontend in the browser. `src/wasm/lab-ide-wasm/` holds a generated `wasm-bindgen` bundle of the `lab-ide-wasm` crate from the sibling Lab checkout, which wraps the same `lab-ide` workspace the LSP server uses. Diagnostics, document symbols, completions, hover, definition, references, rename, semantic tokens, and formatting are answered by the compiler, not by a JavaScript approximation of it.
 
-The intended next integration is the `lab-ide-wasm` host from the sibling Lab compiler repository. That API already exposes document diagnostics, symbols, completions, hover, definition, references, rename, semantic tokens, and formatting. Bundle its generated WebAssembly package, load one workspace for the editor session, and replace `src/lib/inspect-source.ts` with a typed adapter around those methods.
+`src/lib/lab-engine/engine.ts` is the only thing that touches the wasm module. `LabEngine` owns one `LabWorkspace`, keeps the last text set per path, and converts every span at the boundary: the Rust side is UTF-8 byte-offset native and CodeMirror is UTF-16 index native, so `byte-offset.ts` translates in both directions, including for spans returned against a file other than the active one. Every method is async even though the underlying calls are synchronous, so moving the workspace to a Web Worker stays an internal change. `use-lab-engine.ts` is the React binding, and `src/components/playground/lab-editor.tsx` is its only consumer.
+
+The wasm bundle is committed, because there is no Rust toolchain at deploy time. Regenerate it with `scripts/build-wasm.sh` whenever `lab-ide-wasm` or its `lab-ide`/`lab-language` dependencies change, then commit the result:
+
+```sh
+LAB_REPO=/path/to/lab scripts/build-wasm.sh
+```
+
+The script defaults `LAB_REPO` to a sibling `../lab` checkout, and fails with a remediation message if the `wasm-bindgen` CLI is missing, if its version does not match the crate version pinned in the Lab workspace's `Cargo.lock`, or if the `wasm32-unknown-unknown` target is not installed. Do not hand-edit anything under `src/wasm/`.

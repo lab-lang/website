@@ -1,40 +1,45 @@
 import { ArrowDownToLine } from 'lucide-react'
 import type { ReactNode } from 'react'
 
+/**
+ * Every token carries both of its values. The name is what components reach
+ * for; which of the two they land on is the theme's business, not theirs.
+ */
 interface ColorToken {
   name: string
   token: string
-  hex: string
+  light: string
+  dark: string
   note: string
 }
 
 const groundTokens: ColorToken[] = [
-  { name: 'Paper', token: '--color-paper', hex: '#f9efdd', note: 'The page background.' },
-  { name: 'Shell', token: '--color-shell', hex: '#fef9ef', note: 'Cards and panels, a shade lighter than the page.' },
-  { name: 'Sand', token: '--color-sand', hex: '#eee0c3', note: 'Used to set a section apart from the page around it.' },
-  { name: 'Sand deep', token: '--color-sand-deep', hex: '#e4d3b2', note: 'A slightly darker sand, for stacking surfaces.' },
+  { name: 'Paper', token: '--color-paper', light: '#f9efdd', dark: '#14100a', note: 'The page background.' },
+  { name: 'Shell', token: '--color-shell', light: '#fef9ef', dark: '#1e1710', note: 'Cards and panels, a shade lighter than the page.' },
+  { name: 'Sand', token: '--color-sand', light: '#eee0c3', dark: '#241c13', note: 'Used to set a section apart from the page around it.' },
+  { name: 'Sand deep', token: '--color-sand-deep', light: '#e4d3b2', dark: '#2e2418', note: 'A slightly darker sand, for stacking surfaces.' },
 ]
 
 const inkTokens: ColorToken[] = [
-  { name: 'Ink', token: '--color-ink', hex: '#2b1c11', note: 'The main text color. A warm brown, not black.' },
-  { name: 'Umber', token: '--color-umber', hex: '#7c6551', note: 'Secondary text, like captions and body copy.' },
-  { name: 'Umber soft', token: '--color-umber-soft', hex: '#a08a74', note: 'The lightest text: fine print, disabled labels.' },
+  { name: 'Ink', token: '--color-ink', light: '#2b1c11', dark: '#f2e7d5', note: 'The main text color. A warm brown on paper, a warm off-white on dark.' },
+  { name: 'Umber', token: '--color-umber', light: '#7c6551', dark: '#b3a189', note: 'Secondary text, like captions and body copy.' },
+  { name: 'Umber soft', token: '--color-umber-soft', light: '#a08a74', dark: '#948270', note: 'The faintest text: fine print, disabled labels.' },
 ]
 
 const structureTokens: ColorToken[] = [
-  { name: 'Amber', token: '--color-amber', hex: '#e1901f', note: 'Links, buttons, anything that needs to stand out on paper.' },
-  { name: 'Amber deep', token: '--color-amber-deep', hex: '#99560b', note: 'A darker amber, for small text and focus outlines.' },
+  { name: 'Amber', token: '--color-amber', light: '#e1901f', dark: '#e9a03a', note: 'Links, buttons, anything that needs to stand out on the page.' },
+  { name: 'Amber deep', token: '--color-amber-deep', light: '#99560b', dark: '#f0b657', note: 'Small text and focus outlines. It darkens on paper and lightens on dark, so it stays readable either way.' },
 ]
 
 const fluorophoreTokens: ColorToken[] = [
-  { name: 'GFP', token: '--color-gfp', hex: '#93e03f', note: 'Dark backgrounds only. It looks like it’s glowing there.' },
-  { name: 'mCherry', token: '--color-mcherry', hex: '#e8446c', note: 'Dark backgrounds only. It looks like it’s glowing there.' },
-  { name: 'CFP', token: '--color-cfp', hex: '#4ec3d4', note: 'Dark backgrounds only. It looks like it’s glowing there.' },
+  { name: 'GFP', token: '--color-gfp', light: '#93e03f', dark: '#93e03f', note: 'Dark backgrounds only. It looks like it’s glowing there.' },
+  { name: 'mCherry', token: '--color-mcherry', light: '#e8446c', dark: '#e8446c', note: 'Dark backgrounds only. It looks like it’s glowing there.' },
+  { name: 'CFP', token: '--color-cfp', light: '#4ec3d4', dark: '#4ec3d4', note: 'Dark backgrounds only. It looks like it’s glowing there.' },
 ]
 
 const vesselTokens: ColorToken[] = [
-  { name: 'Vessel', token: '--color-vessel', hex: '#1d1409', note: 'The main dark background color.' },
-  { name: 'Vessel raised', token: '--color-vessel-raised', hex: '#2b1e10', note: 'A step lighter than vessel, for cards on a dark background.' },
+  { name: 'Vessel', token: '--color-vessel', light: '#1d1409', dark: '#0b0805', note: 'The main dark background color. It drops below the page in dark mode so code panels still read as recessed.' },
+  { name: 'Vessel raised', token: '--color-vessel-raised', light: '#2b1e10', dark: '#17100a', note: 'A step lighter than vessel, for cards on a dark background.' },
 ]
 
 const doList = [
@@ -70,7 +75,7 @@ function Plate({
     <div
       className={`flex items-center justify-center rounded-2xl border p-8 ${tone === 'dark'
         ? 'border-white/10 bg-vessel'
-        : 'border-ink/12 bg-sand/60'
+        : 'border-[var(--plate-light-edge)] bg-[var(--plate-light)]'
         } ${className}`}
     >
       {children}
@@ -104,6 +109,28 @@ function AssetLinkPair({ dir = '', name, note }: { dir?: string; name: string; n
   )
 }
 
+/*
+ * The chip is painted from a literal hex rather than the token, so both values
+ * are visible at once whichever theme the reader is in. The theme name rides
+ * along in the label because the chips alone cannot say which is which for a
+ * token like GFP, where the two values are the same color.
+ */
+function Swatch({ hex, theme }: { hex: string; theme: 'Light' | 'Dark' }) {
+  return (
+    <span className="flex items-center gap-2">
+      <span
+        aria-hidden="true"
+        className="size-7 shrink-0 rounded-lg border border-ink/15"
+        style={{ backgroundColor: hex }}
+      />
+      <span className="flex flex-col leading-tight">
+        <span className="micro text-ink/35">{theme}</span>
+        <span className="mt-1 font-mono text-[11.5px] text-umber-soft">{hex}</span>
+      </span>
+    </span>
+  )
+}
+
 function ColorGroup({
   title,
   note,
@@ -123,15 +150,11 @@ function ColorGroup({
             className="flex flex-col gap-3 bg-shell/60 px-4 py-3.5 sm:flex-row sm:items-center sm:gap-5"
             key={color.token}
           >
-            <div className="flex items-center gap-3 sm:w-[168px] sm:shrink-0">
-              <span
-                aria-hidden="true"
-                className="size-8 shrink-0 rounded-lg border border-ink/12"
-                style={{ backgroundColor: color.hex }}
-              />
-              <div className="flex flex-col">
-                <span className="text-[13.5px] font-medium text-ink">{color.name}</span>
-                <span className="font-mono text-[11.5px] text-umber-soft">{color.hex}</span>
+            <div className="flex flex-col gap-1.5 sm:w-[232px] sm:shrink-0">
+              <span className="text-[13.5px] font-medium text-ink">{color.name}</span>
+              <div className="flex items-center gap-4">
+                <Swatch hex={color.light} theme="Light" />
+                <Swatch hex={color.dark} theme="Dark" />
               </div>
             </div>
             <p className="prose-lab text-[13px] leading-[1.55] text-umber sm:flex-1">
@@ -364,9 +387,14 @@ export function BrandPage() {
           </h2>
           <p className="prose-lab mt-6 max-w-[58ch] text-[16px] leading-[1.7] text-ink/78 sm:text-[17px]">
             Backgrounds read like paper. Text is a warm brown, not black.
-            Amber is for anything that needs emphasis on a light background.
-            Green, pink, and blue are only for dark backgrounds, where they
-            look like they&rsquo;re glowing instead of just sitting flat.
+            Amber is for anything that needs emphasis on the page. Green, pink,
+            and blue are only for dark backgrounds, where they look like
+            they&rsquo;re glowing instead of just sitting flat.
+          </p>
+          <p className="prose-lab mt-4 max-w-[58ch] text-[16px] leading-[1.7] text-ink/78 sm:text-[17px]">
+            Each name below holds two values, one per theme. Reach for the name
+            and the theme picks the value; the fluorophores are the exception,
+            since a glow that works on dark needs no second reading.
           </p>
         </div>
 
@@ -378,7 +406,7 @@ export function BrandPage() {
             <ColorGroup note="Text colors, most to least prominent." title="Ink" tokens={inkTokens} />
           </div>
           <div>
-            <ColorGroup note="The only colors safe to use for emphasis on a light background." title="Structure" tokens={structureTokens} />
+            <ColorGroup note="The only colors safe to use for emphasis on the page ground." title="Structure" tokens={structureTokens} />
           </div>
           <div>
             <ColorGroup note="For dark backgrounds only. Not for the mark, which is amber everywhere." title="Glow" tokens={fluorophoreTokens} />

@@ -1,67 +1,171 @@
 ---
 title: Action contracts
-eyebrow: std.lab.plasmid_actions
-description: Every durable action resolves through a typed contract naming its capability and how it treats each operand.
+eyebrow: Language guide
+description: What a durable effect resolves to, how ownership modes are declared, and which operations reach a target today.
 group: Learn Lab
-order: 70
+order: 60
 ---
 
-Every durable action resolves through a typed contract naming the capability
-required to dispatch it and how it treats each operand. This is what lets
-the checker reason about physical ownership without knowing anything about a
-specific instrument. `std.lab.plasmid_actions` defines seventeen of them.
+import { Callout } from '../../../components/callout'
 
-| Phrase | Capability | Operands | Result |
-| --- | --- | --- | --- |
-| `capture image of <plate>` | `plate_imaging` | `plate` borrow | `Image` |
-| `synthesize <design>` | `dna_synthesis` | `design` copy | `List<Fragment>` |
-| `assemble <fragments>` | `dna_assembly` | `fragments` take | `Material<Construct>` |
-| `provision <strain>` | `inventory` | `strain` copy | `Material<Strain>` |
-| `transform <construct> into <cells>` | `chemical_transformation` | `construct` take, `cells` take | `Material<Culture>` |
-| `recover <culture> for <duration>` | `culture_incubation` | `culture` take | `Material<Culture>` |
-| `dilute <culture>` | `liquid_handling` | `culture` take | `Material<Culture>` |
-| `plate <culture> on <antibiotic>` | `antibiotic_selection` | `culture` take, `antibiotic` copy | `Material<Plate>` |
-| `pick <n> isolated colonies from <plate>` | `colony_picking` | `plate` borrow | `List<Material<Clone>>` |
-| `screen <candidates> against <design>` | `clone_screening` | `candidates` take, `design` copy | `Screening` |
-| `grow <clone> at <temp> for <duration>` | `culture_incubation` | `clone` take | `Material<Culture>` |
-| `purify <culture>` | `plasmid_purification` | `culture` take | `Material<Plasmid>` |
-| `split <material>` | `liquid_handling` | `material` take | retained + aliquot, same type |
-| `sequence <aliquot>` | `sanger_sequencing` | `aliquot` take | `SequenceCheck` |
-| `quantify <material>` | `dna_quantification` | `material` borrow | `Evidence` |
-| `store <material> at <temp>` | `cold_storage` | `material` take | same material back |
-| `dispose <material>` | `waste_handling` | any material, take | none |
+`transform`, `plate`, and `sequence` look like keywords. They are not. Lab's
+grammar has no production for any laboratory verb, and the checker has no
+lookup table keyed on their spelling. Every one of them is a typed contract
+that a module exports.
 
-A contract's `capability` is the name a backend advertises support for. It's
-what lets the compiler ask "can this target even do this?" independent of
-which specific instrument ends up performing it. `recover` and `grow` share
-the `culture_incubation` capability; `dilute` and `split` share
-`liquid_handling`. A backend that offers one capability implicitly offers
-every contract that names it.
+```lab
+culture <- transform construct into cells
+```
 
-## Which of these actually reach LAIR today
+The parser sees a phrase after `<-` and nothing more. Resolution matches
+that phrase against the action contracts brought into scope by the module's
+imports, and produces a checked operation carrying a stable identity, typed
+operands, ownership modes, result types, and a required capability.
 
-Five of these seventeen contracts lower to LAIR: `provision`, `transform`,
-`recover`, `dilute`, and `plate`. The rest, `capture`, `synthesize`,
-`assemble`, `pick`, `screen`, `grow`, `purify`, `split`, `sequence`,
-`quantify`, `store`, and `dispose`, parse, resolve, and type-check like any
-other action, but `source_lowering.rs` has no case for them yet, so a
-workflow that calls them cannot currently reach a backend.
+This is why adding a laboratory operation adds no parser rules and no
+checker match arms. It is also why a package will eventually be able to
+supply operations that feel exactly as native as `std`.
 
-`synthesize` and `assemble` deserve a specific note: a separate, higher-level
-effect, `realize <design> from <dependencies>` (from `std.bio.build`, not
-`std.lab.plasmid_actions`), *is* lowered, and the compiler's own
-Workflow→Protocol dialect conversion later expands it into Protocol-level
-synthesize and assemble operations internally, hardcoded to Golden Gate
-assembly today. So the *capability* those two contracts represent is
-reachable end to end; the source-level `synthesize`/`assemble` phrases
-themselves just aren't the path that gets there yet. See
-[LAIR dialects](/docs/compiler/lair-dialects) for how that expansion works.
+## What a contract declares
 
-## Typed inventory constructors
+Here is the `realize` contract from `std.bio.build`, which is the operation
+that turns a design plus its dependencies into physical material:
 
-`std.bio.inventory` provides the typed constructors these contracts' `copy`
-operands reference: `part`, `backbone`, `restriction_enzyme`, `strain`, and
-`antibiotic`. Each names an external identity without resolving its
-availability, lot, or provenance; see
-[Syntax reference](/docs/guide/syntax-reference) for how they're bound and
-used.
+| Element | Value |
+| --- | --- |
+| Operation identity | `std.bio.build.realize` |
+| Capability | `artifact_realization` |
+| Phrase | `realize` *design* `from` *dependencies* |
+| `design` | `Plasmid`, mode `copy` |
+| `dependencies` | `List<Material<Plasmid>>`, mode `take` |
+| Result `product` | `Material<Plasmid>` |
+| Result `construct` | `Material<Construct>` |
+
+Four things are worth pulling out of that table.
+
+**The operation identity is stable.** Downstream passes match on
+`std.bio.build.realize`, never on the source text `realize`. Renaming the
+surface phrase would not change what a backend sees.
+
+**The capability is the dispatch requirement.** `artifact_realization` names
+what a laboratory must be able to do to run this action. A runtime will use
+it to route commands to a provider; today it is recorded and checked but
+never dispatched.
+
+**Ownership is per-operand.** The design is copied, because a design is
+information and information is free to reuse. The dependency list is taken,
+because those are physical tubes and they get consumed.
+
+**Results are named.** `product, construct <- realize ...` binds two values,
+in the order the contract declares them.
+
+## Ownership modes
+
+Three modes, and they exist because materials are affine — a physical thing
+has exactly one owning place, and the checker enforces it across branches,
+matches, returns, and reactive handlers.
+
+| Mode | Meaning | After the action |
+| --- | --- | --- |
+| `copy` | freely reusable information | operand still usable |
+| `borrow` | observe without consuming | operand still usable |
+| `take` | transfer the material into the action | operand is gone |
+
+`borrow` is the interesting one. `capture image of plate` borrows the plate:
+you get an image, and you still have the plate. `plate culture on
+chloramphenicol` takes the culture: the culture is now on the plate, and the
+name no longer refers to anything you own.
+
+The analysis is place-sensitive rather than name-sensitive. Taking
+`colony_result.plate` invalidates that physical projection while leaving
+`colony_result.observations` — which is information — perfectly usable.
+
+<Callout kind="aside">
+  Iteration over a collection of materials is currently rejected. It needs a
+  consuming-iterator contract that defines ownership for zero, partial,
+  completed, and early-return iteration, and that contract does not exist
+  yet.
+</Callout>
+
+## The bundled contracts
+
+`std.lab.plasmid_actions` exports seventeen contracts. `std.bio.build`
+exports one. The **Lowers** column is the honest part of this page: it marks
+whether the operation reaches LAIR, or only type-checks.
+
+| Phrase | Capability | Ownership | Results | Lowers |
+| --- | --- | --- | --- | --- |
+| `realize` *design* `from` *deps* | `artifact_realization` | copy, take | `product`, `construct` | yes |
+| `provision` *strain* | `inventory` | copy | `cells` | yes |
+| `transform` *construct* `into` *cells* | `chemical_transformation` | take, take | `culture` | yes |
+| `recover` *culture* `for` *duration* | `culture_incubation` | take | `culture` | yes |
+| `dilute` *culture* | `liquid_handling` | take | `culture` | yes |
+| `plate` *culture* `on` *antibiotic* | `antibiotic_selection` | take, copy | `plate` | yes |
+| `capture image of` *plate* | `plate_imaging` | borrow | `image` | no |
+| `synthesize` *design* | `dna_synthesis` | copy | `fragments` | no |
+| `assemble` *fragments* | `dna_assembly` | take | `construct` | no |
+| `pick` *n* `isolated colonies from` *plate* | `colony_picking` | borrow | `candidates` | no |
+| `screen` *candidates* `against` *design* | `clone_screening` | take, copy | `screening` | no |
+| `grow` *clone* `at` *temp* `for` *duration* | `culture_incubation` | take | `culture` | no |
+| `purify` *culture* | `plasmid_purification` | take | `plasmid` | no |
+| `split` *material* | `liquid_handling` | take | `retained`, `aliquot` | no |
+| `sequence` *aliquot* | `sanger_sequencing` | take | `result` | no |
+| `quantify` *material* | `dna_quantification` | borrow | `evidence` | no |
+| `store` *material* `at` *temp* | `cold_storage` | take | `material` | no |
+| `dispose` *material* | `waste_handling` | take | — | no |
+
+Six of eighteen lower. The other twelve parse, resolve, type-check, and pass
+material-flow verification, then stop at portable module IR. A program built
+from them is a valid Lab program that no backend can currently consume.
+
+`synthesize` and `assemble` are a special case: no source-level lowering
+path reaches them, but the Workflow-to-Protocol conversion *generates* both
+when it expands a `realize` operation. See
+[LAIR dialects](/docs/compiler/lair-dialects).
+
+## Phrase shapes
+
+A phrase interleaves fixed words with operands, and operands are not always
+values. `split` shows a contract whose result types are tied to its input:
+
+```lab
+retained, aliquot <- split plasmid
+```
+
+Both results are declared as *same as* the `material` operand, so splitting
+a `Material<Plasmid>` yields two of them without the contract naming the
+type. `dispose` goes further and accepts any material at all, which is what
+lets one operation end the ownership of a plate, a culture, or a plasmid.
+
+Contracts can also take literal quantities and integers rather than bound
+names:
+
+```lab
+culture <- recover culture for 1 h
+culture <- grow clone at 37 C for 16 h
+candidates <- pick 4 isolated colonies from plate
+```
+
+The contract declares which units each quantity slot accepts — `recover`
+takes `min` or `h`, `grow` takes `C` for temperature and `h` for duration —
+so a wrong unit is a resolution error rather than a silently accepted
+number.
+
+## Where contracts come from
+
+Each bundled module owns one specification listing everything it exports:
+types, values, pure functions, constructors, and durable actions. Importing
+the module inserts those exports into the checker's scope. The catalog
+validates itself when it is built, rejecting duplicate module paths,
+duplicate exported names, duplicate operation identities, and malformed
+contracts.
+
+The same catalog generates the standard library's reference documentation,
+so the docs cannot describe an export surface the compiler does not have.
+
+<Callout kind="note">
+  Source syntax for declaring your own action contracts does not exist yet.
+  The registry interface that `std` goes through is the intended path for
+  package-defined operations, but the surface syntax, visibility rules, and
+  package metadata for them are unresolved.
+</Callout>
