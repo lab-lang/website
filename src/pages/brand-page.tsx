@@ -1,6 +1,5 @@
 import { ArrowDownToLine } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { Reveal } from '../components/reveal'
 
 interface ColorToken {
   name: string
@@ -40,18 +39,18 @@ const vesselTokens: ColorToken[] = [
 
 const doList = [
   'Use the icon (the mark on its dark tile) for favicons, app icons, and anywhere it needs to stand alone.',
-  'On paper, use the amber-only version of the ring, not the full-color one.',
-  'Leave a small margin around the mark, roughly the width of one arc.',
+  'On paper, use the deep amber version of the mark, not the bright amber one.',
+  'Leave a small margin around the mark, roughly the height of one bar.',
   'Write "Lab" capitalized, in the serif typeface, everywhere it appears.',
-  'Keep the little arrows on the arcs. They show which direction each feature reads.',
+  'Keep the bar quieter than the arrow. That difference in weight is the whole idea.',
 ]
 
 const dontList = [
-  'Don’t put the green or blue ring straight onto paper. Those colors are made for dark backgrounds.',
-  'Don’t recolor the arcs.',
-  'Don’t stretch, skew, rotate, or add a shadow to the ring.',
-  'Don’t lowercase "Lab," and don’t set it in the mono or sans typeface.',
-  'Don’t shrink the tile so much that the ring stops being readable.',
+  'Don’t put the bright amber mark straight onto paper. It goes muddy against a light background.',
+  'Don’t recolor the arrow.',
+  'Don’t stretch, skew, or add a shadow to the mark.',
+  'Don’t flip the arrow. It points the way it points for a reason.',
+  'Don’t shrink the mark so far that the bar and the arrow run together.',
 ]
 
 function SectionKicker({ children }: { children: string }) {
@@ -159,7 +158,7 @@ function TypeSample({
   note: string
 }) {
   return (
-    <div className="grid gap-4 border-t border-ink/10 py-7 first:border-t-0 first:pt-0 sm:grid-cols-[180px_minmax(0,1fr)] sm:gap-8">
+    <div className="grid gap-4 border-t border-ink/10 py-7 first:border-t-0 sm:grid-cols-[180px_minmax(0,1fr)] sm:gap-8">
       <div>
         <h3 className="type-head text-[15px]">{name}</h3>
         <span className="mt-1 block font-mono text-[11.5px] text-umber-soft">{role}</span>
@@ -177,46 +176,50 @@ export function BrandPage() {
     <>
       <section className="agar-wash relative overflow-hidden" id="intro">
         <div className="mx-auto max-w-[1480px] px-5 pb-16 pt-14 sm:px-8 sm:pt-16 lg:px-10 lg:pb-24 lg:pt-20">
-          <Reveal className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5">
             <span className="size-1.5 rounded-full bg-amber ring-3 ring-amber/25" />
             <SectionKicker>Brand</SectionKicker>
-          </Reveal>
+          </div>
 
-          <Reveal delay={70}>
+          <div>
             <h1 className="type-display mt-6 max-w-[38ch] text-pretty text-[clamp(2.2rem,5vw,4rem)]">
               Brand Guidelines for Lab.
             </h1>
-          </Reveal>
+          </div>
 
-          <Reveal delay={140}>
+          <div>
             <p className="type-deck mt-7 max-w-[42em] text-pretty text-[clamp(1.05rem,1.6vw,1.4rem)] text-ink/78">
               Lab is a programming language and compiler toolchain for
               describing biology and orchestrating work in the laboratory.
-              Its mark is a plasmid ring, the loop of DNA scientists use to
-              carry new instructions into a cell, with one colored arc per
-              feature: the same picture the homepage draws while a program
-              compiles. This page covers the mark, the colors, and the type,
-              for anyone writing or building about Lab.
+              Its mark is the language&rsquo;s own punctuation: an equals
+              sign, and under it the arrow that commits a program to the
+              physical world. Lab draws a hard line between work that may be
+              re-run and work that may not, and those two marks are where
+              the line falls. This page covers the mark, the colors, and the
+              type, for anyone writing or building about Lab.
             </p>
-          </Reveal>
+          </div>
         </div>
       </section>
 
       <section className="border-y border-ink/12 bg-sand/40" id="mark">
         <div className="mx-auto max-w-[1480px] px-5 py-20 sm:px-8 lg:px-10 lg:py-24">
-          <Reveal className="max-w-2xl">
+          <div className="max-w-2xl">
             <SectionKicker>Mark and wordmark</SectionKicker>
             <h2 className="type-title mt-5 text-balance text-[clamp(2rem,4.2vw,3.2rem)]">
               The logo mark.
             </h2>
             <p className="prose-lab mt-6 max-w-[58ch] text-[16px] leading-[1.7] text-ink/78 sm:text-[17px]">
-              The circle is the plasmid&rsquo;s backbone. Each colored arc on
-              it is a feature: amber, green, and blue. The small triangle at
-              the end of each arc shows which direction that feature reads.
+              The quiet bar on top is <code className="font-mono">=</code>,
+              deterministic evaluation, which replay may repeat as often as
+              it likes. The amber arrow under it is{' '}
+              <code className="font-mono">&lt;-</code>, a durable action on
+              real material, which replay must never repeat. The arrow
+              carries the color because it is the half that costs something.
             </p>
-          </Reveal>
+          </div>
 
-          <Reveal className="mt-14" delay={80}>
+          <div className="mt-14">
             <span className="micro text-ink/40">Icon</span>
             <div className="mt-4 grid gap-4 sm:grid-cols-[240px_minmax(0,1fr)]">
               <Plate tone="dark">
@@ -224,7 +227,7 @@ export function BrandPage() {
               </Plate>
               <div className="flex flex-col gap-3">
                 <p className="prose-lab text-[14px] leading-[1.65] text-umber">
-                  This is the default version: the ring on its own dark
+                  This is the default version: the mark on its own dark
                   square. Because it brings its own background, it looks
                   right anywhere. Use it for favicons, app icons, and
                   profile pictures.
@@ -232,83 +235,129 @@ export function BrandPage() {
                 <AssetLinkPair name="lab-mark" note="dark tile" />
               </div>
             </div>
-          </Reveal>
+          </div>
 
-          <Reveal className="mt-10" delay={120}>
-            <span className="micro text-ink/40">Ring, without a tile</span>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <div className="mt-10">
+            <span className="micro text-ink/40">Mark, without a tile</span>
+            <div className="mt-4 grid gap-4 sm:grid-cols-3">
               <div className="flex flex-col gap-3">
                 <Plate tone="dark">
-                  <img alt="Lab ring on a dark surface" height={96} src="/brand/mark-ring-dark.svg" width={96} />
+                  <img alt="Lab mark on a dark surface" height={96} src="/brand/mark-dark.svg" width={96} />
                 </Plate>
-                <AssetLinkPair dir="brand" name="mark-ring-dark" note="dark surfaces" />
+                <AssetLinkPair dir="brand" name="mark-dark" note="dark surfaces" />
               </div>
               <div className="flex flex-col gap-3">
                 <Plate tone="light">
-                  <img alt="Lab ring on a light surface" height={96} src="/brand/mark-ring-light.svg" width={96} />
+                  <img alt="Lab mark on a light surface" height={96} src="/brand/mark-light.svg" width={96} />
                 </Plate>
-                <AssetLinkPair dir="brand" name="mark-ring-light" note="light surfaces" />
+                <AssetLinkPair dir="brand" name="mark-light" note="light surfaces" />
+              </div>
+              <div className="flex flex-col gap-3">
+                <Plate tone="light">
+                  <img alt="Lab mark in a single color" height={96} src="/brand/mark-mono.svg" width={96} />
+                </Plate>
+                <AssetLinkPair dir="brand" name="mark-mono" note="one color" />
               </div>
             </div>
             <p className="prose-lab mt-4 max-w-[62ch] text-[14px] leading-[1.65] text-umber">
-              Sometimes you need the ring on its own, with no tile behind it.
-              On a dark background, use the full-color version. On paper, use
-              the amber-only version instead. The bright green and blue are
-              made to look like they&rsquo;re glowing, which only works on a
-              dark background.
+              Sometimes you need the mark on its own, with no tile behind it.
+              On a dark background use the bright amber; on paper use the
+              deep amber, which holds up against a light surface. The
+              single-color version is for anywhere you only get one ink:
+              etching, embroidery, a one-color print. It gives up the
+              contrast between the two lines, so reach for it only when you
+              have to.
             </p>
-          </Reveal>
+          </div>
 
-          <Reveal className="mt-10" delay={160}>
+          <div className="mt-10">
             <span className="micro text-ink/40">Wordmark</span>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <div className="flex flex-col gap-3">
                 <Plate tone="dark">
-                  <img alt="Lab wordmark on a dark surface" height={64} src="/brand/wordmark-dark.svg" width={172} />
+                  <img alt="Lab wordmark on a dark surface" height={64} src="/brand/wordmark-dark.svg" width={147} />
                 </Plate>
                 <AssetLinkPair dir="brand" name="wordmark-dark" note="dark surfaces" />
               </div>
               <div className="flex flex-col gap-3">
                 <Plate tone="light">
-                  <img alt="Lab wordmark on a light surface" height={64} src="/brand/wordmark-light.svg" width={172} />
+                  <img alt="Lab wordmark on a light surface" height={64} src="/brand/wordmark-light.svg" width={147} />
                 </Plate>
                 <AssetLinkPair dir="brand" name="wordmark-light" note="light surfaces" />
               </div>
             </div>
             <p className="prose-lab mt-4 max-w-[62ch] text-[14px] leading-[1.65] text-umber">
               This is the mark and the word &ldquo;Lab&rdquo; side by side,
-              ready to drop into a header or footer. The SVG embeds its own
-              typeface, so it looks right even if the person opening it
-              doesn&rsquo;t have it installed. Every asset on this page is
-              also available as a transparent PNG, for tools that
-              don&rsquo;t take vector art.
+              ready to drop into a header or footer. The word is drawn as
+              outlines rather than live text, so it renders the same
+              everywhere and needs no typeface installed. Every asset on
+              this page is also available as a transparent PNG, for tools
+              that don&rsquo;t take vector art.
             </p>
-          </Reveal>
+          </div>
 
-          <Reveal className="mt-14 grid gap-8 border-t border-ink/12 pt-10 sm:grid-cols-2" delay={200}>
+          <div className="mt-10">
+            <span className="micro text-ink/40">Full wordmark</span>
+            <div className="mt-4 flex flex-col gap-4">
+              <div className="flex flex-col gap-3">
+                <Plate tone="dark">
+                  <img
+                    alt="Lab full wordmark on a dark surface"
+                    className="h-auto w-full max-w-[520px]"
+                    height={64}
+                    src="/brand/wordmark-full-dark.svg"
+                    width={638}
+                  />
+                </Plate>
+                <AssetLinkPair dir="brand" name="wordmark-full-dark" note="dark surfaces" />
+              </div>
+              <div className="flex flex-col gap-3">
+                <Plate tone="light">
+                  <img
+                    alt="Lab full wordmark on a light surface"
+                    className="h-auto w-full max-w-[520px]"
+                    height={64}
+                    src="/brand/wordmark-full-light.svg"
+                    width={638}
+                  />
+                </Plate>
+                <AssetLinkPair dir="brand" name="wordmark-full-light" note="light surfaces" />
+              </div>
+            </div>
+            <p className="prose-lab mt-4 max-w-[62ch] text-[14px] leading-[1.65] text-umber">
+              Where &ldquo;Lab&rdquo; on its own would read as an ordinary
+              word rather than a name, spell the language out: the top of a
+              README, the first slide, a conference banner, a paper. Same
+              mark, same typeface, just the full name. It runs more than
+              four times the width of the short wordmark, so give it a line
+              to itself rather than tucking it into a header.
+            </p>
+          </div>
+
+          <div className="mt-14 grid gap-8 border-t border-ink/12 pt-10 sm:grid-cols-2">
             <div>
               <h3 className="type-head text-[15px]">Spacing and size</h3>
               <p className="prose-lab mt-2.5 text-[14px] leading-[1.65] text-umber">
-                Give the mark a little breathing room, about the width of
-                one arc on every side. Below 16 pixels the three arcs blur
-                into a single ring of color, which is fine for a favicon
-                but too small for anything else.
+                Give the mark a little breathing room, about the height of
+                one bar on every side. Below 16 pixels the arrowhead loses
+                its point, which is fine for a favicon but too small for
+                anything else.
               </p>
             </div>
             <div>
               <h3 className="type-head text-[15px]">Motion</h3>
               <p className="prose-lab mt-2.5 text-[14px] leading-[1.65] text-umber">
-                On the site, the mark tilts slightly on hover, and the
-                homepage draws each arc in one at a time. Neither is needed
-                anywhere else. The still version is the real logo.
+                On the site, the mark tilts slightly on hover. That is the
+                only motion it gets, and it isn&rsquo;t needed anywhere
+                else. The still version is the real logo.
               </p>
             </div>
-          </Reveal>
+          </div>
         </div>
       </section>
 
       <section className="mx-auto max-w-[1480px] px-5 py-20 sm:px-8 lg:px-10 lg:py-24" id="color">
-        <Reveal className="max-w-2xl">
+        <div className="max-w-2xl">
           <SectionKicker>Color</SectionKicker>
           <h2 className="type-title mt-5 text-balance text-[clamp(2rem,4.2vw,3.2rem)]">
             The palette.
@@ -319,30 +368,30 @@ export function BrandPage() {
             Green, pink, and blue are only for dark backgrounds, where they
             look like they&rsquo;re glowing instead of just sitting flat.
           </p>
-        </Reveal>
+        </div>
 
         <div className="mt-12 flex flex-col gap-10">
-          <Reveal delay={60}>
+          <div>
             <ColorGroup note="Backgrounds, lightest to darkest." title="Ground" tokens={groundTokens} />
-          </Reveal>
-          <Reveal delay={100}>
+          </div>
+          <div>
             <ColorGroup note="Text colors, most to least prominent." title="Ink" tokens={inkTokens} />
-          </Reveal>
-          <Reveal delay={140}>
+          </div>
+          <div>
             <ColorGroup note="The only colors safe to use for emphasis on a light background." title="Structure" tokens={structureTokens} />
-          </Reveal>
-          <Reveal delay={180}>
-            <ColorGroup note="For dark backgrounds only. The light-surface mark uses amber instead." title="Glow" tokens={fluorophoreTokens} />
-          </Reveal>
-          <Reveal delay={220}>
+          </div>
+          <div>
+            <ColorGroup note="For dark backgrounds only. Not for the mark, which is amber everywhere." title="Glow" tokens={fluorophoreTokens} />
+          </div>
+          <div>
             <ColorGroup note="Dark backgrounds: footers, code blocks, the icon tile." title="Dark" tokens={vesselTokens} />
-          </Reveal>
+          </div>
         </div>
       </section>
 
       <section className="border-y border-ink/12 bg-sand/40" id="type">
         <div className="mx-auto max-w-[1480px] px-5 py-20 sm:px-8 lg:px-10 lg:py-24">
-          <Reveal className="max-w-2xl">
+          <div className="max-w-2xl">
             <SectionKicker>Typography</SectionKicker>
             <h2 className="type-title mt-5 text-balance text-[clamp(2rem,4.2vw,3.2rem)]">
               Three typefaces, three jobs.
@@ -351,9 +400,9 @@ export function BrandPage() {
               A serif for headlines, a sans-serif for body text and small
               labels, and a monospace for anything that reads like code.
             </p>
-          </Reveal>
+          </div>
 
-          <Reveal className="mt-12 rounded-2xl border border-ink/12 bg-shell/60 px-6 sm:px-8" delay={80}>
+          <div className="mt-12 rounded-2xl border border-ink/12 bg-shell/60 px-6 sm:px-8">
             <TypeSample
               name="Crimson Pro"
               note="Used for headlines and the wordmark."
@@ -375,12 +424,12 @@ export function BrandPage() {
               sample="4,214 bp · circular · 0 BsaI sites"
               sampleClassName="font-mono text-[15px]"
             />
-          </Reveal>
+          </div>
         </div>
       </section>
 
       <section className="mx-auto max-w-[1480px] px-5 py-20 sm:px-8 lg:px-10 lg:py-24" id="usage">
-        <Reveal className="max-w-2xl">
+        <div className="max-w-2xl">
           <SectionKicker>Usage</SectionKicker>
           <h2 className="type-title mt-5 text-balance text-[clamp(2rem,4.2vw,3.2rem)]">
             A few requests.
@@ -389,7 +438,7 @@ export function BrandPage() {
             Most of these come down to one thing: the mark is a real ring
             with real colors, not a piece of clip art, so treat it like one.
           </p>
-        </Reveal>
+        </div>
 
         <div className="mt-12 grid gap-px overflow-hidden rounded-2xl border border-ink/15 bg-ink/12 sm:grid-cols-2">
           <div className="flex flex-col gap-4 bg-shell/70 p-6 sm:p-8">
@@ -416,14 +465,14 @@ export function BrandPage() {
           </div>
         </div>
 
-        <Reveal className="mt-10" delay={80}>
+        <div className="mt-10">
           <div className="tick-rule" />
           <p className="prose-lab mt-6 max-w-[58ch] text-[14.5px] leading-[1.65] text-umber">
             Need something that isn&rsquo;t here, like a different
             background, a single-color version, or a bigger export? Open an
             issue and say where it&rsquo;s going.
           </p>
-        </Reveal>
+        </div>
       </section>
     </>
   )

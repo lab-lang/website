@@ -15,7 +15,7 @@ export function LoweringRail() {
        */}
       <div
         aria-label="Compilation stages"
-        className="-mx-5 overflow-x-auto px-5 sm:mx-0 sm:px-0"
+        className="rail rail-quiet -mx-5 px-5 sm:mx-0 sm:px-0"
         role="tablist"
       >
         <div className="flex min-w-max items-stretch gap-1">
@@ -71,7 +71,7 @@ export function LoweringRail() {
 
       <div
         aria-labelledby={`stage-tab-${active.id}`}
-        className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1fr)] lg:gap-12"
+        className="mt-8 grid gap-6 sm:gap-8 lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1fr)] lg:gap-12"
         id="stage-panel"
         role="tabpanel"
       >
@@ -91,7 +91,7 @@ export function LoweringRail() {
           className="stage-panel overflow-hidden rounded-xl border border-[#f6ece0]/12 bg-black/25"
           key={`${active.id}-code`}
         >
-          <div className="max-h-[440px] overflow-auto">
+          <div className="max-h-[340px] overflow-auto sm:max-h-[440px]">
             <SourceCode
               language={active.language}
               showLineNumbers={active.language !== 'shell'}

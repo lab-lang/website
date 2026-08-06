@@ -1,6 +1,6 @@
 import { Menu, X } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
-import { Link, NavLink } from 'react-router-dom'
+import { Link, NavLink, useLocation } from 'react-router-dom'
 import { REPO_URL } from '../lib/site'
 
 const navigation = [
@@ -9,7 +9,7 @@ const navigation = [
   { label: 'Community', to: '/community' },
 ]
 
-/** A plasmid ring: an annotated backbone with three features. */
+/** `=` above `<-`: what replay may repeat, and what it may not. */
 function Mark({ size = 30 }: { size?: number }) {
   return (
     <svg
@@ -20,47 +20,30 @@ function Mark({ size = 30 }: { size?: number }) {
       width={size}
     >
       <rect fill="currentColor" height="64" rx="15" width="64" />
-      <circle
-        cx="32"
-        cy="32"
-        fill="none"
-        r="17"
-        stroke="#f0e3c9"
-        strokeOpacity=".22"
-        strokeWidth="7"
+      <rect
+        fill="#f0e3c9"
+        fillOpacity=".34"
+        height="5.5"
+        rx="2.75"
+        width="31"
+        x="17"
+        y="17.5"
+      />
+      <rect
+        fill="var(--color-amber)"
+        height="5.5"
+        rx="2.75"
+        width="26"
+        x="22"
+        y="36"
       />
       <path
-        d="M32 15A17 17 0 0 1 48.5 36.11"
+        d="M27 33.25 20 38.75 27 44.25"
         fill="none"
         stroke="var(--color-amber)"
-        strokeWidth="7"
-      />
-      <polygon
-        fill="var(--color-amber)"
-        points="0,-4.6 6.4,0 0,4.6"
-        transform="translate(48.5 36.11) rotate(104)"
-      />
-      <path
-        d="M46.72 40.5A17 17 0 0 1 20.19 44.23"
-        fill="none"
-        stroke="var(--color-gfp)"
-        strokeWidth="7"
-      />
-      <polygon
-        fill="var(--color-gfp)"
-        points="0,-4.6 6.4,0 0,4.6"
-        transform="translate(20.19 44.23) rotate(224)"
-      />
-      <path
-        d="M17.28 40.5A17 17 0 0 1 27.31 15.66"
-        fill="none"
-        stroke="var(--color-cfp)"
-        strokeWidth="7"
-      />
-      <polygon
-        fill="var(--color-cfp)"
-        points="0,-4.6 6.4,0 0,4.6"
-        transform="translate(27.31 15.66) rotate(344)"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="5.5"
       />
     </svg>
   )
@@ -79,30 +62,34 @@ function Wordmark({ size = 30 }: { size?: number }) {
   return (
     <Link
       aria-label="Lab home"
-      className="press group inline-flex items-center gap-2.5 rounded-md text-ink"
+      className="press group inline-flex items-center rounded-md text-ink"
       to="/"
     >
-      <span className="inline-flex transition-transform duration-500 ease-[var(--ease-crisp)] group-hover:rotate-[22deg]">
+      <span className="nudge inline-flex items-center gap-2.5 group-hover:translate-x-[-3px]">
         <Mark size={size} />
+        <span className="type-head text-[20px] tracking-[-0.012em]">Lab</span>
       </span>
-      <span className="type-head text-[20px] tracking-[-0.012em]">Lab</span>
     </Link>
   )
 }
 
 function navClass({ isActive }: { isActive: boolean }) {
-  return `press group flex items-center gap-2 rounded-lg px-3 py-2 text-[14px] transition-colors ${
-    isActive ? 'text-ink' : 'text-umber hover:bg-ink/6 hover:text-ink'
-  }`
+  return `press group flex items-center gap-2 rounded-lg px-3 py-2 text-[14px] transition-colors ${isActive ? 'text-ink' : 'text-umber hover:bg-ink/6 hover:text-ink'
+    }`
+}
+
+/** The same link, sized for a thumb rather than a cursor. */
+function mobileNavClass({ isActive }: { isActive: boolean }) {
+  return `press group flex min-h-12 items-center gap-3 rounded-xl px-3 text-[16px] transition-colors ${isActive ? 'bg-ink/6 text-ink' : 'text-umber active:bg-ink/6'
+    }`
 }
 
 function NavDot({ isActive }: { isActive: boolean }) {
   return (
     <span
       aria-hidden="true"
-      className={`size-1.5 shrink-0 rounded-full transition-colors duration-300 ${
-        isActive ? 'bg-amber' : 'bg-ink/8 group-hover:bg-ink/25'
-      }`}
+      className={`size-1.5 shrink-0 rounded-full transition-colors duration-300 ${isActive ? 'bg-amber' : 'bg-ink/8 group-hover:bg-ink/25'
+        }`}
     />
   )
 }
@@ -110,6 +97,17 @@ function NavDot({ isActive }: { isActive: boolean }) {
 export function SiteShell({ children }: { children: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const { pathname } = useLocation()
+  const [menuPath, setMenuPath] = useState(pathname)
+
+  /*
+   * Navigating is the point of the menu, so arriving somewhere closes it. This
+   * covers the browser's own back and forward, which the links cannot.
+   */
+  if (menuPath !== pathname) {
+    setMenuPath(pathname)
+    setMenuOpen(false)
+  }
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 6)
@@ -117,6 +115,27 @@ export function SiteShell({ children }: { children: ReactNode }) {
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
+
+  /*
+   * The menu covers the page on a phone, so the page beneath it must not
+   * scroll away underneath the panel.
+   */
+  useEffect(() => {
+    if (!menuOpen) return
+
+    const previous = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMenuOpen(false)
+    }
+    window.addEventListener('keydown', onKeyDown)
+
+    return () => {
+      document.body.style.overflow = previous
+      window.removeEventListener('keydown', onKeyDown)
+    }
+  }, [menuOpen])
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -128,11 +147,10 @@ export function SiteShell({ children }: { children: ReactNode }) {
       </a>
 
       <header
-        className={`sticky top-0 z-50 border-b border-ink/12 backdrop-blur-xl transition-[background-color,box-shadow] duration-300 ${
-          scrolled ? 'nav-elevated bg-paper/95' : 'bg-paper/80'
-        }`}
+        className={`sticky top-0 z-50 border-b border-ink/12 backdrop-blur-xl transition-[background-color,box-shadow] duration-300 ${scrolled ? 'nav-elevated bg-paper/95' : 'bg-paper/80'
+          }`}
       >
-        <div className="mx-auto flex h-[68px] max-w-[1480px] items-center justify-between px-5 sm:px-8 lg:px-10">
+        <div className="mx-auto flex h-[60px] max-w-[1480px] items-center justify-between px-5 sm:h-[68px] sm:px-8 lg:px-10">
           <Wordmark />
 
           <nav
@@ -167,24 +185,24 @@ export function SiteShell({ children }: { children: ReactNode }) {
             aria-controls="mobile-navigation"
             aria-expanded={menuOpen}
             aria-label={menuOpen ? 'Close navigation' : 'Open navigation'}
-            className="press grid size-10 place-items-center rounded-lg border border-ink/18 md:hidden"
+            className="press -mr-1.5 grid size-11 place-items-center rounded-lg border border-ink/18 md:hidden"
             onClick={() => setMenuOpen((open) => !open)}
             type="button"
           >
-            {menuOpen ? <X size={18} /> : <Menu size={18} />}
+            {menuOpen ? <X size={19} /> : <Menu size={19} />}
           </button>
         </div>
 
         {menuOpen && (
           <nav
             aria-label="Mobile"
-            className="border-t border-ink/12 px-5 py-4 md:hidden"
+            className="stage-panel relative border-t border-ink/12 bg-paper px-4 pb-5 pt-3 md:hidden"
             id="mobile-navigation"
           >
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-0.5">
               {navigation.map((item) => (
                 <NavLink
-                  className={navClass}
+                  className={mobileNavClass}
                   key={item.to}
                   onClick={() => setMenuOpen(false)}
                   to={item.to}
@@ -198,7 +216,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
                 </NavLink>
               ))}
               <a
-                className="press flex items-center gap-2 rounded-lg px-3 py-2 text-[14px] text-umber hover:bg-ink/6 hover:text-ink"
+                className="press mt-2 flex min-h-12 items-center justify-center gap-2 rounded-xl border border-ink/18 text-[15px] text-ink"
                 onClick={() => setMenuOpen(false)}
                 href={REPO_URL}
                 rel="noreferrer"
@@ -212,22 +230,35 @@ export function SiteShell({ children }: { children: ReactNode }) {
         )}
       </header>
 
+      {/*
+       * A sibling of the header, not a child: the header's backdrop-filter
+       * would otherwise become this element's containing block and confine the
+       * dimming to the header itself. Tapping it dismisses the menu.
+       */}
+      {menuOpen && (
+        <div
+          aria-hidden="true"
+          className="fixed inset-0 z-40 bg-ink/25 md:hidden"
+          onClick={() => setMenuOpen(false)}
+        />
+      )}
+
       <main className="flex-1" id="main">
         {children}
       </main>
 
       <footer className="border-t border-ink/12 bg-sand/45">
-        <div className="mx-auto max-w-[1480px] px-5 py-14 sm:px-8 lg:px-10">
+        <div className="mx-auto max-w-[1480px] px-5 py-12 sm:px-8 sm:py-14 lg:px-10">
           <div className="flex flex-col gap-10 md:flex-row md:items-start md:justify-between">
             <div className="max-w-sm">
               <Wordmark size={28} />
               <p className="prose-lab mt-4 text-[14px] leading-[1.7] text-umber">
-                A programming language and compiler toolchain for describing
-                biology and orchestrating work in the laboratory.
+                Lab is a programming language and compiler toolchain for
+                describing biology and orchestrating work in the laboratory.
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-x-12 gap-y-3 text-[14px] sm:gap-x-20">
+            <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-[14px] sm:gap-x-20">
               <div className="flex flex-col gap-3">
                 <span className="micro text-ink/40">Learn</span>
                 <Link className="rule-link w-fit text-umber hover:text-ink" to="/docs">
@@ -281,7 +312,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
 
           <div className="tick-rule mt-12" />
           <div className="mt-5 text-[13px] text-umber-soft">
-            <span>Apache-2.0 · v0.1.0 · early prototype</span>
+            <span>Apache-2.0 · v0.1.0</span>
           </div>
         </div>
       </footer>

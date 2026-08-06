@@ -1,6 +1,5 @@
 import { ArrowRight, Bug, ExternalLink, MessageSquare, ScrollText } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { Reveal } from '../components/reveal'
 import { REPO_URL } from '../lib/site'
 
 const channels = [
@@ -111,29 +110,30 @@ export function CommunityPage() {
   return (
     <>
       <section className="agar-wash relative overflow-hidden" id="intro">
-        <div className="mx-auto max-w-[1480px] px-5 pb-20 pt-8 sm:px-8 sm:pt-10 lg:px-10 lg:pb-28">
-          <Reveal className="flex items-center gap-2.5">
+        <div className="mx-auto max-w-[1480px] px-5 pb-14 pt-6 sm:px-8 sm:pb-20 sm:pt-10 lg:px-10 lg:pb-28">
+          <div className="flex items-center gap-2.5">
             <span className="size-1.5 rounded-full bg-gfp ring-3 ring-gfp/25" />
             <span className="micro text-umber">
-              v0.1.0 · early prototype · community forming
+              <span className="normal-case">v</span>0.1.0 · early prototype ·
+              community forming
             </span>
-          </Reveal>
+          </div>
 
-          <Reveal delay={70}>
+          <div>
             <h1 className="type-display mt-6 text-pretty text-[clamp(2.2rem,5vw,4.5rem)]">
               Help build the future of lab automation.
             </h1>
-          </Reveal>
+          </div>
 
-          <Reveal delay={140}>
+          <div>
             <p className="type-deck mt-7 max-w-[38em] text-pretty text-[clamp(1.05rem,1.6vw,1.4rem)] text-ink/78">
               Lab is a small programming language with big ambitions to help
               change how we do science. If you&rsquo;re interested in making
               laboratory science scalable and fun, consider joining us!
             </p>
-          </Reveal>
+          </div>
 
-          <Reveal className="mt-8 flex flex-wrap gap-3" delay={200}>
+          <div className="mt-8 flex flex-wrap gap-3">
             <a
               className="press inline-flex items-center gap-2 rounded-xl bg-ink px-5 py-3 text-[14px] text-paper shadow-[0_10px_24px_-8px_rgb(43_28_17_/_0.5)]"
               href={REPO_URL}
@@ -151,13 +151,13 @@ export function CommunityPage() {
             >
               Open an issue
             </a>
-          </Reveal>
+          </div>
         </div>
       </section>
 
       <section className="border-y border-ink/12 bg-sand/40" id="channels">
-        <div className="mx-auto max-w-[1480px] px-5 py-20 sm:px-8 lg:px-10 lg:py-28">
-          <Reveal className="max-w-2xl">
+        <div className="mx-auto max-w-[1480px] px-5 py-14 sm:px-8 sm:py-20 lg:px-10 lg:py-28">
+          <div className="max-w-2xl">
             <span className="micro text-amber-deep">
               Where the conversation happens
             </span>
@@ -168,15 +168,11 @@ export function CommunityPage() {
               Report a bug, ask a question, or read why a decision was made.
               At this size, one good issue can change how the language works.
             </p>
-          </Reveal>
+          </div>
 
-          <div className="mt-14 grid gap-px overflow-hidden rounded-2xl border border-ink/15 bg-ink/12 sm:grid-cols-3">
+          <div className="mt-10 grid gap-px overflow-hidden rounded-2xl border border-ink/15 bg-ink/12 sm:mt-14 sm:grid-cols-3">
             {channels.map((channel, index) => (
-              <Reveal
-                className="lift bg-shell/70 p-6 sm:p-7"
-                delay={index * 70}
-                key={channel.title}
-              >
+              <div className="lift bg-shell/70 p-6 sm:p-7" key={channel.title}>
                 <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-amber/12 text-amber-deep">
                   <channel.icon aria-hidden="true" size={16} strokeWidth={2} />
                 </span>
@@ -193,15 +189,15 @@ export function CommunityPage() {
                   {channel.cta}
                   <ExternalLink aria-hidden="true" size={12} />
                 </a>
-              </Reveal>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
       <section className="emission-wash bg-vessel" id="flow">
-        <div className="mx-auto max-w-[1480px] px-5 py-20 sm:px-8 lg:px-10 lg:py-28">
-          <Reveal className="max-w-2xl">
+        <div className="mx-auto max-w-[1480px] px-5 py-14 sm:px-8 sm:py-20 lg:px-10 lg:py-28">
+          <div className="max-w-2xl">
             <span className="micro text-gfp">How a change lands</span>
             <h2 className="type-title mt-5 text-balance text-[clamp(2rem,4.2vw,3.4rem)] text-[#f6ece0]">
               From a question to an accepted decision.
@@ -210,11 +206,11 @@ export function CommunityPage() {
               Nothing here happens behind closed doors. Every stage below is
               visible in the repository, in order, with nothing skipped.
             </p>
-          </Reveal>
+          </div>
 
-          <div className="mt-14 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-10 grid gap-x-8 gap-y-10 sm:mt-14 sm:grid-cols-2 lg:grid-cols-4">
             {flow.map((stage, index) => (
-              <Reveal delay={index * 80} key={stage.title}>
+              <div key={stage.title}>
                 <div className="flex items-baseline gap-2.5">
                   <span className="font-mono text-[12px] text-gfp/60">
                     {String(index + 1).padStart(2, '0')}
@@ -226,15 +222,15 @@ export function CommunityPage() {
                 <p className="prose-lab mt-3 border-t border-white/10 pt-3 text-[13.5px] leading-[1.6] text-[#f6ece0]/55">
                   {stage.detail}
                 </p>
-              </Reveal>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-[1480px] px-5 py-20 sm:px-8 lg:px-10 lg:py-28" id="get-involved">
+      <section className="mx-auto max-w-[1480px] px-5 py-14 sm:px-8 sm:py-20 lg:px-10 lg:py-28" id="get-involved">
         <div className="grid gap-12 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1fr)] lg:gap-20">
-          <Reveal>
+          <div>
             <span className="micro text-amber-deep">Getting involved</span>
             <h2 className="type-title mt-5 text-balance text-[clamp(2rem,4.2vw,3.4rem)]">
               Where to start.
@@ -243,16 +239,11 @@ export function CommunityPage() {
               The project is small enough that reading before writing goes a
               long way. These are listed in the order they tend to be useful.
             </p>
-          </Reveal>
+          </div>
 
           <ol className="divide-y divide-ink/10">
             {steps.map((step, index) => (
-              <Reveal
-                as="li"
-                className="py-5 first:pt-0 last:pb-0"
-                delay={90 + index * 60}
-                key={step.title}
-              >
+              <li className="py-5 first:pt-0 last:pb-0" key={step.title}>
                 <div className="flex items-baseline gap-2.5">
                   <span className="font-mono text-[12px] text-amber-deep/70">
                     {String(index + 1).padStart(2, '0')}
@@ -262,23 +253,23 @@ export function CommunityPage() {
                 <p className="prose-lab mt-1.5 text-[14px] leading-[1.65] text-umber">
                   {step.detail}
                 </p>
-              </Reveal>
+              </li>
             ))}
           </ol>
         </div>
       </section>
 
       <section className="emission-wash bg-vessel" id="decisions">
-        <div className="mx-auto max-w-[1480px] px-5 py-20 sm:px-8 lg:px-10 lg:py-28">
-          <Reveal>
+        <div className="mx-auto max-w-[1480px] px-5 py-14 sm:px-8 sm:py-20 lg:px-10 lg:py-28">
+          <div>
             <span className="micro text-gfp">Design decisions</span>
             <h2 className="type-title mt-5 max-w-[18ch] text-balance text-[clamp(2rem,4.2vw,3.4rem)] text-[#f6ece0]">
               Every tradeoff is a numbered document.
             </h2>
-          </Reveal>
+          </div>
 
-          <div className="mt-14 grid gap-10 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1fr)] lg:gap-16">
-            <Reveal delay={80}>
+          <div className="mt-10 grid gap-10 sm:mt-14 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1fr)] lg:gap-16">
+            <div>
               <blockquote className="type-quote text-[clamp(1.35rem,2.4vw,1.85rem)] text-[#f6ece0]">
                 &ldquo;Decision records preserve the reasoning and status
                 behind the language rather than leaving it implicit in parser
@@ -301,9 +292,9 @@ export function CommunityPage() {
                 Read the full decision log
                 <ExternalLink aria-hidden="true" size={14} />
               </a>
-            </Reveal>
+            </div>
 
-            <Reveal delay={140}>
+            <div>
               <ol className="border-l border-white/15 pl-8 sm:pl-10">
                 {decisions.map((decision) => (
                   <li
@@ -344,14 +335,14 @@ export function CommunityPage() {
                   </li>
                 ))}
               </ol>
-            </Reveal>
+            </div>
           </div>
         </div>
       </section>
 
       <section className="border-t border-ink/12 bg-sand/40" id="closing">
-        <div className="mx-auto max-w-[1480px] px-5 py-16 sm:px-8 lg:px-10">
-          <Reveal>
+        <div className="mx-auto max-w-[1480px] px-5 py-12 sm:px-8 sm:py-16 lg:px-10">
+          <div>
             <div className="tick-rule" />
             <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <p className="prose-lab text-[15px] text-umber">
@@ -374,7 +365,7 @@ export function CommunityPage() {
                 </Link>
               </div>
             </div>
-          </Reveal>
+          </div>
         </div>
       </section>
     </>

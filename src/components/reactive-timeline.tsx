@@ -87,10 +87,11 @@ export function ReactiveTimeline() {
         <span className="micro text-[#f6ece0]/30">await_colonies</span>
       </div>
 
-      <div className="min-h-0 flex-1">
+      {/* An 18-hour axis is wider than a phone, so it pans instead of shrinking. */}
+      <div className="rail min-h-0 flex-1">
         <svg
           aria-label="A timeline of the await_colonies workflow checking a plate every 30 minutes. Isolated colonies climb toward a threshold of 8, and the workflow resolves to Ready at 11.5 hours, well before its 18-hour deadline."
-          className="h-full w-full"
+          className="h-full w-full min-w-[500px] sm:min-w-0"
           role="img"
           viewBox="0 0 520 380"
         >

@@ -29,11 +29,15 @@ export function PlaygroundToolbar({
   formatDisabled: boolean
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-1.5">
-      <div className="relative">
+    /*
+     * On a phone the project name gets a row of its own: sharing one with five
+     * controls leaves it too narrow to read the name it is there to show.
+     */
+    <div className="flex w-full flex-wrap items-center gap-1.5 sm:w-auto sm:flex-nowrap">
+      <div className="relative w-full sm:w-auto">
         <select
           aria-label="Playground project"
-          className="press h-8 appearance-none rounded-lg border border-white/10 bg-white/5 pl-3 pr-8 text-[12.5px] text-[#f2e8db] hover:border-white/20"
+          className="press h-9 w-full appearance-none truncate rounded-lg border border-white/10 bg-white/5 pl-3 pr-8 text-[13px] text-[#f2e8db] hover:border-white/20 sm:h-8 sm:w-auto sm:text-[12.5px]"
           onChange={(event) => onSelectProject(event.target.value)}
           value={activeProjectId}
         >
@@ -56,61 +60,64 @@ export function PlaygroundToolbar({
         </select>
         <ChevronDown
           aria-hidden="true"
-          className="pointer-events-none absolute right-2.5 top-2 text-[#f6ece0]/45"
+          className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[#f6ece0]/45"
           size={13}
         />
       </div>
-      <button
-        className="press grid size-8 place-items-center rounded-lg border border-white/10 bg-white/5 text-[#f6ece0]/60 hover:border-white/20 hover:text-[#f2e8db]"
-        onClick={onNewScratch}
-        title="New scratch project — a blank file to try your own ideas"
-        type="button"
-      >
-        <Plus aria-hidden="true" size={13} />
-        <span className="sr-only">New scratch project</span>
-      </button>
-      {showDeleteScratch && (
+
+      <div className="ml-auto flex items-center gap-1.5 sm:ml-0">
         <button
-          className="press grid size-8 place-items-center rounded-lg border border-white/10 bg-white/5 text-[#f6ece0]/60 hover:border-mcherry/40 hover:text-mcherry"
-          onClick={onDeleteScratch}
-          title="Delete this scratch project"
+          className="press grid size-9 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/5 text-[#f6ece0]/60 hover:border-white/20 hover:text-[#f2e8db] sm:size-8"
+          onClick={onNewScratch}
+          title="New scratch project — a blank file to try your own ideas"
           type="button"
         >
-          <Trash2 aria-hidden="true" size={13} />
-          <span className="sr-only">Delete scratch project</span>
+          <Plus aria-hidden="true" size={13} />
+          <span className="sr-only">New scratch project</span>
         </button>
-      )}
-      <button
-        className="press grid size-8 place-items-center rounded-lg border border-white/10 bg-white/5 text-[#f6ece0]/60 hover:border-white/20 hover:text-[#f2e8db]"
-        onClick={onReset}
-        title="Reset this project to its original files"
-        type="button"
-      >
-        <RotateCcw aria-hidden="true" size={13} />
-        <span className="sr-only">Reset project</span>
-      </button>
-      <button
-        className="press grid size-8 place-items-center rounded-lg border border-white/10 bg-white/5 text-[#f6ece0]/60 hover:border-white/20 hover:text-[#f2e8db] disabled:opacity-40"
-        disabled={formatDisabled}
-        onClick={onFormat}
-        title="Format the active file"
-        type="button"
-      >
-        <WrapText aria-hidden="true" size={13} />
-        <span className="sr-only">Format file</span>
-      </button>
-      <button
-        className="press inline-flex h-8 items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 text-[12.5px] text-[#f6ece0]/60 hover:border-white/20 hover:text-[#f2e8db]"
-        onClick={onCopy}
-        type="button"
-      >
-        {copied ? (
-          <Check aria-hidden="true" size={12} strokeWidth={2.6} />
-        ) : (
-          <Copy aria-hidden="true" size={12} />
+        {showDeleteScratch && (
+          <button
+            className="press grid size-9 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/5 text-[#f6ece0]/60 hover:border-mcherry/40 hover:text-mcherry sm:size-8"
+            onClick={onDeleteScratch}
+            title="Delete this scratch project"
+            type="button"
+          >
+            <Trash2 aria-hidden="true" size={13} />
+            <span className="sr-only">Delete scratch project</span>
+          </button>
         )}
-        {copied ? 'Copied' : 'Copy'}
-      </button>
+        <button
+          className="press grid size-9 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/5 text-[#f6ece0]/60 hover:border-white/20 hover:text-[#f2e8db] sm:size-8"
+          onClick={onReset}
+          title="Reset this project to its original files"
+          type="button"
+        >
+          <RotateCcw aria-hidden="true" size={13} />
+          <span className="sr-only">Reset project</span>
+        </button>
+        <button
+          className="press grid size-9 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/5 text-[#f6ece0]/60 hover:border-white/20 hover:text-[#f2e8db] disabled:opacity-40 sm:size-8"
+          disabled={formatDisabled}
+          onClick={onFormat}
+          title="Format the active file"
+          type="button"
+        >
+          <WrapText aria-hidden="true" size={13} />
+          <span className="sr-only">Format file</span>
+        </button>
+        <button
+          className="press inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 text-[12.5px] text-[#f6ece0]/60 hover:border-white/20 hover:text-[#f2e8db] sm:h-8"
+          onClick={onCopy}
+          type="button"
+        >
+          {copied ? (
+            <Check aria-hidden="true" size={12} strokeWidth={2.6} />
+          ) : (
+            <Copy aria-hidden="true" size={12} />
+          )}
+          {copied ? 'Copied' : 'Copy'}
+        </button>
+      </div>
     </div>
   )
 }

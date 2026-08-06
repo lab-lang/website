@@ -119,43 +119,48 @@ const edges: Edge[] = CIRCUIT_PARTS.slice(0, -1).map((part, index) => ({
 export function CircuitGraph() {
   return (
     <div className="flex h-full flex-col px-5 pb-3 pt-3 sm:px-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <span className="size-1.5 rounded-full bg-gfp" />
           <span className="micro text-[#f6ece0]/55">Circuit</span>
         </div>
-        <span className="micro text-[#f6ece0]/30">regulated_expression</span>
+        <span className="micro truncate text-[#f6ece0]/30">
+          regulated_expression
+        </span>
       </div>
 
-      <div className="mt-4 min-h-0 flex-1">
-        <ReactFlow
-          colorMode="dark"
-          edges={edges}
-          elementsSelectable={false}
-          fitView
-          fitViewOptions={{ padding: 0.16, maxZoom: 1 }}
-          nodes={nodes}
-          nodeTypes={NODE_TYPES}
-          nodesConnectable={false}
-          nodesDraggable={false}
-          panOnDrag={false}
-          panOnScroll={false}
-          preventScrolling={false}
-          proOptions={{ hideAttribution: true }}
-          zoomOnDoubleClick={false}
-          zoomOnPinch={false}
-          zoomOnScroll={false}
-        >
-          <Background
-            color="rgba(246,236,224,0.16)"
-            gap={16}
-            size={1}
-            variant={BackgroundVariant.Dots}
-          />
-        </ReactFlow>
+      {/* The chain is drawn wider than a phone, so it pans instead of shrinking. */}
+      <div className="rail mt-4 min-h-0 flex-1">
+        <div className="h-full min-w-[560px] sm:min-w-0">
+          <ReactFlow
+            colorMode="dark"
+            edges={edges}
+            elementsSelectable={false}
+            fitView
+            fitViewOptions={{ padding: 0.16, maxZoom: 1 }}
+            nodes={nodes}
+            nodeTypes={NODE_TYPES}
+            nodesConnectable={false}
+            nodesDraggable={false}
+            panOnDrag={false}
+            panOnScroll={false}
+            preventScrolling={false}
+            proOptions={{ hideAttribution: true }}
+            zoomOnDoubleClick={false}
+            zoomOnPinch={false}
+            zoomOnScroll={false}
+          >
+            <Background
+              color="rgba(246,236,224,0.16)"
+              gap={16}
+              size={1}
+              variant={BackgroundVariant.Dots}
+            />
+          </ReactFlow>
+        </div>
       </div>
 
-      <p className="font-mono text-[11px] text-[#f6ece0]/45">
+      <p className="truncate pt-2 font-mono text-[11px] text-[#f6ece0]/45">
         layout: promoter · B0034 · coding · B0015
       </p>
     </div>

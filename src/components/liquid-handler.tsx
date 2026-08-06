@@ -51,13 +51,50 @@ TIMELINE.push({
  * Deck geometry. Every station derives from these constants so labware stays
  * inside its slot and the carriage stays over the rail.
  */
-const RAIL_Y = 44
-const RAIL_X0 = 56
-const RAIL_X1 = 584
+const DECK_X0 = 56
+const DECK_W = 528
 const DECK_Y = 190
 const DECK_H = 96
 const SLOT_Y = 206
 const SLOT_H = 74
+
+/*
+ * Gantry frame. Two uprights flank the deck and carry the rail beam. The frame
+ * is a single path, so the beam meets each upright on a continuous edge rather
+ * than as two shapes stacked on one another, and the uprights run behind the
+ * deck plate so the deck seats into the frame.
+ */
+const RAIL_Y = 44
+const RAIL_TOP = RAIL_Y - 8
+const RAIL_BOTTOM = RAIL_Y + 6
+const GANTRY_X0 = 44
+const GANTRY_X1 = 596
+const POST_W = 16
+const FRAME_BOTTOM = DECK_Y + DECK_H
+/* Outer corners are lightly broken; the inside of each shoulder is filleted so
+ * the beam flows into the upright instead of butting against it. */
+const FRAME_R = 5
+const FRAME_FOOT_R = 4
+const SHOULDER_R = 8
+
+const GANTRY_PATH = [
+  `M${GANTRY_X0 + FRAME_R} ${RAIL_TOP}`,
+  `H${GANTRY_X1 - FRAME_R}`,
+  `a${FRAME_R} ${FRAME_R} 0 0 1 ${FRAME_R} ${FRAME_R}`,
+  `V${FRAME_BOTTOM - FRAME_FOOT_R}`,
+  `a${FRAME_FOOT_R} ${FRAME_FOOT_R} 0 0 1 -${FRAME_FOOT_R} ${FRAME_FOOT_R}`,
+  `H${GANTRY_X1 - POST_W}`,
+  `V${RAIL_BOTTOM + SHOULDER_R}`,
+  `a${SHOULDER_R} ${SHOULDER_R} 0 0 0 -${SHOULDER_R} -${SHOULDER_R}`,
+  `H${GANTRY_X0 + POST_W + SHOULDER_R}`,
+  `a${SHOULDER_R} ${SHOULDER_R} 0 0 0 -${SHOULDER_R} ${SHOULDER_R}`,
+  `V${FRAME_BOTTOM}`,
+  `H${GANTRY_X0 + FRAME_FOOT_R}`,
+  `a${FRAME_FOOT_R} ${FRAME_FOOT_R} 0 0 1 -${FRAME_FOOT_R} -${FRAME_FOOT_R}`,
+  `V${RAIL_TOP + FRAME_R}`,
+  `a${FRAME_R} ${FRAME_R} 0 0 1 ${FRAME_R} -${FRAME_R}`,
+  'Z',
+].join(' ')
 
 const SOURCE_X0 = 96
 const SOURCE_GAP = 26
@@ -124,17 +161,37 @@ function SlotLabel({ x, text }: { x: number; text: string }) {
   )
 }
 
+/**
+ * The frame renders before the deck plate so the deck occludes the feet of
+ * both uprights: the metal reads as continuous behind the plate instead of
+ * ending in two rounded stubs on top of it. It carries the same flat fill and
+ * hairline stroke as the deck and its slots, so it sits in the illustration
+ * rather than looking rendered on top of it.
+ */
+function Gantry() {
+  return (
+    <path
+      d={GANTRY_PATH}
+      fill="#6f7d74"
+      stroke="#f6ece0"
+      strokeOpacity=".14"
+    />
+  )
+}
+
 function Deck({ cycling }: { cycling: boolean }) {
   return (
     <g>
+      <Gantry />
+
       <rect
         fill="#2a1d10"
         height={DECK_H}
         rx="12"
         stroke="#f6ece0"
         strokeOpacity=".12"
-        width={RAIL_X1 - RAIL_X0}
-        x={RAIL_X0}
+        width={DECK_W}
+        x={DECK_X0}
         y={DECK_Y}
       />
 
@@ -268,25 +325,15 @@ function Deck({ cycling }: { cycling: boolean }) {
         x="476"
         y={SLOT_Y + 22}
       />
-
-      {/* Gantry: posts down to the deck, rail across the top. */}
-      <rect fill="#5d6a61" height="158" rx="5" width="12" x="52" y="36" />
-      <rect fill="#5d6a61" height="158" rx="5" width="12" x="576" y="36" />
-      <rect
-        fill="#8b9a90"
-        height="6"
-        rx="3"
-        width={RAIL_X1 - RAIL_X0}
-        x={RAIL_X0}
-        y={RAIL_Y}
-      />
     </g>
   )
 }
 
 /**
  * The carriage rides the rail and never leaves it. Only the pipette head
- * descends, with the mount shaft telescoping to follow it.
+ * descends, with the mount shaft telescoping to follow it. Each segment is
+ * drawn before the one that caps it — shaft under carriage, neck under head —
+ * so no rounded end is ever left showing at a joint.
  */
 function Pipette({
   x,
@@ -309,6 +356,16 @@ function Pipette({
       }}
     >
       <rect
+        fill="#8f9c94"
+        height={18 + dy}
+        rx="2"
+        style={{ transition: 'height 290ms cubic-bezier(0.55, 0, 0.35, 1)' }}
+        width="10"
+        x="-5"
+        y={RAIL_Y + 12}
+      />
+
+      <rect
         fill="#e6eae4"
         height="32"
         rx="6"
@@ -319,17 +376,8 @@ function Pipette({
       />
       <circle cx="-19" cy={RAIL_Y + 3} fill="var(--color-gfp)" r="3" />
 
-      <rect
-        fill="#8f9c94"
-        height={10 + dy}
-        rx="2"
-        style={{ transition: 'height 290ms cubic-bezier(0.55, 0, 0.35, 1)' }}
-        width="10"
-        x="-5"
-        y={RAIL_Y + 20}
-      />
-
       <g style={{ transform: `translateY(${dy}px)`, transition: descend }}>
+        <rect fill="#7d8c82" height="22" rx="2" width="6" x="-3" y={RAIL_Y + 64} />
         <rect
           fill="#c3ccc5"
           height="38"
@@ -338,7 +386,6 @@ function Pipette({
           x="-11"
           y={RAIL_Y + 30}
         />
-        <rect fill="#7d8c82" height="18" rx="2" width="6" x="-3" y={RAIL_Y + 68} />
         <path
           d={`M-6 ${RAIL_Y + 86} h12 l-4 40 h-4 Z`}
           fill="#eef1ec"
@@ -408,10 +455,11 @@ export function LiquidHandler() {
         <span className="micro text-[#f6ece0]/30">opentrons ot-2</span>
       </div>
 
-      <div className="min-h-0 flex-1">
+      {/* A deck is wider than a phone, so it pans instead of shrinking. */}
+      <div className="rail min-h-0 flex-1">
         <svg
           aria-label="An Opentrons OT-2 liquid handler adds each reagent of a Golden Gate assembly to reaction well A1, then runs the thermocycler profile."
-          className="h-full w-full"
+          className="h-full w-full min-w-[600px] sm:min-w-0"
           role="img"
           viewBox="0 0 640 300"
         >

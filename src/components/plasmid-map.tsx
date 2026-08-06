@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import {
   CENTER,
   features,
@@ -6,6 +7,24 @@ import {
   TOTAL_BP,
   type Feature,
 } from '../data/plasmid-features'
+
+/** How long one feature takes to sweep from its start angle to its end angle. */
+const DRAW_MS = 760
+/** Each arc waits on the one before it so the map assembles feature by feature. */
+const STAGGER_MS = 110
+
+/** Tangential reach of the arrowhead past the arc's end point. */
+const ARROW_LENGTH = 11
+/** Radial spread of the arrowhead either side of the ring. */
+const ARROW_HALF_HEIGHT = 8
+/** The sweep clears the arrowhead's spread, so it never crops the ring. */
+const SWEEP_WIDTH = Math.max(RING_WIDTH, ARROW_HALF_HEIGHT * 2) + 6
+/** Slack at both ends so the sweep's own edge never shaves the shape it reveals. */
+const SWEEP_BLEED = 2
+
+function degreesForArc(px: number) {
+  return (Math.atan(px / RING_RADIUS) * 180) / Math.PI
+}
 
 function bpToAngle(bp: number) {
   return (bp / TOTAL_BP) * 360 - 90
@@ -39,10 +58,10 @@ function FeatureArc({
   drawn: boolean
   index: number
 }) {
+  const sweepId = `sweep-${useId().replace(/:/g, '')}`
   const from = bpToAngle(feature.start)
   const to = bpToAngle(feature.end)
   const mid = (from + to) / 2
-  const length = arcLength(RING_RADIUS, from, to)
 
   const arrowAnchor = polar(RING_RADIUS, to)
   const leaderStart = polar(RING_RADIUS + 12, mid)
@@ -50,34 +69,64 @@ function FeatureArc({
   const pointsRight = Math.cos((mid * Math.PI) / 180) >= 0
   const elbowX = leaderEnd.x + (pointsRight ? 12 : -12)
   const textX = elbowX + (pointsRight ? 7 : -7)
+  const startDelay = index * STAGGER_MS
+
+  /*
+   * Body and head are one shape revealed by one travelling edge. The sweep runs
+   * on past the arc's end to cover the head, so the head is uncovered a slice at
+   * a time as the edge passes over it rather than fading in whole.
+   */
+  const sweepFrom = from - degreesForArc(SWEEP_BLEED)
+  const sweepTo =
+    to +
+    degreesForArc(
+      (feature.directional ? ARROW_LENGTH : 0) + SWEEP_BLEED,
+    )
 
   return (
     <g>
-      <path
-        className="arc-draw"
-        d={arcPath(RING_RADIUS, from, to)}
-        data-drawn={drawn}
-        fill="none"
-        stroke={feature.color}
-        strokeLinecap="butt"
-        strokeWidth={RING_WIDTH}
-        style={
-          {
-            '--len': length,
-            transitionDelay: `${index * 110}ms`,
-          } as React.CSSProperties
-        }
-      />
-
-      {feature.directional && (
-        <polygon
-          className="arc-fade"
+      <mask
+        height="418"
+        id={sweepId}
+        maskUnits="userSpaceOnUse"
+        width="508"
+        x="-3"
+        y="-4"
+      >
+        <path
+          className="arc-draw"
+          d={arcPath(RING_RADIUS, sweepFrom, sweepTo)}
           data-drawn={drawn}
-          fill={feature.color}
-          points="0,-8 11,0 0,8"
-          transform={`translate(${arrowAnchor.x.toFixed(2)} ${arrowAnchor.y.toFixed(2)}) rotate(${(to + 90).toFixed(2)})`}
+          fill="none"
+          stroke="#fff"
+          strokeLinecap="butt"
+          strokeWidth={SWEEP_WIDTH}
+          style={
+            {
+              '--len': arcLength(RING_RADIUS, sweepFrom, sweepTo),
+              '--draw': `${DRAW_MS}ms`,
+              transitionDelay: `${startDelay}ms`,
+            } as React.CSSProperties
+          }
         />
-      )}
+      </mask>
+
+      <g mask={`url(#${sweepId})`}>
+        <path
+          d={arcPath(RING_RADIUS, from, to)}
+          fill="none"
+          stroke={feature.color}
+          strokeLinecap="butt"
+          strokeWidth={RING_WIDTH}
+        />
+        {feature.directional && (
+          <polygon
+            fill={feature.color}
+            points={`0,-${ARROW_HALF_HEIGHT} ${ARROW_LENGTH},0 0,${ARROW_HALF_HEIGHT}`}
+            transform={`translate(${arrowAnchor.x.toFixed(2)} ${arrowAnchor.y.toFixed(2)}) rotate(${(to + 90).toFixed(2)})`}
+          />
+        )}
+      </g>
 
       <g className="arc-label" data-drawn={drawn}>
         <path

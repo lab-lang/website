@@ -46,6 +46,8 @@
   html {
     scroll-behavior: smooth;
     background: var(--color-paper);
+    /* Landscape rotation on iOS must not inflate type. */
+    -webkit-text-size-adjust: 100%;
   }
 
   body {
@@ -77,6 +79,15 @@
   input {
     font: inherit;
     font-variation-settings: inherit;
+  }
+
+  /* A tap is a press, not a highlighted rectangle. */
+  a,
+  button,
+  select,
+  [role='tab'] {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
 
   ::selection {
@@ -156,6 +167,25 @@
 }
 
 @layer utilities {
+  /*
+   * A strip that pans on its own. Diagrams and tab rows are drawn wider than a
+   * phone, so they scroll horizontally inside their own scroller rather than
+   * shrinking their type past legibility or widening the page.
+   */
+  .rail {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+  }
+
+  /* Tab rows carry their own affordance — the cut-off tab — so drop the bar. */
+  .rail-quiet {
+    scrollbar-width: none;
+  }
+
+  .rail-quiet::-webkit-scrollbar {
+    display: none;
+  }
+
   /* React Flow paints its own surfaces; keep the graphs on the warm dark. */
   .react-flow,
   .react-flow__renderer,
@@ -224,6 +254,15 @@
     box-shadow: 0 14px 30px -22px color-mix(in oklab, var(--color-ink) 55%, transparent);
   }
 
+  /*
+   * The logo lockup drifts the way its arrow points while the cursor is on
+   * it. The offset itself is a hover utility on the element; this carries the
+   * transition, so reduced motion has one place to switch off.
+   */
+  .nudge {
+    transition: translate 500ms var(--ease-crisp);
+  }
+
   .press {
     transition:
       transform 140ms var(--ease-crisp),
@@ -235,21 +274,6 @@
 
   .press:active {
     transform: translateY(1px) scale(0.985);
-  }
-
-  /*
-   * Scroll reveal. Stagger with the --d custom property. Plain ease-out, not
-   * --ease-crisp: that curve's fast start suits a button press, not content
-   * settling into place.
-   */
-  .reveal {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-
-  .reveal[data-shown='true'] {
-    animation: reveal 380ms ease-out both;
-    animation-delay: var(--d, 0ms);
   }
 
   .lift {
@@ -272,11 +296,15 @@
     animation: caret 1000ms steps(1, end) infinite;
   }
 
-  /* Feature arcs draw along their own length. */
+  /*
+   * The sweep that uncovers a feature arc travels along its own length, so the
+   * arc body and its arrowhead are revealed by one moving edge. PlasmidMap owns
+   * the timing.
+   */
   .arc-draw {
     stroke-dasharray: var(--len);
     stroke-dashoffset: var(--len);
-    transition: stroke-dashoffset 760ms var(--ease-crisp);
+    transition: stroke-dashoffset var(--draw) var(--ease-crisp);
   }
 
   .arc-draw[data-drawn='true'] {
@@ -294,19 +322,6 @@
   .arc-label[data-drawn='true'] {
     opacity: 1;
     transform: translateY(0);
-  }
-
-  /*
-   * Arrowheads carry their placement in an SVG transform attribute, which a CSS
-   * transform would override, so they fade without moving.
-   */
-  .arc-fade {
-    opacity: 0;
-    transition: opacity 420ms ease 340ms;
-  }
-
-  .arc-fade[data-drawn='true'] {
-    opacity: 1;
   }
 
   .ring-spin {
@@ -328,17 +343,6 @@
 
   .rule-link:hover {
     background-size: 100% 1px;
-  }
-}
-
-@keyframes reveal {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
   }
 }
 
@@ -375,20 +379,12 @@
     scroll-behavior: auto;
   }
 
-  .reveal,
-  .reveal[data-shown='true'] {
-    opacity: 1;
-    transform: none;
-    animation: none;
-  }
-
   .arc-draw {
     stroke-dashoffset: 0;
     transition: none;
   }
 
-  .arc-label,
-  .arc-fade {
+  .arc-label {
     opacity: 1;
     transform: none;
     transition: none;
@@ -401,6 +397,7 @@
   }
 
   .lift,
+  .nudge,
   .press,
   .rule-link {
     transition-duration: 0ms;

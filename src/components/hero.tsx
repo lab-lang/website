@@ -190,16 +190,20 @@ function Specimen({ onReplay }: { onReplay: () => void }) {
     <div className="relative overflow-hidden rounded-[20px] border border-ink/25 bg-vessel shadow-[0_30px_80px_-20px_rgb(43_28_17_/_0.45)]">
       <div className="emission-wash absolute inset-0" />
 
-      <div className="relative flex items-center justify-between gap-3 border-b border-white/10 px-4 py-2.5 sm:px-5">
+      <div className="relative flex flex-col gap-2 border-b border-white/10 px-4 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-5">
+        {/*
+         * Four filenames plus the view toggle do not fit a phone on one line,
+         * so on small screens the files take their own scrolling row.
+         */}
         <div
           aria-label="Example file"
-          className="flex min-w-0 items-center gap-1"
+          className="rail rail-quiet -mx-4 flex min-w-0 items-center gap-1 px-4 sm:mx-0 sm:px-0"
           role="tablist"
         >
           {files.map((file) => (
             <button
               aria-selected={fileId === file.id}
-              className={`press shrink-0 rounded-md px-2.5 py-1 font-mono text-[11px] ${
+              className={`press shrink-0 rounded-md px-2.5 py-1.5 font-mono text-[11px] ${
                 fileId === file.id
                   ? 'bg-[#f6ece0]/10 text-[#f6ece0]/85'
                   : 'text-[#f6ece0]/35 hover:text-[#f6ece0]/65'
@@ -214,7 +218,7 @@ function Specimen({ onReplay }: { onReplay: () => void }) {
           ))}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center justify-end gap-2">
           <div
             aria-label="Specimen view"
             className="flex items-center gap-1 rounded-lg border border-white/10 p-1"
@@ -226,7 +230,7 @@ function Specimen({ onReplay }: { onReplay: () => void }) {
                 aria-selected={
                   building ? item.id === 'execution' : view === item.id
                 }
-                className={`press rounded-md px-2.5 py-1 ${
+                className={`press rounded-md px-3 py-1.5 ${
                   (building ? item.id === 'execution' : view === item.id)
                     ? 'bg-gfp/15 text-gfp'
                     : 'text-[#f6ece0]/40 hover:text-[#f6ece0]/75'
@@ -242,7 +246,7 @@ function Specimen({ onReplay }: { onReplay: () => void }) {
           </div>
 
           <button
-            className="press grid size-7 place-items-center rounded-md border border-white/10 text-[#f6ece0]/40 hover:border-white/25 hover:text-[#f6ece0]/80"
+            className="press grid size-9 shrink-0 place-items-center rounded-md border border-white/10 text-[#f6ece0]/40 hover:border-white/25 hover:text-[#f6ece0]/80 sm:size-7"
             onClick={onReplay}
             title="Replay"
             type="button"
@@ -255,12 +259,16 @@ function Specimen({ onReplay }: { onReplay: () => void }) {
 
       <div className="relative grid lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
         <div className="order-2 min-w-0 border-t border-white/10 lg:order-1 lg:border-r lg:border-t-0">
-          <div className="h-[420px] overflow-y-auto sm:h-[470px]">
+          <div className="h-[320px] overflow-y-auto sm:h-[470px]">
             <SourceCode cursor={typing} language="lab" source={visibleSource} />
           </div>
         </div>
 
-        <div className="order-1 h-[420px] sm:h-[470px] lg:order-2">
+        {/*
+         * min-w-0: the stage panels pan wider than the screen, and without it
+         * that width sizes the grid track instead of the panel's scroller.
+         */}
+        <div className="order-1 h-[340px] min-w-0 sm:h-[470px] lg:order-2">
           {building ? (
             <div className="stage-panel h-full" key="build">
               <BuildTransition step={buildStep ?? 0} />
@@ -279,7 +287,7 @@ function Specimen({ onReplay }: { onReplay: () => void }) {
             </div>
           ) : view === 'design' ? (
             <div
-              className="stage-panel h-full overflow-hidden p-6 sm:p-8"
+              className="stage-panel h-full overflow-hidden p-3 sm:p-8"
               key="design"
             >
               <div className="mx-auto h-full w-full max-w-[540px]">

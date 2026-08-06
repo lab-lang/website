@@ -7,7 +7,6 @@ import {
   type RefObject,
 } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { Reveal } from '../components/reveal'
 import { REPO_URL } from '../lib/site'
 import {
   DEFAULT_DOC_SLUG,
@@ -190,7 +189,7 @@ export function DocsPage() {
         </nav>
       </aside>
 
-      <article className="min-w-0 py-14 lg:py-16" ref={articleRef}>
+      <article className="min-w-0 py-10 sm:py-14 lg:py-16" ref={articleRef}>
         <label
           className="micro block text-ink/40 lg:hidden"
           htmlFor="doc-page-select"
@@ -198,7 +197,7 @@ export function DocsPage() {
           Documentation
         </label>
         <select
-          className="mt-2 w-full rounded-xl border border-ink/20 bg-shell px-3 py-2.5 text-[14px] text-ink lg:hidden"
+          className="mt-2 min-h-12 w-full rounded-xl border border-ink/20 bg-shell px-3 py-2.5 text-[15px] text-ink lg:hidden"
           id="doc-page-select"
           onChange={(event) => navigate(`/docs/${event.target.value}`)}
           value={slug}
@@ -215,7 +214,7 @@ export function DocsPage() {
         </select>
 
         <div className="mx-auto max-w-3xl">
-          <Reveal className="mt-8 lg:mt-0">
+          <div className="mt-8 lg:mt-0">
             <span className="micro text-amber-deep">
               {frontmatter.eyebrow}
             </span>
@@ -225,7 +224,7 @@ export function DocsPage() {
             <p className="prose-lab mt-6 text-pretty text-[16.5px] leading-[1.7] text-umber sm:text-[17px]">
               {frontmatter.description}
             </p>
-          </Reveal>
+          </div>
 
           <Component components={mdxComponents} />
 
@@ -235,7 +234,7 @@ export function DocsPage() {
           >
             {prev ? (
               <Link
-                className="press flex max-w-xs flex-col rounded-xl border border-ink/15 px-4 py-3 hover:border-ink/35"
+                className="press flex flex-col rounded-xl border border-ink/15 px-4 py-3 hover:border-ink/35 sm:max-w-xs"
                 to={`/docs/${prev.slug}`}
               >
                 <span className="micro flex items-center gap-1.5 text-ink/40">
@@ -251,7 +250,7 @@ export function DocsPage() {
             )}
             {next && (
               <Link
-                className="press ml-auto flex max-w-xs flex-col items-end rounded-xl border border-ink/15 px-4 py-3 text-right hover:border-ink/35"
+                className="press flex flex-col items-end rounded-xl border border-ink/15 px-4 py-3 text-right hover:border-ink/35 sm:ml-auto sm:max-w-xs"
                 to={`/docs/${next.slug}`}
               >
                 <span className="micro flex items-center gap-1.5 text-ink/40">

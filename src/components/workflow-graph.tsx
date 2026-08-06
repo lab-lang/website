@@ -118,35 +118,38 @@ export function WorkflowGraph() {
         </span>
       </div>
 
-      <div className="mt-4 min-h-0 flex-1">
-        <ReactFlow
-          colorMode="dark"
-          edges={edges}
-          elementsSelectable={false}
-          fitView
-          fitViewOptions={{ padding: 0.1, maxZoom: 1 }}
-          nodes={nodes}
-          nodeTypes={NODE_TYPES}
-          nodesConnectable={false}
-          nodesDraggable={false}
-          panOnDrag={false}
-          panOnScroll={false}
-          preventScrolling={false}
-          proOptions={{ hideAttribution: true }}
-          zoomOnDoubleClick={false}
-          zoomOnPinch={false}
-          zoomOnScroll={false}
-        >
-          <Background
-            color="rgba(246,236,224,0.16)"
-            gap={16}
-            size={1}
-            variant={BackgroundVariant.Dots}
-          />
-        </ReactFlow>
+      {/* The snake is drawn wider than a phone, so it pans instead of shrinking. */}
+      <div className="rail mt-4 min-h-0 flex-1">
+        <div className="h-full min-w-[700px] sm:min-w-0">
+          <ReactFlow
+            colorMode="dark"
+            edges={edges}
+            elementsSelectable={false}
+            fitView
+            fitViewOptions={{ padding: 0.1, maxZoom: 1 }}
+            nodes={nodes}
+            nodeTypes={NODE_TYPES}
+            nodesConnectable={false}
+            nodesDraggable={false}
+            panOnDrag={false}
+            panOnScroll={false}
+            preventScrolling={false}
+            proOptions={{ hideAttribution: true }}
+            zoomOnDoubleClick={false}
+            zoomOnPinch={false}
+            zoomOnScroll={false}
+          >
+            <Background
+              color="rgba(246,236,224,0.16)"
+              gap={16}
+              size={1}
+              variant={BackgroundVariant.Dots}
+            />
+          </ReactFlow>
+        </div>
       </div>
 
-      <p className="font-mono text-[11px] text-[#f6ece0]/45">
+      <p className="truncate pt-2 font-mono text-[11px] text-[#f6ece0]/45">
         every material is consumed exactly once
       </p>
     </div>

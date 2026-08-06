@@ -1,0 +1,5 @@
+# Dependencies for scripts/brand-assets.py. Nothing here ships to the browser;
+# the script's output is committed, so this is only needed to regenerate it.
+brotli==1.2.0
+fonttools==4.63.0
+uharfbuzz==0.56.0
