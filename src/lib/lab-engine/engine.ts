@@ -59,9 +59,18 @@ export class LabEngine {
     this.texts.clear()
   }
 
-  async setDocument(path: string, version: number, text: string): Promise<void> {
+  /**
+   * `module` names the document the way a package manifest does. Without it
+   * the engine derives a name from the path, which is right for a loose file
+   * but not for one laid out under a package.
+   */
+  async setDocument(path: string, version: number, text: string, module?: string): Promise<void> {
     await this.whenReady()
-    this.require().setDocument(path, BigInt(version), text)
+    if (module) {
+      this.require().setModuleDocument(path, BigInt(version), text, module)
+    } else {
+      this.require().setDocument(path, BigInt(version), text)
+    }
     this.texts.set(path, text)
   }
 

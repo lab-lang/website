@@ -16,6 +16,14 @@ export class LabWorkspace {
     rename(source: string, offset: number, new_name: string): any;
     semanticTokens(source: string): any;
     setDocument(source: string, version: bigint, text: string): void;
+    /**
+     * Register a document under a module name the host already knows,
+     * rather than one guessed from the path. A file in a package takes its
+     * name from that package's manifest, so a host that has read the
+     * manifest supplies the name and keeps paths as the package lays them
+     * out.
+     */
+    setModuleDocument(source: string, version: bigint, text: string, module: string): void;
 }
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
@@ -35,6 +43,7 @@ export interface InitOutput {
     readonly labworkspace_rename: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
     readonly labworkspace_semanticTokens: (a: number, b: number, c: number) => [number, number, number];
     readonly labworkspace_setDocument: (a: number, b: number, c: number, d: bigint, e: number, f: number) => void;
+    readonly labworkspace_setModuleDocument: (a: number, b: number, c: number, d: bigint, e: number, f: number, g: number, h: number) => void;
     readonly __wbindgen_malloc: (a: number, b: number) => number;
     readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
     readonly __wbindgen_externrefs: WebAssembly.Table;

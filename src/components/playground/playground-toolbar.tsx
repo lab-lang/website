@@ -1,27 +1,28 @@
-import { Check, ChevronDown, Copy, Plus, RotateCcw, Trash2, WrapText } from 'lucide-react'
-import type { PlaygroundProject } from '../../data/playground-projects'
+/*
+ * Editor-toolbar controls: named rather than drawn, and flat until pointed
+ * at, the way the file tree and tab row in the panes below already behave. A
+ * row of bare glyphs would make a visitor hover each one to learn what it
+ * does, and a row of outlined pills would sit on the chrome rather than in
+ * it. The two groups act on different things — the left pair swaps which
+ * project is open, the right pair acts on the file in the editor — so a
+ * divider separates them.
+ */
+const BUTTON =
+  'press inline-flex h-8 shrink-0 items-center rounded-md px-2.5 text-[12.5px] text-[#f6ece0]/55 hover:bg-white/8 hover:text-[#f2e8db] disabled:pointer-events-none disabled:opacity-35'
 
 export function PlaygroundToolbar({
-  projects,
-  scratchProjects,
-  activeProjectId,
-  onSelectProject,
   onNewScratch,
   onDeleteScratch,
-  showDeleteScratch,
+  inScratch,
   onReset,
   onCopy,
   copied,
   onFormat,
   formatDisabled,
 }: {
-  projects: PlaygroundProject[]
-  scratchProjects: PlaygroundProject[]
-  activeProjectId: string
-  onSelectProject: (id: string) => void
   onNewScratch: () => void
   onDeleteScratch: () => void
-  showDeleteScratch: boolean
+  inScratch: boolean
   onReset: () => void
   onCopy: () => void
   copied: boolean
@@ -29,92 +30,48 @@ export function PlaygroundToolbar({
   formatDisabled: boolean
 }) {
   return (
-    /*
-     * On a phone the project name gets a row of its own: sharing one with five
-     * controls leaves it too narrow to read the name it is there to show.
-     */
-    <div className="flex w-full flex-wrap items-center gap-1.5 sm:w-auto sm:flex-nowrap">
-      <div className="relative w-full sm:w-auto">
-        <select
-          aria-label="Playground project"
-          className="press h-9 w-full appearance-none truncate rounded-lg border border-white/10 bg-white/5 pl-3 pr-8 text-[13px] text-[#f2e8db] hover:border-white/20 sm:h-8 sm:w-auto sm:text-[12.5px]"
-          onChange={(event) => onSelectProject(event.target.value)}
-          value={activeProjectId}
-        >
-          <optgroup label="Examples">
-            {projects.map((project) => (
-              <option key={project.id} value={project.id}>
-                {project.label}
-              </option>
-            ))}
-          </optgroup>
-          {scratchProjects.length > 0 && (
-            <optgroup label="Scratch">
-              {scratchProjects.map((project) => (
-                <option key={project.id} value={project.id}>
-                  {project.label}
-                </option>
-              ))}
-            </optgroup>
-          )}
-        </select>
-        <ChevronDown
-          aria-hidden="true"
-          className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[#f6ece0]/45"
-          size={13}
-        />
-      </div>
-
-      <div className="ml-auto flex items-center gap-1.5 sm:ml-0">
-        <button
-          className="press grid size-9 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/5 text-[#f6ece0]/60 hover:border-white/20 hover:text-[#f2e8db] sm:size-8"
-          onClick={onNewScratch}
-          title="New scratch project — a blank file to try your own ideas"
-          type="button"
-        >
-          <Plus aria-hidden="true" size={13} />
-          <span className="sr-only">New scratch project</span>
-        </button>
-        {showDeleteScratch && (
+    <div className="flex w-full items-center sm:w-auto">
+      <div className="-mr-1.5 ml-auto flex flex-wrap items-center justify-end gap-0.5 sm:ml-0">
+        {inScratch ? (
           <button
-            className="press grid size-9 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/5 text-[#f6ece0]/60 hover:border-mcherry/40 hover:text-mcherry sm:size-8"
+            className={BUTTON}
             onClick={onDeleteScratch}
-            title="Delete this scratch project"
+            title="Discard this scratch file and go back to the example"
             type="button"
           >
-            <Trash2 aria-hidden="true" size={13} />
-            <span className="sr-only">Delete scratch project</span>
+            Back to example
+          </button>
+        ) : (
+          <button
+            className={BUTTON}
+            onClick={onNewScratch}
+            title="Open a blank file to try your own ideas"
+            type="button"
+          >
+            New scratch
           </button>
         )}
         <button
-          className="press grid size-9 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/5 text-[#f6ece0]/60 hover:border-white/20 hover:text-[#f2e8db] sm:size-8"
+          className={BUTTON}
           onClick={onReset}
-          title="Reset this project to its original files"
+          title="Restore every file in this project to how it shipped"
           type="button"
         >
-          <RotateCcw aria-hidden="true" size={13} />
-          <span className="sr-only">Reset project</span>
+          Reset
         </button>
+
+        <span aria-hidden="true" className="mx-1.5 hidden h-4 w-px bg-white/12 sm:block" />
+
         <button
-          className="press grid size-9 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/5 text-[#f6ece0]/60 hover:border-white/20 hover:text-[#f2e8db] disabled:opacity-40 sm:size-8"
+          className={BUTTON}
           disabled={formatDisabled}
           onClick={onFormat}
-          title="Format the active file"
+          title="Format the file in the editor"
           type="button"
         >
-          <WrapText aria-hidden="true" size={13} />
-          <span className="sr-only">Format file</span>
+          Format
         </button>
-        <button
-          className="press inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 text-[12.5px] text-[#f6ece0]/60 hover:border-white/20 hover:text-[#f2e8db] sm:h-8"
-          onClick={onCopy}
-          type="button"
-        >
-          {copied ? (
-            <Check aria-hidden="true" size={12} strokeWidth={2.6} />
-          ) : (
-            <Copy aria-hidden="true" size={12} />
-          )}
+        <button className={BUTTON} onClick={onCopy} title="Copy the file in the editor" type="button">
           {copied ? 'Copied' : 'Copy'}
         </button>
       </div>

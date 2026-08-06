@@ -164,6 +164,26 @@ export class LabWorkspace {
         const len1 = WASM_VECTOR_LEN;
         wasm.labworkspace_setDocument(this.__wbg_ptr, ptr0, len0, version, ptr1, len1);
     }
+    /**
+     * Register a document under a module name the host already knows,
+     * rather than one guessed from the path. A file in a package takes its
+     * name from that package's manifest, so a host that has read the
+     * manifest supplies the name and keeps paths as the package lays them
+     * out.
+     * @param {string} source
+     * @param {bigint} version
+     * @param {string} text
+     * @param {string} module
+     */
+    setModuleDocument(source, version, text, module) {
+        const ptr0 = passStringToWasm0(source, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ptr1 = passStringToWasm0(text, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len1 = WASM_VECTOR_LEN;
+        const ptr2 = passStringToWasm0(module, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len2 = WASM_VECTOR_LEN;
+        wasm.labworkspace_setModuleDocument(this.__wbg_ptr, ptr0, len0, version, ptr1, len1, ptr2, len2);
+    }
 }
 if (Symbol.dispose) LabWorkspace.prototype[Symbol.dispose] = LabWorkspace.prototype.free;
 function __wbg_get_imports() {

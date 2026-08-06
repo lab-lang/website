@@ -44,17 +44,29 @@ entry = "src/programs/main.lab"
 ```
 
 ```lab src/programs/main.lab
+use std.bio.build
+
 plasmid starter:
   sequence: dna("ATGCGTACGTTAGCTA")
   require topology == circular
   accept sequence == design.sequence
+
+workflow main() -> Material<Plasmid>:
+  product <- realize starter
+  return product
 ```
 
-Four lines, and three of them are distinct kinds of claim. `sequence:` is a
-**declarative property**: typed data attached to the design, not an
-assignment that runs. `require` is a constraint checked *before* anything is
-built. `accept` is a claim about the finished material that only runtime
-evidence can settle.
+The plasmid is four lines, and three of them are distinct kinds of claim.
+`sequence:` is a **declarative property**: typed data attached to the
+design, not an assignment that runs. `require` is a constraint checked
+*before* anything is built. `accept` is a claim about the finished material
+that only runtime evidence can settle.
+
+`main` is separate from all three. Naming a module as the manifest's `entry`
+is what makes this package a program rather than a library, and a program
+has to state the work it runs, so an entry module must declare
+`workflow main`. It is not an ordering directive: build order comes from the
+material each call consumes, and `main` is where that dataflow starts.
 
 That distinction is the whole point of the language, so it is worth being
 precise about it. The compiler can prove your design is well-typed, and it
@@ -127,6 +139,14 @@ workflow build_reporter_host(
   culture <- recover culture for 1 h
   culture <- dilute culture
   plate <- plate culture on chloramphenicol
+  return strain, plate
+
+workflow main() -> (
+  strain: Material<Strain>,
+  plate: Material<Plate>,
+):
+  product <- assemble_reporter
+  strain, plate <- build_reporter_host product
   return strain, plate
 ```
 

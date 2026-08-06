@@ -60,6 +60,12 @@ some-lib = { path = "../some-lib" }
 another-lib = "0.3"
 ```
 
+`entry` is what makes a package a program rather than a library, so the
+module it names must declare `workflow main`. That is not a build-order
+directive — order comes from the material each call consumes — it is the
+program stating the work it runs. A package with no `entry` is a library and
+needs no `main`.
+
 ## What's implemented today
 
 `lab-project` (the crate that loads and compiles a package graph) resolves

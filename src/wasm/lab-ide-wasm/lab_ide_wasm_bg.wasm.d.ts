@@ -14,6 +14,7 @@ export const labworkspace_removeDocument: (a: number, b: number, c: number) => v
 export const labworkspace_rename: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
 export const labworkspace_semanticTokens: (a: number, b: number, c: number) => [number, number, number];
 export const labworkspace_setDocument: (a: number, b: number, c: number, d: bigint, e: number, f: number) => void;
+export const labworkspace_setModuleDocument: (a: number, b: number, c: number, d: bigint, e: number, f: number, g: number, h: number) => void;
 export const __wbindgen_malloc: (a: number, b: number) => number;
 export const __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
 export const __wbindgen_externrefs: WebAssembly.Table;
