@@ -1,0 +1,83 @@
+---
+title: Syntax reference
+eyebrow: Keywords
+description: Layout rules, the full keyword vocabulary, and workflow signature syntax.
+group: Learn Lab
+order: 60
+---
+
+## Layout
+
+Lab is indentation-sensitive, like Python. Tabs are rejected. `#` starts a
+line comment. Braces construct or destructure typed data, parentheses call or
+group, brackets build collections, and angle brackets carry type arguments,
+covered in [The two arrows](/docs/guide/the-two-arrows).
+
+## The whole vocabulary
+
+Laboratory verbs such as `synthesize`, `assemble`, and `dispose` are library
+operations, not keywords; see
+[Action contracts](/docs/guide/action-contracts) for the full list. The
+language itself is small enough to read in one pass:
+
+| Group | Keywords |
+| --- | --- |
+| Modules | `use` |
+| Biological design | `circuit`, `plasmid` |
+| Laboratory data | `record`, `material`, `observation`, `evidence`, `event`, `outcome` |
+| Orchestration | `workflow`, `state` |
+| Signatures and contracts | `input`, `output`, `require`, `accept` |
+| Control flow | `if`, `else`, `for`, `in`, `match`, `case`, `return` |
+| Reactive control | `when`, `every`, `after`, `emit` |
+| Boolean operators | `and`, `or`, `not` |
+
+## Workflow signatures
+
+A workflow signature always declares its parentheses, even with zero
+parameters, and always declares its result with `->`; there is no implicit
+return type.
+
+```lab
+workflow provision_strain(strain: Strain) -> Material<Strain>:
+  cells <- provision strain
+  return cells
+```
+
+A result can be a single type, as above, or a named field list, letting a
+workflow return several values together:
+
+```lab
+workflow realize_p_gfp() -> (product: Material<Plasmid>, plate: Material<Plate>):
+  dependencies = []
+  product, construct <- realize p_gfp from dependencies
+  cells <- provision DH5alpha
+  culture <- transform construct into cells
+  culture <- recover culture for 1 h
+  culture <- dilute culture
+  plate <- plate culture on chloramphenicol
+  return product, plate
+```
+
+`-> None` and `return None` are valid for a workflow with no meaningful
+result. `-> ()` is not: an explicitly empty tuple type is rejected rather
+than treated as a synonym for `None`.
+
+## Typed inventory identities
+
+External materials (parts, backbones, enzymes, strains, antibiotics) are
+named through typed constructors from `std.bio.inventory`, not through
+strings scattered through a design:
+
+```lab
+J23101 = part("J23101")
+pSB1C3 = backbone("pSB1C3")
+BsaI = restriction_enzyme("BsaI")
+DH5alpha = strain("DH5alpha")
+chloramphenicol = antibiotic("chloramphenicol")
+```
+
+Each constructor only creates a typed *name* for an external identity; it
+does not resolve availability, lot, or provenance. A design references these
+bound names in its properties (`backbone: pSB1C3`, `host: DH5alpha`), and a
+workflow references them in action phrases (`provision DH5alpha`, `plate
+culture on chloramphenicol`).

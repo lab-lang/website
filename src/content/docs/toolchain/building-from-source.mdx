@@ -1,0 +1,82 @@
+---
+title: Building from source
+eyebrow: Toolchain
+description: Build the compiler workspace and use the lab CLI, for contributing to the toolchain or building a new backend.
+group: Toolchain
+order: 240
+---
+
+This page is for building and running the compiler itself: useful if you're
+contributing to the toolchain, writing a new backend, or want to inspect
+compiler internals directly. If you want to write Lab programs, the
+[playground](/playground) runs the compiler in your browser with nothing to
+install, and [Your first program](/docs/guide/first-program) is where the
+docs pick up from there.
+
+The toolchain is a Rust workspace. There is no published release yet, so
+build it from source, from the sibling `lab` repository.
+
+```shell
+cargo build --workspace
+```
+
+`cargo build` produces two binaries you'll use directly: `lab`, the
+package-aware CLI, and `labc`, the single-file developer compiler used
+throughout this documentation for `--emit` inspection. A third, `lab-opt`,
+operates on textual LAIR rather than source and is covered in
+[CLI reference](/docs/compiler/cli-reference).
+
+## Scaffold a project
+
+```shell
+cargo run -p lab-cli -- new my-plasmid
+```
+
+`lab new` writes a minimal package:
+
+```markdown
+my-plasmid/
+  lab.toml
+  src/
+    programs/
+      main.lab
+```
+
+`lab.toml` declares the package name, version, and build entry point. Source
+lives under `src/`, conventionally split into `designs/`, `policies/`,
+`workflows/`, and `programs/`. `lab new` only scaffolds `programs/main.lab`
+to start. [Modules and packages](/docs/guide/modules-and-packages) covers the
+full manifest shape and module naming convention.
+
+## Check, build, and inspect
+
+```shell
+cargo run -p lab-cli -- check my-plasmid
+cargo run -p lab-cli -- build my-plasmid
+cargo run -p lab-cli -- metadata my-plasmid
+```
+
+`lab check` resolves imports, type-checks, and verifies material flow for a
+single `.lab` file or a whole project. `lab build` does the same and then
+writes one `*.module.json` artifact per module plus a package index and a
+`lab.lock` file under `.lab/build/`. `lab metadata` prints the resolved
+manifest and module list without compiling anything, useful for confirming
+`lab.toml` resolved the way you expect before a build.
+
+Every `lab` subcommand accepts a global `--json` flag for machine-readable
+output, which is what the language server and other tooling consume instead
+of parsing human-readable text.
+
+## Inspecting a single file
+
+For working on the language itself, or on a single design outside a package,
+`labc` is faster to iterate with: it takes one `.lab` file and an `--emit`
+target directly, without a `lab.toml`.
+
+```shell
+cargo run -p lab-compiler --bin labc -- reporter.lab --emit module-ir
+```
+
+See [CLI reference](/docs/compiler/cli-reference) for the full table of
+`--emit` targets, from a human-readable summary through to a generated
+Opentrons automation bundle.

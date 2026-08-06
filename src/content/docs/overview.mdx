@@ -1,0 +1,141 @@
+---
+title: Overview
+eyebrow: Documentation
+description: Describe a plasmid, what must be true of it, and how you'd know it worked. Lab handles the rest.
+group: Learn Lab
+order: 10
+---
+
+import { Callout } from '../../components/callout'
+
+Lab is a language for describing biology experiments precisely enough that a
+compiler can check them and a laboratory, whether that's a person at a bench
+or a liquid-handling robot, can carry them out. You write down what a
+plasmid should be, the constraints it must satisfy before construction even
+starts, and the evidence that would prove it worked. Lab checks that
+description for consistency, then, once a target is chosen, turns it into
+either a protocol a person can follow or a program a robot can run. A small
+project usually has a few files like these.
+
+A **design**, such as a plasmid, says what should exist and which claims
+must be supported by evidence:
+
+```lab reporter.lab
+use std.bio.parts
+use std.bio.inventory
+
+pSB1C3 = backbone("pSB1C3")
+
+plasmid reporter:
+  sequence: dna("ACGTACGT")
+  backbone: pSB1C3
+  components: [pTet, B0034, sfGFP, B0015]
+  restriction_enzyme: BsaI
+
+  require topology == circular
+  require sites(BsaI) == 0
+
+  accept sequence == design.sequence
+  accept concentration >= 100 ng/uL
+  accept volume >= 20 uL
+```
+
+A **workflow** says how physical materials move through a build once a
+design exists. It can also react to the world instead of following a fixed
+script, waking on a timer and settling into an outcome:
+
+```lab await-colonies.lab
+workflow await_colonies(plate: Material<Plate>) -> ColonyGrowth:
+  when every 30 min:
+    image <- capture image of plate
+    colonies = detect_colonies(image)
+    if colonies.isolated.count >= 8:
+      return Ready{plate: plate, colonies: colonies}
+
+  when after 18 h:
+    return TimedOut{plate: plate}
+```
+
+A plasmid can also cargo a reusable **circuit**: parts composed generically,
+independent of which promoter or coding sequence eventually fill it in.
+
+```lab regulated-expression.lab
+use std.bio.parts
+
+circuit regulated_expression<I: Signal, O: Protein>:
+  input promoter: Promoter<I>
+  input coding: CDS<O>
+  output Circuit<I, O>
+
+  layout:
+    promoter
+    B0034
+    coding
+    B0015
+
+tet_reporter = regulated_expression(pTet, sfGFP)
+```
+
+A **program** ties designs, policies, and workflows together into something
+runnable, and reacts to what happens. This is the entry point a project
+actually builds:
+
+```lab main.lab
+use lab.designs.plasmid
+use lab.workflows.workflow
+
+workflow main() -> Accepted<Plasmid> | Rejected<Plasmid>:
+  result <- build reporter
+
+  match result:
+    case Accepted:
+      emit built{material: result.material, evidence: result.evidence}
+      return result
+
+    case Rejected:
+      emit rejected{reason: result.reason, evidence: result.evidence}
+      return result
+```
+
+You don't write instrument-specific steps anywhere in this. The compiler
+figures out the rest for whichever laboratory ends up running it.
+
+<Callout kind="note">
+  **Early prototype.** Parsing, checking, and an experimental Opentrons OT-2
+  backend exist today. The durable workflow runtime, the part that would
+  actually run a program against a real laboratory over time, does not.
+  Generated protocols must be reviewed and qualified before anyone executes
+  them.
+</Callout>
+
+## How these docs are organized
+
+**Learn Lab**, starting with [Your first program](/docs/guide/first-program),
+is for writing Lab programs to describe designs and experiments. That's most
+of this site, and where to start if you're new here.
+
+Two smaller sections are for a different audience. **Toolchain** covers the
+compiler's internals, useful if you're contributing to it or want to
+understand how a design becomes a protocol. **Backends** covers adding
+support for a new instrument. Neither is required reading to write a Lab
+program.
+
+## Where to start
+
+[Your first program](/docs/guide/first-program) walks through a real plasmid
+design end to end. If you'd rather try Lab directly, the
+[playground](/playground) runs the compiler in your browser with nothing to
+install.
+
+## What exists today
+
+The toolchain parses and checks plasmid and circuit designs, verifies action
+contracts and material ownership, and includes an initial Opentrons OT-2
+backend, checked against the real Opentrons simulator. Editor support (an
+LSP server and a WebAssembly API) gives a `.lab` file diagnostics and
+completions like any other language. The durable workflow runtime, the part
+that would execute a program continuously against a real laboratory and
+react to what it observes, has not been built yet.
+
+[Status](/docs/status) tracks exactly what's implemented, feature by
+feature.

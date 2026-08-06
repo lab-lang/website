@@ -1,0 +1,61 @@
+---
+title: Material flow and acceptance
+eyebrow: Verification
+description: How the checker tracks physical ownership, and the three separate judgments behind acceptance.
+group: Learn Lab
+order: 50
+---
+
+Two static checks sit on top of ordinary type checking: the affine
+material-flow verifier, which tracks physical ownership through a workflow
+body, and acceptance coverage, which confirms every `accept` claim has some
+evidence obligation satisfied by the selected workflow. Neither one executes
+anything: both run entirely on the checked source.
+
+## Tracking ownership through a workflow
+
+The verifier tracks every `material`-typed value as a **place**: a named
+binding, or a field projection of one, such as `colony_result.plate`. Each
+place is either *live* (owned here) or *consumed* (given away). Every use of
+a material-typed value is checked against its current state:
+
+- Passing a live place to a `take` operand consumes it; it becomes
+  unavailable afterward.
+- Passing a live place to a `borrow` operand leaves it live: `borrow` never
+  changes ownership.
+- Using an already-consumed place anywhere is rejected.
+- Losing a live place silently on a path that terminates (returning without
+  disposing, storing, or transferring a material you still hold) is
+  rejected.
+- Two branches of an `if` or `match` disagreeing about a place's state where
+  control flow rejoins is rejected: both arms must agree on what's still
+  live before execution can continue past the join.
+
+This is why `transform construct into cells` marks both operands consumed:
+neither `construct` nor `cells` can be referenced again, while `capture
+image of plate` leaves `plate` live for the next reading. Reactive handlers
+follow the same rule across invocations: a handler must preserve the
+ownership of any material it captured from one firing to the next, not
+silently reacquire or drop it.
+
+## Three separate judgments, not one
+
+"Acceptance" is not a single check. It's three, and only the last one
+touches anything physical:
+
+1. **The design is well-typed.** Every property and claim on a `plasmid` or
+   `circuit` declaration resolves and type-checks. This says nothing about
+   whether the design is achievable, only that it's coherent.
+2. **The selected workflow covers every evidence obligation.** For each
+   `accept` clause on the design, some step in the chosen workflow must
+   produce evidence of the matching shape. This is checked at compile time,
+   against the workflow's structure; no measurements exist yet.
+3. **Runtime evidence satisfies the predicate.** Once a workflow actually
+   runs, its evidence is evaluated against each `accept` clause. Only
+   evidence that satisfies every clause produces an accepted material.
+
+Portable checking (judgments 1 and 2) never selects a robot, a deck, a
+chemistry, or a schedule; that's target specialization's job, covered in
+[Compiler pipeline](/docs/compiler/pipeline). A backend that can't satisfy
+some required property or capability must fail explicitly rather than
+silently drop it.

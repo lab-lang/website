@@ -27,12 +27,57 @@ The host must serve `index.html` as the fallback for client-side routes such as 
 
 ## Structure
 
-- `src/pages/home-page.tsx` — marketing page
-- `src/pages/docs-page.tsx` — initial documentation shell
-- `src/pages/playground-page.tsx` — editable playground shell
-- `src/components/hero-demo.tsx` — source-to-liquid-handler hero animation
-- `src/components/` — shared site and source-code presentation
-- `src/data/examples.ts` — representative Lab examples
+- `src/pages/home-page.tsx`: marketing page
+- `src/pages/docs-page.tsx`: documentation layout, sidebar, on-page TOC, pager
+- `src/pages/playground-page.tsx`: editable playground shell
+- `src/components/`: shared site and source-code presentation
+- `src/data/examples.ts`: representative Lab examples
+- `src/content/docs/`: documentation content, see below
+
+## Documentation content
+
+Docs pages are `.mdx` files under `src/content/docs/`, discovered
+automatically: adding a file adds a page, no route or nav wiring required.
+Each starts with frontmatter:
+
+```markdown
+---
+title: The two arrows
+eyebrow: Syntax
+description: One-sentence dek shown under the page title.
+group: Language guide
+order: 50
+---
+```
+
+- `title`, `eyebrow`, `description`: rendered in the page header.
+- `group`: which sidebar section the page belongs to. Must match one of the
+  names in `GROUP_ORDER` in `src/lib/docs-content.ts`; a new group needs a
+  line added there.
+- `order`: sort key, both within a group and for the prev/next pager across
+  the whole doc set. Leave gaps (10, 20, 30, …) so a page can be inserted
+  later without renumbering its neighbors.
+
+The page's URL is its file path relative to `src/content/docs/`, so
+`guide/the-two-arrows.mdx` serves at `/docs/guide/the-two-arrows`.
+
+The body is ordinary Markdown: headings, lists, GFM tables, blockquotes,
+styled automatically to match the rest of the site by the component map in
+`src/components/mdx-components.tsx`. Two things need no special syntax:
+
+- A fenced code block's info string is its filename, and renders in the same
+  bordered, dark "vessel" window used everywhere else on the site:
+  ` ```lab reporter.lab `. Omit it for an unlabeled window.
+- `<Callout kind="note">…</Callout>` reproduces the site's amber note box;
+  `kind="aside"` is the neutral variant. Import it from
+  `../../components/callout` (or `../../../components/callout` one level
+  deeper); MDX files are plain modules, so this is a normal import.
+
+Anything else bespoke a page needs can be authored as real JSX directly in
+the `.mdx` file, the same way. No content page should need `dangerouslySetInnerHTML`
+or a one-off page component; if a new visual pattern is needed on more than
+one page, add it to `mdx-components.tsx` or as a shared component instead of
+repeating the JSX per file.
 
 ## Playground compiler integration
 

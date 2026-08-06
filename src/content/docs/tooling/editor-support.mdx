@@ -1,0 +1,52 @@
+---
+title: Editor support
+eyebrow: Tooling
+description: One platform-neutral analysis core, exposed as an LSP server, a WebAssembly API, and a VS Code extension.
+group: Toolchain
+order: 250
+---
+
+Editor support is built as one analysis core with two thin adapters on top,
+rather than as logic duplicated per host.
+
+## `lab-ide`: the analysis core
+
+`lab-ide` is platform-neutral: it depends on `lab-language` alone, nothing
+about LSP or the browser. Its central type, `Workspace`, holds a set of open
+documents and provides:
+
+- Diagnostics
+- Document symbols
+- Completions: keywords, plus top-level declarations from open documents
+- Hover
+- Definition and references
+- Rename: name-based, works across documents, and is aware of comments and
+  strings so it doesn't rename inside them
+- Semantic tokens
+- Formatting, currently whitespace-only: trailing whitespace trimmed, a
+  final newline ensured. No syntax-aware reformatting yet.
+
+Definition, references, and rename only see open documents today: there's
+no persistent, project-wide symbol index yet, so closing a file drops it out
+of those queries until it's reopened.
+
+## Two adapters, one core
+
+`lab-language-server` wraps `Workspace` with `lsp-server`/`lsp-types` over
+stdio, handling `didOpen`/`didChange`/`didClose` plus requests for
+completion, hover, definition, references, rename, document symbols,
+semantic tokens, and formatting. It's the server any LSP-compatible editor
+talks to. `lab-ide-wasm` re-exposes the same `Workspace` through
+`wasm-bindgen` instead, for embedding directly in a browser or another
+non-LSP host: this is the API the [playground](/playground) is built to
+integrate against.
+
+Because both adapters call into the same `lab-ide` core, editor behavior
+can't drift between the LSP server and an embedded browser integration: a
+completion or diagnostic means the same thing either way.
+
+## VS Code extension
+
+An editor extension for VS Code and Cursor lives under `editors/vscode/`,
+including TextMate syntax highlighting, snippets, and the client wiring to
+launch `lab-language-server` over stdio.

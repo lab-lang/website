@@ -1,0 +1,86 @@
+---
+title: Opentrons OT-2
+eyebrow: Backends
+description: The only concrete backend so far, a real planner, deterministic emission, and simulator-checked Python.
+group: Backends
+order: 310
+---
+
+Opentrons OT-2 is the toolchain's first, and so far only, compilation
+target. It accepts nothing less specialized than `ProtocolLairProgram`: the
+backend has no entry point that consumes a `CheckedModule` or a
+`PortableLairProgram` directly.
+
+## What this specialization selects
+
+Given verified Protocol operations, the OT-2 backend chooses one concrete
+realization for the plasmid-build use case:
+
+- **Golden Gate assembly** for `realize`
+- **Heat-shock transformation** for `transform`
+- **Culture recovery** for `recover`
+- **Serial dilution** for `dilute`
+- **Selective plating** for `plate`
+
+If source omits or misorders a required material transition, Workflow
+verification fails before Protocol selection is ever reached: the OT-2
+backend never sees an incomplete build. A different laboratory profile could
+supply a different Workflow-to-Protocol conversion for the same source, and a
+different robot backend could consume the same verified Protocol operations
+with its own execution plan; neither is implemented today, but the boundary
+is built to allow it.
+
+## The plan is real, not templated
+
+The backend's planner allocates `Ot2ExecutionPlan` (source wells, reaction
+wells, transformation mappings, dilution wells, and plating wells) and
+validates it against real constraints: reaction volume, replicate and
+dilution bounds, plate capacity, source-rack capacity, and tip capacity. A
+design that would overflow a plate or exceed a tip box's capacity fails
+planning rather than producing a silently-wrong protocol.
+
+Every generated artifact (the JSON manifest, the Markdown instructions, and
+all three Python scripts) is a projection of that same plan. Nothing
+re-derives or second-guesses it independently, which is what keeps the
+generated Python and the generated human instructions from disagreeing with
+each other.
+
+## Python is a maintained project, not generated text
+
+The robot-facing Python lives as a pinned, ordinarily-maintained project
+under `backend/opentrons_ot2/python/`, checked with Ruff, strict mypy, and
+pytest like any other Python codebase, not assembled from string fragments
+in Rust. Rust's part is a deterministic bundling step: it includes those
+already-checked source files verbatim, swaps the shared `Ot2ExecutionPlan`
+type-module import for the same type definitions inlined, and injects the
+serialized plan as a literal. The result is a standalone Python file a robot
+can run, produced without sacrificing normal Python tooling on the source
+that generated it. Generated protocols are then exercised against the real
+Opentrons simulator:
+
+```shell
+scripts/check-opentrons-target.sh .lab/full-build
+scripts/simulate-opentrons.sh .lab/full-build
+```
+
+## Dependency-driven builds
+
+A single build can depend on others: `final_device` depending on
+`reporter_region`, which itself depends on `promoter_carrier`, expressed
+purely as `Material<Plasmid>` workflow parameters and dependency lists, with
+no separate "assembly level" concept in the language. Resolving that graph
+is a backend-neutral concern:
+`crates/lab-compiler/src/planning/dependencies/` projects roots, inventory
+hits, cycles, blockers, and build waves directly from verified Protocol
+operations, with no knowledge of plasmids, Golden Gate, or robots. The OT-2
+planner then specializes only the generated nodes, producing a
+`full-build-bundle`: a machine-readable graph, a human dependency report,
+and one self-contained batch directory per generated artifact.
+
+## Current boundary
+
+This backend does not yet query a live inventory service, resolve inventory
+lots, ingest SBOL, design compatible overhangs, normalize source
+concentrations, prepare DNA between dependent batches, or attach runtime
+evidence to acceptance decisions. Generated instructions and robot code
+require laboratory review and qualification before physical execution.

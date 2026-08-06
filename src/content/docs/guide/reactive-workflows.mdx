@@ -1,0 +1,76 @@
+---
+title: Reactive workflows
+eyebrow: Orchestration
+description: when every and when after let a workflow wait on the world instead of a fixed step count.
+group: Learn Lab
+order: 80
+---
+
+Some laboratory steps don't happen on a schedule the program controls, since
+a plate grows colonies somewhere between overnight and never. Reactive clauses
+let a workflow declare handlers that wake on a timer and settle into an
+outcome, instead of forcing every wait into a fixed step count.
+
+```lab
+observation PlateObservation:
+  image: Image
+  colonies: ColonyMap
+  elapsed: Duration
+
+workflow await_colonies(plate: Material<Plate>) -> ColonyGrowth:
+
+  state observations: List<PlateObservation> = []
+
+  when every 30 min:
+    image <- capture image of plate
+    colonies = detect_colonies(image)
+    observations = observations + [PlateObservation{
+      image: image,
+      colonies: colonies,
+      elapsed: workflow.elapsed,
+    }]
+
+    if colonies.isolated.count >= 8:
+      return Ready{
+        plate: plate,
+        colonies: colonies,
+        observations: observations,
+      }
+
+  when after 18 h:
+    return TimedOut{
+      plate: plate,
+      observations: observations,
+    }
+```
+
+## Reading the handlers
+
+`state observations: List<PlateObservation> = []` declares workflow-local
+state that persists across handler invocations; it is not re-initialized
+each time a handler fires. `when every 30 min:` registers a handler that
+wakes on that interval; each firing captures an image (a durable `<-` effect,
+since imaging a real plate is a physical action), evaluates it, and appends
+an observation. `when after 18 h:` registers a one-shot timeout handler that
+fires once, regardless of what the recurring handler is doing.
+
+Either handler can end the workflow by returning an outcome: `Ready` when
+eight isolated colonies have been seen, `TimedOut` if the deadline arrives
+first. Whichever fires first wins; the workflow settles into exactly one of
+its declared result cases.
+
+## What this means for replay
+
+Every handler firing is itself a durable event: the runtime that will
+eventually execute this must record each firing so that replaying the
+workflow's history reconstructs the same sequence of observations rather
+than re-imaging the plate. A reactive handler must also preserve the
+ownership of any material it captured across invocations: `plate` stays
+owned by the workflow across every firing of `when every 30 min:`, not
+re-acquired each time. This is checked statically today by the same
+affine material-flow verifier that checks straight-line workflow bodies; see
+[Material flow and acceptance](/docs/guide/material-flow-and-acceptance).
+
+The runtime that actually schedules and persists these handlers against a
+real clock does not exist yet. Today, `when every` and `when after` parse,
+resolve, and type-check, but nothing executes them.

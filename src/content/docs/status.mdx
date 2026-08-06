@@ -1,0 +1,72 @@
+---
+title: Status
+eyebrow: Reference
+description: What's implemented, feature by feature. The repository's support matrix stays authoritative over any design document.
+group: Reference
+order: 410
+---
+
+Support varies by feature, and by compiler phase within a feature: parsing
+something is not the same as executing it. This page tracks the gaps
+concretely enough to act on; when a design document describes more than the
+implementation covers, the implementation is what's true today.
+
+## Language
+
+| Feature | Status |
+| --- | --- |
+| Plasmid and circuit declarations | Parse, resolve, type, lower |
+| `require` and `accept` claims | Parse, resolve, type, lower |
+| Workflows, outcomes, and matching | Parse, resolve, type, lower |
+| Reactive `when every` / `when after` | Parse, resolve, type; no execution runtime |
+| Action contracts and material flow | Verified in the frontend |
+| `part` declarations | Syntax pending |
+| External packages and lockfiles | Path dependencies only; registry deps rejected outright |
+| Durable workflow runtime | Not implemented |
+
+## Standard library lowering
+
+Twelve of the seventeen `std.lab.plasmid_actions` contracts type-check but
+have no LAIR lowering yet: `capture`, `synthesize`, `assemble`, `pick`,
+`screen`, `grow`, `purify`, `split`, `sequence`, `quantify`, `store`, and
+`dispose`. Only `provision`, `transform`, `recover`, `dilute`, and `plate`
+reach LAIR directly, plus the separate `realize` effect from
+`std.bio.build`, which the Protocol dialect conversion expands into
+synthesize and assemble operations internally. See
+[Action contracts](/docs/guide/action-contracts) for the full table and
+[LAIR dialects](/docs/compiler/lair-dialects) for how that expansion works.
+
+## Compiler
+
+| Feature | Status |
+| --- | --- |
+| Design and Workflow LAIR lowering | Implemented |
+| Workflow → Protocol dialect conversion | One conversion: the plasmid-build path |
+| Material linearity analysis | Implemented, runs at two stages |
+| LAIR pass pipeline | Infrastructure built; one registered pass |
+| Backends | One: Opentrons OT-2 |
+
+## Backend: Opentrons OT-2
+
+Experimental, simulator-checked. Validates reaction volume, replicate and
+dilution bounds, plate capacity, source-rack capacity, and tip capacity.
+Does not yet query a live inventory service, resolve inventory lots, ingest
+SBOL, design compatible overhangs, normalize source concentrations, prepare
+DNA between dependent batches, or attach runtime evidence to acceptance
+decisions. See [Opentrons OT-2](/docs/backends/opentrons-ot2).
+
+## Editor tooling
+
+LSP over stdio, plus a WebAssembly API and a VS Code extension. Definition,
+references, and rename only see open documents: there's no persistent,
+project-wide symbol index yet. Formatting is whitespace-only. Parse recovery
+surfaces a single diagnostic at a time rather than recovering past the first
+syntax error. See [Editor support](/docs/tooling/editor-support).
+
+## Full detail
+
+The repository's own support matrix,
+[`docs/language/support.md`](https://github.com/lab-lang/lab/blob/master/docs/language/support.md),
+tracks every feature against parse / resolve / type / lower / execute
+individually and is the authoritative source when this page and the
+implementation disagree.

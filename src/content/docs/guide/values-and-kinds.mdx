@@ -1,0 +1,55 @@
+---
+title: Values and kinds
+eyebrow: Semantics
+description: Seven value kinds, and the one distinction that determines how each may be used.
+group: Learn Lab
+order: 30
+---
+
+Every value in Lab belongs to one of seven kinds. Six are immutable
+information; one, `material`, has physical identity and cannot be copied.
+That split is the foundation the rest of the language's checking builds on.
+
+| Kind | Carries | Copyable |
+| --- | --- | --- |
+| `record` | Immutable structured information | Yes |
+| `design` | Immutable, freely reusable biological intent | Yes |
+| `material` | Physical identity: a real sample, culture, or plate | No, affine |
+| `observation` | Immutable data with provenance attached | Yes |
+| `evidence` | Immutable data shaped for evaluating a claim | Yes |
+| `event` | An immutable, durable-journal occurrence | Yes |
+| `outcome` | A tagged result a workflow settles into | Yes |
+
+## Why `material` is different
+
+A `design` describes a plasmid; a `material` *is* a tube of it sitting in a
+rack. Two workflows can both read the same design freely, the same way two
+functions can both read the same constant, since a design has no physical
+existence to run out of. A `material` does. Once a workflow takes ownership
+of a culture, no other workflow can also take it: there is only one tube.
+
+This is why `material` values are **affine** rather than freely copyable.
+The checker tracks every material-typed value through a workflow and rejects
+programs that would use one after giving it away, lose it silently on some
+path through a branch, or hold inconsistent ownership where two branches of
+an `if` disagree about who has it. See
+[Material flow and acceptance](/docs/guide/material-flow-and-acceptance) for
+exactly which patterns are rejected and why.
+
+## Evidence is not automatically proof
+
+`evidence` and `observation` look similar: both are immutable, provenance-
+carrying data, but they answer different questions. An `observation` is
+something that happened to be recorded, such as a timestamped image from a
+reactive handler. `evidence` is specifically shaped to be evaluated against
+an `accept` predicate. Having evidence of the right shape does not mean a
+claim passed; it means there is now something to check the claim against.
+Whether it satisfies the predicate is a runtime judgment made once real
+measurements exist.
+
+## Outcomes are workflow endpoints
+
+`outcome` values are what a workflow's branches settle into: the `Accepted`
+and `Rejected` cases in a plasmid-build workflow, or `Ready` and `TimedOut`
+in a reactive one. They're tagged, matched with `match`/`case`, and are the
+shape a workflow's declared result type takes.

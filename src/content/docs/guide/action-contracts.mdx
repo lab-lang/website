@@ -1,0 +1,67 @@
+---
+title: Action contracts
+eyebrow: std.lab.plasmid_actions
+description: Every durable action resolves through a typed contract naming its capability and how it treats each operand.
+group: Learn Lab
+order: 70
+---
+
+Every durable action resolves through a typed contract naming the capability
+required to dispatch it and how it treats each operand. This is what lets
+the checker reason about physical ownership without knowing anything about a
+specific instrument. `std.lab.plasmid_actions` defines seventeen of them.
+
+| Phrase | Capability | Operands | Result |
+| --- | --- | --- | --- |
+| `capture image of <plate>` | `plate_imaging` | `plate` borrow | `Image` |
+| `synthesize <design>` | `dna_synthesis` | `design` copy | `List<Fragment>` |
+| `assemble <fragments>` | `dna_assembly` | `fragments` take | `Material<Construct>` |
+| `provision <strain>` | `inventory` | `strain` copy | `Material<Strain>` |
+| `transform <construct> into <cells>` | `chemical_transformation` | `construct` take, `cells` take | `Material<Culture>` |
+| `recover <culture> for <duration>` | `culture_incubation` | `culture` take | `Material<Culture>` |
+| `dilute <culture>` | `liquid_handling` | `culture` take | `Material<Culture>` |
+| `plate <culture> on <antibiotic>` | `antibiotic_selection` | `culture` take, `antibiotic` copy | `Material<Plate>` |
+| `pick <n> isolated colonies from <plate>` | `colony_picking` | `plate` borrow | `List<Material<Clone>>` |
+| `screen <candidates> against <design>` | `clone_screening` | `candidates` take, `design` copy | `Screening` |
+| `grow <clone> at <temp> for <duration>` | `culture_incubation` | `clone` take | `Material<Culture>` |
+| `purify <culture>` | `plasmid_purification` | `culture` take | `Material<Plasmid>` |
+| `split <material>` | `liquid_handling` | `material` take | retained + aliquot, same type |
+| `sequence <aliquot>` | `sanger_sequencing` | `aliquot` take | `SequenceCheck` |
+| `quantify <material>` | `dna_quantification` | `material` borrow | `Evidence` |
+| `store <material> at <temp>` | `cold_storage` | `material` take | same material back |
+| `dispose <material>` | `waste_handling` | any material, take | none |
+
+A contract's `capability` is the name a backend advertises support for. It's
+what lets the compiler ask "can this target even do this?" independent of
+which specific instrument ends up performing it. `recover` and `grow` share
+the `culture_incubation` capability; `dilute` and `split` share
+`liquid_handling`. A backend that offers one capability implicitly offers
+every contract that names it.
+
+## Which of these actually reach LAIR today
+
+Five of these seventeen contracts lower to LAIR: `provision`, `transform`,
+`recover`, `dilute`, and `plate`. The rest, `capture`, `synthesize`,
+`assemble`, `pick`, `screen`, `grow`, `purify`, `split`, `sequence`,
+`quantify`, `store`, and `dispose`, parse, resolve, and type-check like any
+other action, but `source_lowering.rs` has no case for them yet, so a
+workflow that calls them cannot currently reach a backend.
+
+`synthesize` and `assemble` deserve a specific note: a separate, higher-level
+effect, `realize <design> from <dependencies>` (from `std.bio.build`, not
+`std.lab.plasmid_actions`), *is* lowered, and the compiler's own
+Workflow→Protocol dialect conversion later expands it into Protocol-level
+synthesize and assemble operations internally, hardcoded to Golden Gate
+assembly today. So the *capability* those two contracts represent is
+reachable end to end; the source-level `synthesize`/`assemble` phrases
+themselves just aren't the path that gets there yet. See
+[LAIR dialects](/docs/compiler/lair-dialects) for how that expansion works.
+
+## Typed inventory constructors
+
+`std.bio.inventory` provides the typed constructors these contracts' `copy`
+operands reference: `part`, `backbone`, `restriction_enzyme`, `strain`, and
+`antibiotic`. Each names an external identity without resolving its
+availability, lot, or provenance; see
+[Syntax reference](/docs/guide/syntax-reference) for how they're bound and
+used.

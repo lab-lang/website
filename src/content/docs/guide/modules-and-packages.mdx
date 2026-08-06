@@ -1,0 +1,72 @@
+---
+title: Modules and packages
+eyebrow: Organization
+description: use, the std registry, lab.toml, and today's path-dependency-only limit.
+group: Learn Lab
+order: 90
+---
+
+`use` names a whole module; there is no selective import, aliasing, or
+visibility control yet. Those are open decisions, tracked alongside a few
+others in the language's design documents.
+
+## The `std` registry
+
+`std` is owned by the language itself, not by any package. The bundled
+modules today:
+
+| Module | Provides |
+| --- | --- |
+| `std.prelude` | Implicit, foundational types, including `dna` |
+| `std.bio.parts` | Part declarations |
+| `std.bio.backbones` | Backbone declarations |
+| `std.bio.inventory` | Typed external-identity constructors (`part`, `backbone`, `restriction_enzyme`, `strain`, `antibiotic`) |
+| `std.bio.build` | The `realize` effect |
+| `std.lab.plasmid_actions` | The laboratory action contracts, see [Action contracts](/docs/guide/action-contracts) |
+
+## Project layout
+
+```markdown
+my-plasmid/
+  lab.toml
+  src/
+    designs/
+    policies/
+    workflows/
+    programs/
+  tests/
+  .lab/
+    runs/          # generated, never hand-authored
+```
+
+A module's fully qualified name is derived from its path. `src/workflows/
+build-plasmid.lab` inside a package named `tet_reporter` becomes
+`tet_reporter.workflows.build_plasmid`.
+
+## The manifest
+
+```markdown
+[package]
+name = "tet-reporter"
+version = "0.1.0"
+
+[build]
+entry = "programs/main.lab"
+
+[dependencies]
+# path form
+some-lib = { path = "../some-lib" }
+# version form, parsed but not yet resolvable (see below)
+another-lib = "0.3"
+```
+
+## What's implemented today
+
+`lab-project` (the crate that loads and compiles a package graph) resolves
+**path dependencies only**. A `lab.toml` that declares a version-form,
+registry dependency is rejected outright rather than partially resolved:
+there is no package registry, no version resolution, and no lockfile
+integrity check yet. `lab check`/`lab build`/`lab metadata` all fail closed
+on an unsupported dependency rather than guessing at what you meant. A
+successful build does write a deterministic `lab.lock` alongside the path
+dependencies it did resolve.

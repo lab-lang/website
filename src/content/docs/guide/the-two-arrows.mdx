@@ -1,0 +1,66 @@
+---
+title: The two arrows
+eyebrow: Syntax
+description: Every mark has exactly one job. The one that matters most is between = and <-.
+group: Learn Lab
+order: 40
+---
+
+Lab's punctuation is small and each symbol does exactly one thing:
+
+| Form | Meaning |
+| --- | --- |
+| `:` | Opens a declaration or control block |
+| `name: value` | Declares a property on a biological declaration |
+| `{ name: value }` | Constructs or destructures typed data |
+| `[ … ]` | Collection literal |
+| `< … >` | Type arguments |
+| `=` | Deterministic evaluation or state transition |
+| `<-` | Durable physical or external effect |
+| `->` | Declares a workflow result |
+| `#` | Line comment |
+
+## `=` may be replayed. `<-` may not.
+
+The distinction that matters most is between `=`, which replay may
+re-evaluate, and `<-`, which it must never repeat. `culture = culture + 1`
+is pure computation, safe to re-run from a checkpoint. `culture <- transform
+construct into cells` is a chemical transformation performed on a real
+sample; running it twice would produce a different physical world, not the
+same answer computed again. The durable runtime that enforces this at
+execution time doesn't exist yet, but the checker already distinguishes the
+two everywhere a workflow is written.
+
+```lab
+workflow build_plasmid(design: Plasmid) -> Accepted<Plasmid> | Rejected<Plasmid>:
+  fragments <- synthesize design
+  construct <- assemble fragments
+  cells <- provision competent_ecoli
+  culture <- transform construct into cells
+  culture <- recover culture for 1 h
+  plate <- plate culture on kanamycin
+```
+
+Every line here is a durable command: a physical action bound to a recorded
+completion event. None of it may be silently re-run.
+
+## Operand modes: what an action does with what you hand it
+
+Every durable action's contract states how it treats each operand it
+receives:
+
+| Mode | Meaning |
+| --- | --- |
+| `copy` | Freely reusable information; the action reads it, ownership is unaffected |
+| `borrow` | Observes a material without consuming it; ownership does not change |
+| `take` | Transfers ownership of a material into the action |
+
+`provision DH5alpha` takes a `copy` operand: `DH5alpha` is a typed inventory
+identity, not physical material, so there's nothing to give up. `transform
+construct into cells` takes two `take` operands: both `construct` and
+`cells` are consumed, and the workflow can no longer use either afterward;
+only the newly returned `culture` is live. `capture image of plate` takes
+`plate` with `borrow`; the plate is observed, not consumed, and remains
+available to `plate` for the next reading. This is exactly the information
+[material flow](/docs/guide/material-flow-and-acceptance) verifies against
+every use in a workflow body.

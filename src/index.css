@@ -1,26 +1,46 @@
-@import '@fontsource-variable/inter/opsz.css';
+@import '@fontsource-variable/crimson-pro/wght.css';
+@import '@fontsource-variable/archivo/wdth.css';
 @import '@fontsource/ibm-plex-mono/400.css';
 @import '@fontsource/ibm-plex-mono/500.css';
+@import '@fontsource/ibm-plex-mono/600.css';
 @import 'tailwindcss';
 
 @theme {
-  --color-paper: #f4f1e8;
-  --color-paper-deep: #e7e1d3;
-  --color-ink: #16271f;
-  --color-ink-muted: #526158;
-  --color-lab-green: #2f6b4d;
-  --color-lab-green-light: #dbe9d8;
-  --color-lab-lime: #b9ef5b;
-  --color-signal: #e96b3f;
-  --color-terminal: #101c17;
-  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  /* Ground tones read as nutrient agar and kraft label stock. */
+  --color-paper: #f9efdd;
+  --color-shell: #fef9ef;
+  --color-sand: #eee0c3;
+  --color-sand-deep: #e4d3b2;
+
+  /* Ink is warm espresso, not a neutral near-black. */
+  --color-ink: #2b1c11;
+  --color-umber: #7c6551;
+  --color-umber-soft: #a08a74;
+
+  /* Ochre carries structure and emphasis on light ground. */
+  --color-amber: #e1901f;
+  --color-amber-deep: #99560b;
+
+  /* Fluorophore accents. These are reserved for dark surfaces. */
+  --color-gfp: #93e03f;
+  --color-mcherry: #e8446c;
+  --color-cfp: #4ec3d4;
+
+  /* Dark surfaces stay warm so fluorophores read as emission. */
+  --color-vessel: #1d1409;
+  --color-vessel-raised: #2b1e10;
+
+  --font-display: 'Crimson Pro Variable', ui-serif, Georgia, serif;
+  --font-sans: 'Archivo Variable', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
-  --ease-out-lab: cubic-bezier(0.23, 1, 0.32, 1);
+
+  --ease-crisp: cubic-bezier(0.2, 0.9, 0.25, 1);
+  --ease-mech: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 @layer base {
   * {
-    border-color: color-mix(in srgb, var(--color-ink) 14%, transparent);
+    border-color: color-mix(in oklab, var(--color-ink) 14%, transparent);
   }
 
   html {
@@ -32,181 +52,289 @@
     min-width: 320px;
     min-height: 100vh;
     margin: 0;
-    background: var(--color-paper);
+    /* Grain sits in the page background so it reads as paper stock. */
+    background-color: var(--color-paper);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.05'/%3E%3C/svg%3E");
     color: var(--color-ink);
     font-family: var(--font-sans);
-    font-optical-sizing: auto;
+    font-variation-settings:
+      'wdth' 100,
+      'wght' 400;
     font-synthesis: none;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
   }
 
-  button,
-  a,
-  input,
-  select,
-  textarea {
-    outline-color: var(--color-lab-green);
+  :focus-visible {
+    outline: 2px solid var(--color-amber-deep);
     outline-offset: 3px;
+    border-radius: 2px;
   }
 
   button,
-  select {
+  select,
+  textarea,
+  input {
     font: inherit;
+    font-variation-settings: inherit;
   }
 
   ::selection {
-    background: var(--color-lab-lime);
+    background: var(--color-amber);
     color: var(--color-ink);
   }
 }
 
+@layer components {
+  /*
+   * Crimson Pro carries the page personality. Its narrow old-style forms need
+   * slightly looser tracking than a modern face at display sizes.
+   */
+  .type-display {
+    font-family: var(--font-display);
+    font-weight: 600;
+    line-height: 1.02;
+    letter-spacing: -0.013em;
+  }
+
+  .type-title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.011em;
+  }
+
+  .type-head {
+    font-family: var(--font-display);
+    font-weight: 600;
+    line-height: 1.26;
+    letter-spacing: -0.004em;
+  }
+
+  /*
+   * The hero deck. Setting it in the display serif at a light weight carries
+   * the headline's voice down into the explanatory line instead of dropping
+   * straight to UI sans.
+   */
+  .type-deck {
+    font-family: var(--font-display);
+    font-weight: 400;
+    line-height: 1.42;
+    letter-spacing: -0.006em;
+  }
+
+  .type-quote {
+    font-family: var(--font-display);
+    font-weight: 400;
+    line-height: 1.36;
+    letter-spacing: -0.009em;
+  }
+
+  /* Instrument-panel labels: Archivo narrowed, the way a device silkscreen sets type. */
+  .micro {
+    font-family: var(--font-sans);
+    font-variation-settings:
+      'wdth' 84,
+      'wght' 640;
+    font-size: 0.6875rem;
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+  }
+
+  .prose-lab {
+    font-variation-settings:
+      'wdth' 100,
+      'wght' 400;
+  }
+
+  .prose-lab strong {
+    font-variation-settings:
+      'wdth' 100,
+      'wght' 650;
+  }
+}
+
 @layer utilities {
+  /* React Flow paints its own surfaces; keep the graphs on the warm dark. */
+  .react-flow,
+  .react-flow__renderer,
+  .react-flow__pane,
+  .react-flow__viewport {
+    background: transparent !important;
+  }
+
+  .react-flow__node {
+    cursor: default;
+  }
+
   .text-balance {
     text-wrap: balance;
   }
 
-  .lab-grid {
+  .text-pretty {
+    text-wrap: pretty;
+  }
+
+  /* Plasmid-map coordinate ticks, reused as a section rule. */
+  .tick-rule {
+    background-image: repeating-linear-gradient(
+      to right,
+      color-mix(in oklab, var(--color-ink) 26%, transparent) 0 1px,
+      transparent 1px 9px
+    );
+    height: 1px;
+  }
+
+  /*
+   * background-image, not the background shorthand: the shorthand resets
+   * background-color too, which would clobber a bg-* utility on the same
+   * element.
+   */
+  .agar-wash {
     background-image:
-      linear-gradient(to right, rgb(22 39 31 / 0.07) 1px, transparent 1px),
-      linear-gradient(to bottom, rgb(22 39 31 / 0.07) 1px, transparent 1px);
-    background-size: 32px 32px;
-    background-position: center top;
+      radial-gradient(
+        60ch 40ch at 12% -10%,
+        color-mix(in oklab, var(--color-amber) 16%, transparent),
+        transparent 70%
+      ),
+      radial-gradient(
+        50ch 36ch at 92% 4%,
+        color-mix(in oklab, var(--color-gfp) 13%, transparent),
+        transparent 68%
+      );
   }
 
-  .lab-dots {
-    background-image: radial-gradient(rgb(22 39 31 / 0.14) 0.8px, transparent 0.8px);
-    background-size: 14px 14px;
+  .emission-wash {
+    background-image:
+      radial-gradient(
+        44ch 30ch at 84% 0%,
+        color-mix(in oklab, var(--color-gfp) 15%, transparent),
+        transparent 70%
+      ),
+      radial-gradient(
+        40ch 28ch at 4% 100%,
+        color-mix(in oklab, var(--color-mcherry) 13%, transparent),
+        transparent 70%
+      );
   }
 
-  .pressable {
+  /* Soft depth once the header has content scrolling beneath it. */
+  .nav-elevated {
+    box-shadow: 0 14px 30px -22px color-mix(in oklab, var(--color-ink) 55%, transparent);
+  }
+
+  .press {
     transition:
-      transform 160ms var(--ease-out-lab),
+      transform 140ms var(--ease-crisp),
       background-color 160ms ease,
       border-color 160ms ease,
-      color 160ms ease;
+      color 160ms ease,
+      box-shadow 160ms ease;
   }
 
-  .pressable:active {
-    transform: scale(0.97);
+  .press:active {
+    transform: translateY(1px) scale(0.985);
   }
 
-  .soft-rise {
-    transition:
-      transform 220ms var(--ease-out-lab),
-      box-shadow 220ms ease,
-      border-color 220ms ease;
-  }
-
-  .hero-enter {
-    animation: hero-enter 520ms var(--ease-out-lab) both;
-  }
-
-  .hero-enter-delay {
-    animation-delay: 70ms;
-  }
-
-  .hero-demo-panel {
-    transition:
-      opacity 320ms var(--ease-out-lab),
-      transform 320ms var(--ease-out-lab),
-      filter 320ms ease;
-  }
-
-  .typing-cursor {
-    animation: typing-cursor 760ms steps(1, end) infinite;
-  }
-
-  .robot-motion,
-  .robot-step,
-  .robot-pulse,
-  .robot-well-one,
-  .robot-well-two,
-  .robot-drop {
-    animation-duration: 7200ms;
-    animation-iteration-count: infinite;
-  }
-
-  .robot-carriage {
-    animation-name: robot-carriage;
-    animation-timing-function: cubic-bezier(0.77, 0, 0.175, 1);
-  }
-
-  .robot-pipette {
-    animation-name: robot-pipette;
-    animation-timing-function: cubic-bezier(0.77, 0, 0.175, 1);
-  }
-
-  .robot-liquid {
-    animation-name: robot-liquid;
-    animation-timing-function: ease;
-  }
-
-  .robot-drop {
-    animation-name: robot-drop;
-    animation-timing-function: linear;
-  }
-
-  .robot-pulse {
-    animation-name: robot-pulse;
-    animation-timing-function: ease;
-  }
-
-  .robot-well-one {
-    animation-name: robot-well-one;
-  }
-
-  .robot-well-two {
-    animation-name: robot-well-two;
-  }
-
-  .robot-step {
+  /*
+   * Scroll reveal. Stagger with the --d custom property. Plain ease-out, not
+   * --ease-crisp: that curve's fast start suits a button press, not content
+   * settling into place.
+   */
+  .reveal {
     opacity: 0;
-    animation-timing-function: steps(1, end);
+    transform: translateY(6px);
   }
 
-  .robot-step-one {
-    animation-name: robot-step-one;
+  .reveal[data-shown='true'] {
+    animation: reveal 380ms ease-out both;
+    animation-delay: var(--d, 0ms);
   }
 
-  .robot-step-two {
-    animation-name: robot-step-two;
+  .lift {
+    transition:
+      transform 240ms var(--ease-crisp),
+      box-shadow 240ms var(--ease-crisp),
+      border-color 240ms ease,
+      background-color 240ms ease;
   }
 
-  .robot-step-three {
-    animation-name: robot-step-three;
+  .rule-link {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    background-size: 0% 1px;
+    transition: background-size 260ms var(--ease-crisp);
   }
 
-  .robot-step-four {
-    animation-name: robot-step-four;
+  .typing-caret {
+    animation: caret 1000ms steps(1, end) infinite;
   }
 
-  .hero-demo[data-paused='true'] .robot-motion,
-  .hero-demo[data-paused='true'] .robot-step,
-  .hero-demo[data-paused='true'] .robot-pulse,
-  .hero-demo[data-paused='true'] .robot-well-one,
-  .hero-demo[data-paused='true'] .robot-well-two,
-  .hero-demo[data-robot-active='false'] .robot-motion,
-  .hero-demo[data-robot-active='false'] .robot-step,
-  .hero-demo[data-robot-active='false'] .robot-pulse,
-  .hero-demo[data-robot-active='false'] .robot-well-one,
-  .hero-demo[data-robot-active='false'] .robot-well-two {
-    animation-play-state: paused;
+  /* Feature arcs draw along their own length. */
+  .arc-draw {
+    stroke-dasharray: var(--len);
+    stroke-dashoffset: var(--len);
+    transition: stroke-dashoffset 760ms var(--ease-crisp);
+  }
+
+  .arc-draw[data-drawn='true'] {
+    stroke-dashoffset: 0;
+  }
+
+  .arc-label {
+    opacity: 0;
+    transition:
+      opacity 420ms ease 340ms,
+      transform 420ms var(--ease-crisp) 340ms;
+    transform: translateY(3px);
+  }
+
+  .arc-label[data-drawn='true'] {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /*
+   * Arrowheads carry their placement in an SVG transform attribute, which a CSS
+   * transform would override, so they fade without moving.
+   */
+  .arc-fade {
+    opacity: 0;
+    transition: opacity 420ms ease 340ms;
+  }
+
+  .arc-fade[data-drawn='true'] {
+    opacity: 1;
+  }
+
+  .ring-spin {
+    animation: ring-spin 64s linear infinite;
+    transform-origin: 230px 230px;
+  }
+
+  .stage-panel {
+    animation: stage-in 420ms var(--ease-crisp) both;
   }
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .soft-rise:hover {
+  .lift:hover {
     transform: translateY(-3px);
-    border-color: rgb(47 107 77 / 0.48);
-    box-shadow: 0 18px 40px rgb(22 39 31 / 0.08);
+    border-color: color-mix(in oklab, var(--color-amber-deep) 42%, transparent);
+    box-shadow: 0 16px 34px color-mix(in oklab, var(--color-ink) 11%, transparent);
+  }
+
+  .rule-link:hover {
+    background-size: 100% 1px;
   }
 }
 
-@keyframes hero-enter {
+@keyframes reveal {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
@@ -214,190 +342,31 @@
   }
 }
 
-@keyframes typing-cursor {
+@keyframes caret {
   0%,
-  48% {
+  49% {
     opacity: 1;
   }
-  49%,
+  50%,
   100% {
     opacity: 0;
   }
 }
 
-@keyframes robot-carriage {
-  0%,
-  20% {
-    transform: translateX(0);
-  }
-  34%,
-  52% {
-    transform: translateX(212px);
-  }
-  64%,
-  82% {
-    transform: translateX(292px);
-  }
-  96%,
-  100% {
-    transform: translateX(0);
+@keyframes ring-spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 
-@keyframes robot-pipette {
-  0%,
-  5%,
-  21%,
-  35%,
-  53%,
-  65%,
-  83%,
-  100% {
-    transform: translateY(0);
-  }
-  9%,
-  17% {
-    transform: translateY(40px);
-  }
-  39%,
-  49%,
-  69%,
-  79% {
-    transform: translateY(8px);
-  }
-}
-
-@keyframes robot-liquid {
-  0%,
-  8% {
-    opacity: 0;
-  }
-  14%,
-  43% {
-    opacity: 1;
-  }
-  49%,
-  73% {
-    opacity: 0.55;
-  }
-  79%,
-  100% {
-    opacity: 0;
-  }
-}
-
-@keyframes robot-drop {
-  0%,
-  42% {
-    opacity: 0;
-    transform: translateY(0);
-  }
-  43% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  47% {
-    opacity: 1;
-    transform: translateY(8px);
-  }
-  48%,
-  72.9% {
-    opacity: 0;
-    transform: translateY(0);
-  }
-  73% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  77% {
-    opacity: 1;
-    transform: translateY(8px);
-  }
-  78%,
-  100% {
+@keyframes stage-in {
+  from {
     opacity: 0;
     transform: translateY(8px);
   }
-}
-
-@keyframes robot-pulse {
-  0%,
-  100% {
-    opacity: 0.35;
-  }
-  50% {
+  to {
     opacity: 1;
-  }
-}
-
-@keyframes robot-well-one {
-  0%,
-  47% {
-    opacity: 0;
-  }
-  49%,
-  100% {
-    opacity: 1;
-  }
-}
-
-@keyframes robot-well-two {
-  0%,
-  77% {
-    opacity: 0;
-  }
-  79%,
-  100% {
-    opacity: 1;
-  }
-}
-
-@keyframes robot-step-one {
-  0%,
-  25% {
-    opacity: 1;
-  }
-  25.1%,
-  100% {
-    opacity: 0;
-  }
-}
-
-@keyframes robot-step-two {
-  0%,
-  25%,
-  53%,
-  100% {
-    opacity: 0;
-  }
-  25.1%,
-  52.9% {
-    opacity: 1;
-  }
-}
-
-@keyframes robot-step-three {
-  0%,
-  53%,
-  83%,
-  100% {
-    opacity: 0;
-  }
-  53.1%,
-  82.9% {
-    opacity: 1;
-  }
-}
-
-@keyframes robot-step-four {
-  0%,
-  83%,
-  100% {
-    opacity: 0;
-  }
-  83.1%,
-  99.9% {
-    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -406,20 +375,34 @@
     scroll-behavior: auto;
   }
 
-  .hero-enter,
-  .hero-enter-delay,
-  .typing-cursor,
-  .robot-motion,
-  .robot-step,
-  .robot-pulse,
-  .robot-well-one,
-  .robot-well-two,
-  .robot-drop {
+  .reveal,
+  .reveal[data-shown='true'] {
+    opacity: 1;
+    transform: none;
     animation: none;
   }
 
-  .soft-rise,
-  .pressable {
+  .arc-draw {
+    stroke-dashoffset: 0;
+    transition: none;
+  }
+
+  .arc-label,
+  .arc-fade {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .ring-spin,
+  .typing-caret,
+  .stage-panel {
+    animation: none;
+  }
+
+  .lift,
+  .press,
+  .rule-link {
     transition-duration: 0ms;
   }
 }

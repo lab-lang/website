@@ -1,0 +1,61 @@
+---
+title: Your first program
+eyebrow: Designs
+description: A design states what should exist and how it will be judged, without choosing a facility or instrument.
+group: Learn Lab
+order: 20
+---
+
+A **design** states what should exist and which claims must be supported by
+evidence. It chooses no facility, assembly method, or instrument; that
+happens later, when the compiler specializes it for a target.
+
+```lab reporter.lab
+use std.bio.parts
+use std.bio.inventory
+
+pSB1C3 = backbone("pSB1C3")
+
+plasmid reporter:
+  sequence: dna("ACGTACGT")
+  backbone: pSB1C3
+  components: [pTet, B0034, sfGFP, B0015]
+  restriction_enzyme: BsaI
+
+  require topology == circular
+  require sites(BsaI) == 0
+
+  accept sequence == design.sequence
+  accept concentration >= 100 ng/uL
+  accept volume >= 20 uL
+```
+
+## Reading the declaration
+
+`pSB1C3 = backbone("pSB1C3")` binds a name to a typed inventory identity.
+`backbone(...)` is one of the typed constructors from `std.bio.inventory`:
+it names an external part by identity without describing its sequence or
+provenance in the source itself.
+
+The `plasmid` declaration itself is a set of typed properties, not
+imperative statements. `sequence: dna("ACGTACGT")` and `backbone: pSB1C3` are
+declarative fields on the plasmid, not assignments. `components` lists the
+circuit's parts in order; `restriction_enzyme` names the enzyme any
+downstream assembly step must avoid cutting within.
+
+## `require` and `accept` are not the same kind of claim
+
+| | Checked | Meaning |
+| --- | --- | --- |
+| `require` | Before physical construction begins | A design that cannot satisfy it never reaches a bench. |
+| `accept` | Against runtime evidence | A claim that must be supported by evidence. Only satisfied evidence produces an accepted material. |
+
+`require topology == circular` and `require sites(BsaI) == 0` are checked
+against the design itself, and no wet-lab work happens until they hold.
+`accept sequence == design.sequence`, `accept concentration >= 100 ng/uL`, and
+`accept volume >= 20 uL` describe what a workflow must eventually measure and
+prove. The compiler verifies that some selected workflow *covers* every
+`accept` obligation with evidence of the right shape; whether that evidence
+actually satisfies the predicate is a runtime judgment, made once real
+measurements exist. [Material flow and acceptance](/docs/guide/material-flow-and-acceptance)
+covers all three judgments in detail.

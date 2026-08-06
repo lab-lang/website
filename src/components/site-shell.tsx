@@ -1,61 +1,165 @@
-import { FlaskConical, GitFork, Menu, X } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { Menu, X } from 'lucide-react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Link, NavLink } from 'react-router-dom'
+import { REPO_URL } from '../lib/site'
 
 const navigation = [
   { label: 'Docs', to: '/docs' },
   { label: 'Playground', to: '/playground' },
+  { label: 'Community', to: '/community' },
 ]
 
-function Logo() {
+/** A plasmid ring: an annotated backbone with three features. */
+function Mark({ size = 30 }: { size?: number }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className="shrink-0"
+      height={size}
+      viewBox="0 0 64 64"
+      width={size}
+    >
+      <rect fill="currentColor" height="64" rx="15" width="64" />
+      <circle
+        cx="32"
+        cy="32"
+        fill="none"
+        r="17"
+        stroke="#f0e3c9"
+        strokeOpacity=".22"
+        strokeWidth="7"
+      />
+      <path
+        d="M32 15A17 17 0 0 1 48.5 36.11"
+        fill="none"
+        stroke="var(--color-amber)"
+        strokeWidth="7"
+      />
+      <polygon
+        fill="var(--color-amber)"
+        points="0,-4.6 6.4,0 0,4.6"
+        transform="translate(48.5 36.11) rotate(104)"
+      />
+      <path
+        d="M46.72 40.5A17 17 0 0 1 20.19 44.23"
+        fill="none"
+        stroke="var(--color-gfp)"
+        strokeWidth="7"
+      />
+      <polygon
+        fill="var(--color-gfp)"
+        points="0,-4.6 6.4,0 0,4.6"
+        transform="translate(20.19 44.23) rotate(224)"
+      />
+      <path
+        d="M17.28 40.5A17 17 0 0 1 27.31 15.66"
+        fill="none"
+        stroke="var(--color-cfp)"
+        strokeWidth="7"
+      />
+      <polygon
+        fill="var(--color-cfp)"
+        points="0,-4.6 6.4,0 0,4.6"
+        transform="translate(27.31 15.66) rotate(344)"
+      />
+    </svg>
+  )
+}
+
+/** The GitHub octocat, inlined since lucide-react ships no brand marks. */
+function GithubMark({ size = 14 }: { size?: number }) {
+  return (
+    <svg aria-hidden="true" fill="currentColor" height={size} viewBox="0 0 24 24" width={size}>
+      <path d="M12 .5C5.73.5.5 5.73.5 12c0 5.09 3.29 9.4 7.86 10.93.57.1.79-.25.79-.55 0-.27-.01-1.17-.02-2.12-3.2.7-3.88-1.36-3.88-1.36-.52-1.34-1.28-1.7-1.28-1.7-1.04-.72.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.76 2.69 1.25 3.35.96.1-.75.4-1.25.73-1.54-2.55-.29-5.23-1.28-5.23-5.68 0-1.25.44-2.28 1.18-3.08-.12-.29-.51-1.46.11-3.04 0 0 .97-.31 3.18 1.18a11 11 0 0 1 2.9-.39c.98 0 1.97.13 2.9.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.58.24 2.75.12 3.04.74.8 1.18 1.83 1.18 3.08 0 4.41-2.69 5.38-5.25 5.67.41.36.78 1.06.78 2.14 0 1.55-.01 2.79-.01 3.17 0 .3.21.66.8.55A11.5 11.5 0 0 0 23.5 12C23.5 5.73 18.27.5 12 .5Z" />
+    </svg>
+  )
+}
+
+function Wordmark({ size = 30 }: { size?: number }) {
   return (
     <Link
-      className="pressable inline-flex items-center gap-2.5 rounded-md font-semibold tracking-[-0.02em]"
-      to="/"
       aria-label="Lab home"
+      className="press group inline-flex items-center gap-2.5 rounded-md text-ink"
+      to="/"
     >
-      <span className="grid size-8 place-items-center rounded-lg bg-ink text-lab-lime">
-        <FlaskConical aria-hidden="true" size={18} strokeWidth={2.2} />
+      <span className="inline-flex transition-transform duration-500 ease-[var(--ease-crisp)] group-hover:rotate-[22deg]">
+        <Mark size={size} />
       </span>
-      <span className="text-lg">lab</span>
+      <span className="type-head text-[20px] tracking-[-0.012em]">Lab</span>
     </Link>
   )
 }
 
 function navClass({ isActive }: { isActive: boolean }) {
-  return `rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150 ${
-    isActive
-      ? 'bg-lab-green-light text-ink'
-      : 'text-ink-muted hover:text-ink'
+  return `press group flex items-center gap-2 rounded-lg px-3 py-2 text-[14px] transition-colors ${
+    isActive ? 'text-ink' : 'text-umber hover:bg-ink/6 hover:text-ink'
   }`
+}
+
+function NavDot({ isActive }: { isActive: boolean }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={`size-1.5 shrink-0 rounded-full transition-colors duration-300 ${
+        isActive ? 'bg-amber' : 'bg-ink/8 group-hover:bg-ink/25'
+      }`}
+    />
+  )
 }
 
 export function SiteShell({ children }: { children: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 6)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="sticky top-0 z-50 border-b border-ink/10 bg-paper/90 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between px-5 sm:px-8 lg:px-12">
-          <Logo />
+      <a
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-ink focus:px-4 focus:py-2 focus:text-sm focus:text-paper"
+        href="#main"
+      >
+        Skip to content
+      </a>
+
+      <header
+        className={`sticky top-0 z-50 border-b border-ink/12 backdrop-blur-xl transition-[background-color,box-shadow] duration-300 ${
+          scrolled ? 'nav-elevated bg-paper/95' : 'bg-paper/80'
+        }`}
+      >
+        <div className="mx-auto flex h-[68px] max-w-[1480px] items-center justify-between px-5 sm:px-8 lg:px-10">
+          <Wordmark />
 
           <nav
-            aria-label="Primary navigation"
+            aria-label="Primary"
             className="hidden items-center gap-1 md:flex"
           >
             {navigation.map((item) => (
               <NavLink className={navClass} key={item.to} to={item.to}>
-                {item.label}
+                {({ isActive }) => (
+                  <>
+                    <NavDot isActive={isActive} />
+                    {item.label}
+                  </>
+                )}
               </NavLink>
             ))}
+
+            <span aria-hidden="true" className="mx-2 h-5 w-px bg-ink/12" />
+
             <a
-              aria-label="Lab on GitHub"
-              className="pressable ml-2 inline-flex size-9 items-center justify-center rounded-lg border border-ink/15 bg-white/40 text-ink-muted hover:border-ink/30 hover:text-ink"
-              href="https://github.com/lab-lang/lab"
+              className="press flex items-center gap-1.5 rounded-lg border border-ink/18 px-3 py-2 text-[13px] text-umber hover:border-ink/35 hover:text-ink"
+              href={REPO_URL}
               rel="noreferrer"
               target="_blank"
             >
-              <GitFork aria-hidden="true" size={17} />
+              <GithubMark />
+              GitHub
             </a>
           </nav>
 
@@ -63,21 +167,21 @@ export function SiteShell({ children }: { children: ReactNode }) {
             aria-controls="mobile-navigation"
             aria-expanded={menuOpen}
             aria-label={menuOpen ? 'Close navigation' : 'Open navigation'}
-            className="pressable grid size-10 place-items-center rounded-lg border border-ink/15 md:hidden"
+            className="press grid size-10 place-items-center rounded-lg border border-ink/18 md:hidden"
             onClick={() => setMenuOpen((open) => !open)}
             type="button"
           >
-            {menuOpen ? <X size={19} /> : <Menu size={19} />}
+            {menuOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
         </div>
 
         {menuOpen && (
           <nav
-            aria-label="Mobile navigation"
-            className="border-t border-ink/10 px-5 py-4 md:hidden"
+            aria-label="Mobile"
+            className="border-t border-ink/12 px-5 py-4 md:hidden"
             id="mobile-navigation"
           >
-            <div className="mx-auto flex max-w-[1440px] flex-col gap-1">
+            <div className="flex flex-col gap-1">
               {navigation.map((item) => (
                 <NavLink
                   className={navClass}
@@ -85,16 +189,22 @@ export function SiteShell({ children }: { children: ReactNode }) {
                   onClick={() => setMenuOpen(false)}
                   to={item.to}
                 >
-                  {item.label}
+                  {({ isActive }) => (
+                    <>
+                      <NavDot isActive={isActive} />
+                      {item.label}
+                    </>
+                  )}
                 </NavLink>
               ))}
               <a
-                className="mt-2 inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-ink-muted"
-                href="https://github.com/lab-lang/lab"
+                className="press flex items-center gap-2 rounded-lg px-3 py-2 text-[14px] text-umber hover:bg-ink/6 hover:text-ink"
+                onClick={() => setMenuOpen(false)}
+                href={REPO_URL}
                 rel="noreferrer"
                 target="_blank"
               >
-                <GitFork aria-hidden="true" size={16} />
+                <GithubMark size={15} />
                 GitHub
               </a>
             </div>
@@ -102,33 +212,76 @@ export function SiteShell({ children }: { children: ReactNode }) {
         )}
       </header>
 
-      <main className="flex-1">{children}</main>
+      <main className="flex-1" id="main">
+        {children}
+      </main>
 
-      <footer className="border-t border-ink/10 bg-paper-deep/45">
-        <div className="mx-auto flex max-w-[1440px] flex-col gap-7 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between lg:px-12">
-          <div>
-            <Logo />
-            <p className="mt-3 max-w-sm text-sm leading-6 text-ink-muted">
-              A programming language and compiler toolkit for portable,
-              inspectable laboratory work.
-            </p>
+      <footer className="border-t border-ink/12 bg-sand/45">
+        <div className="mx-auto max-w-[1480px] px-5 py-14 sm:px-8 lg:px-10">
+          <div className="flex flex-col gap-10 md:flex-row md:items-start md:justify-between">
+            <div className="max-w-sm">
+              <Wordmark size={28} />
+              <p className="prose-lab mt-4 text-[14px] leading-[1.7] text-umber">
+                A programming language and compiler toolchain for describing
+                biology and orchestrating work in the laboratory.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-x-12 gap-y-3 text-[14px] sm:gap-x-20">
+              <div className="flex flex-col gap-3">
+                <span className="micro text-ink/40">Learn</span>
+                <Link className="rule-link w-fit text-umber hover:text-ink" to="/docs">
+                  Documentation
+                </Link>
+                <Link
+                  className="rule-link w-fit text-umber hover:text-ink"
+                  to="/playground"
+                >
+                  Playground
+                </Link>
+                <Link
+                  className="rule-link w-fit text-umber hover:text-ink"
+                  to="/community"
+                >
+                  Community
+                </Link>
+              </div>
+              <div className="flex flex-col gap-3">
+                <span className="micro text-ink/40">Build</span>
+                <a
+                  className="rule-link w-fit text-umber hover:text-ink"
+                  href={REPO_URL}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  GitHub
+                </a>
+                <a
+                  className="rule-link w-fit text-umber hover:text-ink"
+                  href={`${REPO_URL}/issues`}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  Issues
+                </a>
+                <a
+                  className="rule-link w-fit text-umber hover:text-ink"
+                  href={`${REPO_URL}/tree/master/docs`}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  Design documents
+                </a>
+                <Link className="rule-link w-fit text-umber hover:text-ink" to="/brand">
+                  Brand
+                </Link>
+              </div>
+            </div>
           </div>
-          <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-ink-muted">
-            <Link className="hover:text-ink" to="/docs">
-              Documentation
-            </Link>
-            <Link className="hover:text-ink" to="/playground">
-              Playground
-            </Link>
-            <a
-              className="hover:text-ink"
-              href="https://github.com/lab-lang/lab"
-              rel="noreferrer"
-              target="_blank"
-            >
-              Source
-            </a>
-            <span>Apache-2.0</span>
+
+          <div className="tick-rule mt-12" />
+          <div className="mt-5 text-[13px] text-umber-soft">
+            <span>Apache-2.0 · v0.1.0 · early prototype</span>
           </div>
         </div>
       </footer>

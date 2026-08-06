@@ -1,0 +1,94 @@
+---
+title: LAIR dialects
+eyebrow: LAIR
+description: Design, Workflow, and Protocol, three Pliron-backed dialects, and the one pass that checks them.
+group: Toolchain
+order: 220
+---
+
+LAIR is built on [Pliron](https://github.com/pliron-org/pliron), an
+MLIR-style IR framework. Each stage of lowering introduces operations from a
+different dialect, and a module's declared stage determines which dialects
+may coexist in it.
+
+## Design: artifact intent
+
+The Design dialect holds artifact intent with no target chosen yet. Its
+central operation, `design.plasmid`, carries the artifact name, sequence,
+topology, copy count, and whether an exact sequence match is required, plus
+optional acceptance attributes for concentration and volume. Its verifier
+rejects anything that isn't real DNA: sequences must be non-empty,
+uppercase, and unambiguous (`A`, `C`, `G`, or `T` only), and rejects any
+topology other than circular, since that's the only topology the toolchain
+currently models.
+
+## Workflow: target-neutral realization
+
+The Workflow dialect describes materials moving through a build without
+choosing how any step is physically performed. Its material types,
+`PlasmidProduct`, `CircularConstruct`, `CompetentCells`, `TransformedCulture`,
+`RecoveredCulture`, `DilutedCulture`, and `Plate`, track what kind of physical
+thing an SSA value represents, and its operations (`workflow.realize`,
+`workflow.provision`, `workflow.transform`, `workflow.recover`,
+`workflow.dilute`, `workflow.plate`) each carry ordinary use-def edges, so
+material flow through a workflow is just dataflow through the IR. Every
+operation's own verifier checks that its attributes and operand types match
+what it claims to produce.
+
+## Protocol: target-selected
+
+The Protocol dialect is where a target's specifics enter the picture: an
+assembly method (`Gibson` or `GoldenGate`), a wider set of material types
+(thirteen, from `CompetentCells` and `LinearDna` through `PurifiedPlasmid`
+and `ValidatedPlasmid`), and evidence types (`SequenceIdentity`,
+`Concentration`, `Volume`) for what a downstream step must produce. The
+dialect's intended vocabulary is broader than what's wired up today:
+provisioning, synthesis, assembly, transformation, recovery, dilution,
+plating, selection, screening, growth, purification, sampling, sequencing,
+quantification, and acceptance are all named in the dialect's own design,
+but only the plasmid-build subset that `protocol_selection.rs` actually
+converts to is connected to anything today.
+
+## How Workflow becomes Protocol
+
+Protocol selection is a real dialect conversion, not a rename. Each Workflow
+operation converts to its Protocol counterpart by rewriting the IR in place:
+
+- `workflow.realize` becomes **two** operations, `protocol.synthesize` and
+  `protocol.assemble`, with the assembly method hardcoded to Golden Gate.
+  This is the expansion referenced in
+  [Action contracts](/docs/guide/action-contracts): the source-level
+  `realize` effect is what actually reaches a backend, and this is where it
+  turns into the synthesize/assemble pair.
+- `workflow.provision`, `workflow.recover`, `workflow.dilute`, and
+  `workflow.plate` convert to their Protocol operations one to one.
+- `workflow.transform` converts to `protocol.transform`, but first walks
+  backward through the IR's use-def chain to find the `ProvisionOp` that
+  defined its input cells, so the converted operation can record which host
+  strain was actually used.
+
+Every replaced value's uses are rewritten to point at the new Protocol
+operation's results, and the original Workflow operation is erased. A module
+holding both Workflow and Protocol operations at once is not a valid
+intermediate state; the stage detector treats it as an error, not a
+partially-converted module.
+
+## Material linearity: one check, run twice
+
+`MaterialLinearityAnalysis` is a whole-module analysis, not a per-operation
+verifier, because it needs a global view: it walks the entire module,
+collects every Protocol-material-typed SSA result, and fails if any of them
+has more than one use. A material used twice without an explicit split or
+sample operation is exactly the kind of physical-ownership bug the language
+exists to catch statically. It runs once when Workflow LAIR verifies and
+again after Protocol selection, since dialect conversion is exactly the kind
+of rewrite that could reintroduce a linearity violation.
+
+## The pass pipeline, mostly unused so far
+
+LAIR has real pass-pipeline infrastructure, a textual, MLIR-style pipeline
+syntax (`builtin.module(pass1,pass2)`) parsed and run by `lab-opt`, but only
+one pass is registered today: `protocol-check-material-linearity`, which
+takes `TargetSelectedProtocol` LAIR in and produces the same stage back out.
+The infrastructure is built for more target-independent passes than this one;
+none have been added yet.
