@@ -1,4 +1,4 @@
-import { Menu, Star, X } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { REPO_URL } from '../lib/site'
@@ -176,22 +176,18 @@ export function SiteShell({ children }: { children: ReactNode }) {
             <span aria-hidden="true" className="mx-2 h-5 w-px bg-ink/12" />
 
             {/*
-              * The one painted control in the row, so the nav links beside it
-              * read as text and this reads as something to do.
+              * The octocat takes the slot the nav dot holds on the links beside
+              * it, so this reads in the same grammar as the rest of the row
+              * rather than as a painted button dropped on the end.
               */}
             <a
-              className="press group flex items-center gap-1.5 rounded-lg border border-ink/18 px-3 py-2 text-[13px] text-umber hover:border-amber-deep/45 hover:text-ink"
+              className="press group flex items-center gap-2 px-3 py-2 text-[14px] text-umber hover:text-ink"
               href={REPO_URL}
               rel="noreferrer"
               target="_blank"
-              title="Star the repository on GitHub"
             >
-              <GithubMark />
-              Star
-              <Star
-                className="fill-transparent text-ink/30 transition-colors duration-200 group-hover:fill-amber group-hover:text-amber-deep"
-                size={13}
-              />
+              <GithubMark size={15} />
+              GitHub
             </a>
           </nav>
 
@@ -237,8 +233,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
                 target="_blank"
               >
                 <GithubMark size={15} />
-                Star on GitHub
-                <Star className="fill-amber text-amber-deep" size={14} />
+                GitHub
               </a>
             </div>
           </nav>

@@ -38,8 +38,8 @@ completion, hover, definition, references, rename, document symbols,
 semantic tokens, and formatting. It's the server any LSP-compatible editor
 talks to. `lab-ide-wasm` re-exposes the same `Workspace` through
 `wasm-bindgen` instead, for embedding directly in a browser or another
-non-LSP host: this is the API the [playground](/playground) is built to
-integrate against.
+non-LSP host: it's what the [playground](/playground) on this site runs
+on.
 
 Because both adapters call into the same `lab-ide` core, editor behavior
 can't drift between the LSP server and an embedded browser integration: a
