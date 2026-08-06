@@ -16,8 +16,8 @@ backend has no entry point that consumes a `CheckedModule` or a
 Given verified Protocol operations, the OT-2 backend chooses one concrete
 realization for the plasmid-build use case:
 
-- **Golden Gate assembly** for `realize`
-- **Heat-shock transformation** for `transform`
+- **Golden Gate assembly** for `realize`, which produces a plasmid
+- **Heat-shock transformation** for `transform`, which produces a strain
 - **Culture recovery** for `recover`
 - **Serial dilution** for `dilute`
 - **Selective plating** for `plate`
@@ -33,11 +33,27 @@ is built to allow it.
 ## The plan is real, not templated
 
 The backend's planner allocates `Ot2ExecutionPlan` (source wells, reaction
-wells, transformation mappings, dilution wells, and plating wells) and
-validates it against real constraints: reaction volume, replicate and
-dilution bounds, plate capacity, source-rack capacity, and tip capacity. A
-design that would overflow a plate or exceed a tip box's capacity fails
-planning rather than producing a silently-wrong protocol.
+wells, DNA-plate wells, transformation mappings, dilution wells, and plating
+wells) and validates it against real constraints: each design's reaction
+balance against its own stated volume, replicate and dilution bounds, plate
+capacity, source-rack capacity, and tip capacity. A design that would
+overflow a plate or exceed a tip box's capacity fails planning rather than
+producing a silently-wrong protocol.
+
+## The deck is authored, not hardcoded
+
+Labware, deck slots, modules, pipettes, mounts, API level, and per-stage
+capacity come from a target profile: one TOML file per bench, selected by
+`lab build --target`. The profile rejects a slot an OT-2 does not address, a
+slot the installed thermocycler already occupies, two pieces of labware
+claiming one slot during a stage, and any key it does not recognize. Every
+field defaults to the reference bench, so a profile states only what differs.
+
+Declaring more than one slot for a plate raises the batch size a bench holds;
+well addresses are plate-and-well pairs, and allocation fills each declared
+plate in turn. Reaction chemistry stays in `.lab` source, because reagent
+volumes and thermal profiles are claims about the science rather than about a
+laboratory.
 
 Every generated artifact (the JSON manifest, the Markdown instructions, and
 all three Python scripts) is a projection of that same plan. Nothing
@@ -75,12 +91,19 @@ hits, cycles, blockers, and build waves directly from verified Protocol
 operations, with no knowledge of plasmids, Golden Gate, or robots. The OT-2
 planner then specializes only the generated nodes, producing a
 `full-build-bundle`: a machine-readable graph, a human dependency report,
-and one self-contained batch directory per generated artifact.
+and one self-contained directory per planning wave. Artifacts in one wave have
+no ordering constraint between them, so a wave is a single robot run over one
+deck, and a wave emits a protocol only for the stages its artifacts reach.
 
 ## Current boundary
 
+Emitted protocols declare `robotType: "OT-2"`. Opentrons moved OT-2 support
+into a separate application at version 9, so a 9.x app rejects them with a
+message pointing at the OT-2 download; use the 8.4.x app or the
+`Opentrons-OT2` build to see the deck.
+
 This backend does not yet query a live inventory service, resolve inventory
 lots, ingest SBOL, design compatible overhangs, normalize source
-concentrations, prepare DNA between dependent batches, or attach runtime
+concentrations, prepare DNA between dependent waves, or attach runtime
 evidence to acceptance decisions. Generated instructions and robot code
 require laboratory review and qualification before physical execution.

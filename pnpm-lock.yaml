@@ -47,6 +47,9 @@ importers:
       '@xyflow/react':
         specifier: ^12.11.2
         version: 12.11.2(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      estree-util-value-to-estree:
+        specifier: ^3.5.0
+        version: 3.5.0
       lucide-react:
         specifier: ^1.28.0
         version: 1.28.0(react@19.2.8)

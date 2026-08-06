@@ -26,9 +26,17 @@ documents and provides:
 - Formatting, currently whitespace-only: trailing whitespace trimmed, a
   final newline ensured. No syntax-aware reformatting yet.
 
-Definition, references, and rename only see open documents today: there's
-no persistent, project-wide symbol index yet, so closing a file drops it out
-of those queries until it's reopened.
+`Workspace` itself is I/O-free, so it cannot read a manifest. A host that can
+supplies each document's module name, and `lab-language-server` does: on open,
+it discovers the package holding the file and loads every source module in it.
+A `use` of a package sibling therefore resolves whether or not that sibling is
+open, and modules carry the name their manifest gives them rather than one
+guessed from a path. A file outside any package keeps the path-derived name,
+which is what the browser playground relies on.
+
+Definition, references, and rename still only see loaded documents: there's
+no persistent, project-wide symbol index yet, so a file outside the open
+package drops out of those queries.
 
 ## Two adapters, one core
 

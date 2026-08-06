@@ -14,7 +14,7 @@ lookup table keyed on their spelling. Every one of them is a typed contract
 that a module exports.
 
 ```lab
-culture <- transform construct into cells
+strain, culture <- transform reporter_host from plasmids into cells
 ```
 
 The parser sees a phrase after `<-` and nothing more. Resolution matches
@@ -39,7 +39,6 @@ that turns a design plus its dependencies into physical material:
 | `design` | `Plasmid`, mode `copy` |
 | `dependencies` | `List<Material<Plasmid>>`, mode `take` |
 | Result `product` | `Material<Plasmid>` |
-| Result `construct` | `Material<Construct>` |
 
 Four things are worth pulling out of that table.
 
@@ -56,8 +55,11 @@ never dispatched.
 information and information is free to reuse. The dependency list is taken,
 because those are physical tubes and they get consumed.
 
-**Results are named.** `product, construct <- realize ...` binds two values,
-in the order the contract declares them.
+**Results are named.** An operation may return several, and they bind in the
+order the contract declares them. `transform` returns two —
+`strain, culture <- transform reporter_host from plasmids into cells` — because
+one operation both realizes the named organism and leaves a culture to recover,
+dilute, and plate.
 
 ## Ownership modes
 
@@ -95,15 +97,15 @@ whether the operation reaches LAIR, or only type-checks.
 
 | Phrase | Capability | Ownership | Results | Lowers |
 | --- | --- | --- | --- | --- |
-| `realize` *design* `from` *deps* | `artifact_realization` | copy, take | `product`, `construct` | yes |
-| `provision` *strain* | `inventory` | copy | `cells` | yes |
-| `transform` *construct* `into` *cells* | `chemical_transformation` | take, take | `culture` | yes |
+| `realize` *design* `from` *deps* | `artifact_realization` | copy, take | `product` | yes |
+| `provision` *chassis* | `inventory` | copy | `cells` | yes |
+| `transform` *design* `from` *plasmids* `into` *cells* | `chemical_transformation` | copy, take, take | `strain`, `culture` | yes |
 | `recover` *culture* `for` *duration* | `culture_incubation` | take | `culture` | yes |
 | `dilute` *culture* | `liquid_handling` | take | `culture` | yes |
 | `plate` *culture* `on` *antibiotic* | `antibiotic_selection` | take, copy | `plate` | yes |
 | `capture image of` *plate* | `plate_imaging` | borrow | `image` | no |
 | `synthesize` *design* | `dna_synthesis` | copy | `fragments` | no |
-| `assemble` *fragments* | `dna_assembly` | take | `construct` | no |
+| `assemble` *fragments* | `dna_assembly` | take | `construct` (a `Material<Plasmid>`) | no |
 | `pick` *n* `isolated colonies from` *plate* | `colony_picking` | borrow | `candidates` | no |
 | `screen` *candidates* `against` *design* | `clone_screening` | take, copy | `screening` | no |
 | `grow` *clone* `at` *temp* `for` *duration* | `culture_incubation` | take | `culture` | no |

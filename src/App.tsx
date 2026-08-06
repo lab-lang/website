@@ -1,11 +1,13 @@
 import { lazy, Suspense, useEffect } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { DocsSearchProvider } from './components/docs-search'
 import { SiteShell } from './components/site-shell'
 import { BrandPage } from './pages/brand-page'
 import { CommunityPage } from './pages/community-page'
 import { DocsPage } from './pages/docs-page'
 import { HomePage } from './pages/home-page'
 import { NotFoundPage } from './pages/not-found-page'
+import { WhyPage } from './pages/why-page'
 import { DEFAULT_DOC_SLUG } from './lib/docs-content'
 
 // CodeMirror and the wasm compiler are heavy and only ever used on this one
@@ -34,27 +36,30 @@ function RouteEffects() {
 
 export default function App() {
   return (
-    <SiteShell>
-      <RouteEffects />
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route
-          path="/docs"
-          element={<Navigate replace to={`/docs/${DEFAULT_DOC_SLUG}`} />}
-        />
-        <Route path="/docs/*" element={<DocsPage />} />
-        <Route
-          path="/playground"
-          element={
-            <Suspense fallback={null}>
-              <PlaygroundPage />
-            </Suspense>
-          }
-        />
-        <Route path="/community" element={<CommunityPage />} />
-        <Route path="/brand" element={<BrandPage />} />
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
-    </SiteShell>
+    <DocsSearchProvider>
+      <SiteShell>
+        <RouteEffects />
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/why" element={<WhyPage />} />
+          <Route
+            path="/docs"
+            element={<Navigate replace to={`/docs/${DEFAULT_DOC_SLUG}`} />}
+          />
+          <Route path="/docs/*" element={<DocsPage />} />
+          <Route
+            path="/playground"
+            element={
+              <Suspense fallback={null}>
+                <PlaygroundPage />
+              </Suspense>
+            }
+          />
+          <Route path="/community" element={<CommunityPage />} />
+          <Route path="/brand" element={<BrandPage />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </SiteShell>
+    </DocsSearchProvider>
   )
 }

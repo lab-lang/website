@@ -6,6 +6,7 @@ import { LoweringRail } from '../components/lowering-rail'
 import { ReactiveTimeline } from '../components/reactive-timeline'
 import { SourceCode } from '../components/source-code'
 import { REPO_URL } from '../lib/site'
+import { usePageMeta } from '../lib/use-page-meta'
 import { diagnostics } from '../data/artifacts'
 import { reactiveExample } from '../data/examples'
 
@@ -95,6 +96,8 @@ function InstallCommand() {
 }
 
 export function HomePage() {
+  usePageMeta({ path: '/' })
+
   return (
     <>
       <section className="agar-wash relative overflow-hidden" id="intro">
@@ -296,7 +299,7 @@ export function HomePage() {
         </div>
 
         <div className="mt-12 grid gap-px overflow-hidden rounded-2xl border border-ink/15 bg-ink/12 sm:grid-cols-3">
-          {ownership.map((mode, index) => (
+          {ownership.map((mode) => (
             <div className="bg-shell/70 p-6 sm:p-7" key={mode.mode}>
               <div className="flex items-center gap-3">
                 <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-amber/12 text-amber-deep">
@@ -323,7 +326,7 @@ export function HomePage() {
         </div>
 
         <div className="mt-8 grid gap-5 lg:grid-cols-2">
-          {diagnostics.map((diagnostic, index) => (
+          {diagnostics.map((diagnostic) => (
             <div
               className="overflow-hidden rounded-2xl border border-ink/18"
               key={diagnostic.id}

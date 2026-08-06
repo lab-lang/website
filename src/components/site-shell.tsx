@@ -5,6 +5,7 @@ import { REPO_URL } from '../lib/site'
 import { ThemeToggle } from './theme-toggle'
 
 const navigation = [
+  { label: 'Why Lab', to: '/why' },
   { label: 'Docs', to: '/docs' },
   { label: 'Playground', to: '/playground' },
   { label: 'Community', to: '/community' },
@@ -271,6 +272,9 @@ export function SiteShell({ children }: { children: ReactNode }) {
             <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-[14px] sm:gap-x-20">
               <div className="flex flex-col gap-3">
                 <span className="micro text-ink/40">Learn</span>
+                <Link className="rule-link w-fit text-umber hover:text-ink" to="/why">
+                  Why Lab
+                </Link>
                 <Link className="rule-link w-fit text-umber hover:text-ink" to="/docs">
                   Documentation
                 </Link>

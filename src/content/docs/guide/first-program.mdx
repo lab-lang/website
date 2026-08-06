@@ -90,7 +90,7 @@ GFP = part("GFP")
 B0015 = part("B0015")
 pSB1C3 = backbone("pSB1C3")
 BsaI = restriction_enzyme("BsaI")
-DH5alpha = strain("DH5alpha")
+DH5alpha = chassis("DH5alpha")
 chloramphenicol = antibiotic("chloramphenicol")
 
 plasmid reporter:
@@ -98,28 +98,37 @@ plasmid reporter:
   backbone: pSB1C3
   components: [J23101, B0034, GFP, B0015]
   restriction_enzyme: BsaI
-  host: DH5alpha
-  selection: chloramphenicol
   assembly_replicates: 1
-  transformation_replicates: 2
-  plating_replicates: 2
-  serial_dilutions: 2
 
   require topology == circular
   accept sequence == design.sequence
 
-workflow realize_reporter() -> (
-  product: Material<Plasmid>,
+strain reporter_host:
+  chassis: DH5alpha
+  plasmids: [reporter]
+  selection: chloramphenicol
+  transformation_replicates: 2
+  plating_replicates: 2
+  serial_dilutions: 2
+
+workflow assemble_reporter() -> Material<Plasmid>:
+  dependencies = []
+  product <- realize reporter from dependencies
+  return product
+
+workflow build_reporter_host(
+  reporter: Material<Plasmid>,
+) -> (
+  strain: Material<Strain>,
   plate: Material<Plate>,
 ):
-  dependencies = []
-  product, construct <- realize reporter from dependencies
+  dependencies = [reporter]
   cells <- provision DH5alpha
-  culture <- transform construct into cells
+  strain, culture <- transform reporter_host from dependencies into cells
   culture <- recover culture for 1 h
   culture <- dilute culture
   plate <- plate culture on chloramphenicol
-  return product, plate
+  return strain, plate
 ```
 
 ### Names are typed, not strings
@@ -147,7 +156,7 @@ interchangeable:
 
 - `dependencies = []` is deterministic evaluation. Replay may run it again,
   because nothing in the world changed.
-- `culture <- transform construct into cells` is a durable effect. It
+- `strain, culture <- transform reporter_host from plasmids into cells` is a durable effect. It
   records a command, waits for the completion event, and binds the result
   from that event. **Replay must never repeat it.** You cannot un-transform
   a tube of cells.
@@ -160,7 +169,7 @@ puts that fact in the syntax rather than hiding it behind a function call.
 `Material<Plasmid>` is affine: it has exactly one owning place. Each action
 declares what it does to what you hand it — `copy` for information, `borrow`
 to observe without consuming, `take` to consume. `transform` takes both its
-construct and its cells, so neither name is usable afterward.
+its plasmids and its cells, so neither name is usable afterward.
 
 Every terminating path must account for everything it owns. Try deleting
 `plate` from the return list:

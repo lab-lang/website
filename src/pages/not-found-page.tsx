@@ -1,7 +1,17 @@
 import { ArrowLeft } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
+import { usePageMeta } from '../lib/use-page-meta'
 
 export function NotFoundPage() {
+  const { pathname } = useLocation()
+
+  usePageMeta({
+    title: 'Not found — Lab',
+    description: 'That page is not part of this experiment.',
+    noindex: true,
+    path: pathname,
+  })
+
   return (
     <section className="agar-wash grid min-h-[72dvh] place-items-center px-5 py-24">
       <div className="max-w-md text-center">

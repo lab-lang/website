@@ -6,6 +6,7 @@ import remarkGfm from 'remark-gfm'
 import remarkFrontmatter from 'remark-frontmatter'
 import remarkMdxFrontmatter from 'remark-mdx-frontmatter'
 import remarkCodeMeta from './src/lib/remark-code-meta.ts'
+import remarkDocSearch from './src/lib/remark-doc-search.ts'
 
 export default defineConfig({
   plugins: [
@@ -17,6 +18,8 @@ export default defineConfig({
           remarkCodeMeta,
           remarkFrontmatter,
           [remarkMdxFrontmatter, { name: 'frontmatter' }],
+          // Last: it indexes the tree the other plugins have finished shaping.
+          remarkDocSearch,
         ],
       }),
     },

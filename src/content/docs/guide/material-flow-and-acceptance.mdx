@@ -31,8 +31,8 @@ a material-typed value is checked against its current state:
   control flow rejoins is rejected: both arms must agree on what's still
   live before execution can continue past the join.
 
-This is why `transform construct into cells` marks both operands consumed:
-neither `construct` nor `cells` can be referenced again, while `capture
+This is why `transform reporter_host from plasmids into cells` marks its material operands consumed:
+neither `plasmids` nor `cells` can be referenced again, while `capture
 image of plate` leaves `plate` live for the next reading. Reactive handlers
 follow the same rule across invocations: a handler must preserve the
 ownership of any material it captured from one firing to the next, not

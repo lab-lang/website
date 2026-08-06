@@ -1,4 +1,5 @@
 import type { MDXContent } from 'mdx/types'
+import type { DocSection } from './remark-doc-search'
 
 export interface DocFrontmatter {
   title: string
@@ -12,6 +13,8 @@ export interface DocPage {
   slug: string
   frontmatter: DocFrontmatter
   Component: MDXContent
+  /** Per-heading plaintext, injected at build time by `remark-doc-search`. */
+  sections: DocSection[]
 }
 
 export interface DocGroup {
@@ -29,6 +32,7 @@ const GROUP_ORDER = ['Learn Lab', 'Toolchain', 'Backends', 'Reference']
 const modules = import.meta.glob<{
   default: DocPage['Component']
   frontmatter: DocFrontmatter
+  sections: DocSection[]
 }>('/src/content/docs/**/*.mdx', { eager: true })
 
 export const docPages: DocPage[] = Object.entries(modules)
@@ -36,6 +40,7 @@ export const docPages: DocPage[] = Object.entries(modules)
     slug: path.replace('/src/content/docs/', '').replace(/\.mdx$/, ''),
     frontmatter: mod.frontmatter,
     Component: mod.default,
+    sections: mod.sections,
   }))
   .sort((a, b) => a.frontmatter.order - b.frontmatter.order)
 

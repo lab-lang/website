@@ -28,6 +28,7 @@
     "@lezer/highlight": "^1.2.3",
     "@mdx-js/rollup": "^3.1.1",
     "@xyflow/react": "^12.11.2",
+    "estree-util-value-to-estree": "^3.5.0",
     "lucide-react": "^1.28.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",

@@ -1,6 +1,7 @@
 import { ArrowRight, Bug, ExternalLink, MessageSquare, ScrollText } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { REPO_URL } from '../lib/site'
+import { usePageMeta } from '../lib/use-page-meta'
 
 const channels = [
   {
@@ -107,6 +108,13 @@ const decisions = [
 ]
 
 export function CommunityPage() {
+  usePageMeta({
+    title: 'Community — Lab',
+    description:
+      'Where Lab is discussed and decided: issues, discussions, and a numbered log of every accepted tradeoff in the language.',
+    path: '/community',
+  })
+
   return (
     <>
       <section className="agar-wash relative overflow-hidden" id="intro">
@@ -171,7 +179,7 @@ export function CommunityPage() {
           </div>
 
           <div className="mt-10 grid gap-px overflow-hidden rounded-2xl border border-ink/15 bg-ink/12 sm:mt-14 sm:grid-cols-3">
-            {channels.map((channel, index) => (
+            {channels.map((channel) => (
               <div className="lift bg-shell/70 p-6 sm:p-7" key={channel.title}>
                 <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-amber/12 text-amber-deep">
                   <channel.icon aria-hidden="true" size={16} strokeWidth={2} />

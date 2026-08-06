@@ -79,20 +79,31 @@ plasmid p_tet_reporter:
 
 const heroBuildFile: PlaygroundFile = {
   path: 'workflows/build.lab',
-  contents: `# Generic over the design, so it can build any plasmid handed to it,
-# including the one in programs/main.lab.
+  contents: `# The organism this build produces is itself an artifact, so the workflow
+# names the strain it realizes rather than taking any design at all.
 use std.bio.inventory
 use std.lab.plasmid_actions
+use designs.plasmid
 
-DH5alpha = strain("DH5alpha")
+DH5alpha = chassis("DH5alpha")
 kanamycin = antibiotic("kanamycin")
 
-workflow build(design: Plasmid) -> Accepted<Plasmid> | Rejected<Plasmid>:
+strain tet_reporter_host:
+  chassis: DH5alpha
+  plasmids: [p_tet_reporter]
+  selection: kanamycin
+
+workflow build() -> Accepted<Plasmid> | Rejected<Plasmid>:
+  design = p_tet_reporter
   fragments <- synthesize design
   construct <- assemble fragments
+  plasmids = [construct]
   cells <- provision DH5alpha
-  culture <- transform construct into cells
+  strain, culture <- transform tet_reporter_host from plasmids into cells
+  culture <- recover culture for 1 h
+  culture <- dilute culture
   plate <- plate culture on kanamycin
+  <- dispose strain
 
   candidates <- pick 4 isolated colonies from plate
   <- dispose plate
@@ -123,7 +134,7 @@ use designs.plasmid
 use workflows.build
 
 workflow main() -> Accepted<Plasmid> | Rejected<Plasmid>:
-  result <- build p_tet_reporter
+  result <- build
   return result
 `,
 }
@@ -185,36 +196,78 @@ plasmid p_rfp:
 
 const realizePlasmidFile: PlaygroundFile = {
   path: 'workflows/realize_plasmid.lab',
-  contents: `# One workflow, generic over the design, serves every plasmid in the
-# project. The compiler derives build order from typed dataflow, not from
-# naming or file layout.
+  contents: `# Assembly produces a plasmid; transformation produces a strain. Each is a
+# separate artifact, so each gets its own workflow, and the compiler derives
+# build order from the material each one consumes.
 use std.bio.build
 use std.bio.inventory
 use std.lab.plasmid_actions
+use designs.reporters
 
-DH5alpha = strain("DH5alpha")
+DH5alpha = chassis("DH5alpha")
 chloramphenicol = antibiotic("chloramphenicol")
 
-workflow realize_plasmid(design: Plasmid) -> (product: Material<Plasmid>, plate: Material<Plate>):
+strain gfp_host:
+  chassis: DH5alpha
+  plasmids: [p_gfp]
+  selection: chloramphenicol
+
+strain rfp_host:
+  chassis: DH5alpha
+  plasmids: [p_rfp]
+  selection: chloramphenicol
+
+workflow assemble_p_gfp() -> Material<Plasmid>:
   dependencies = []
-  product, construct <- realize design from dependencies
+  product <- realize p_gfp from dependencies
+  return product
+
+workflow assemble_p_rfp() -> Material<Plasmid>:
+  dependencies = []
+  product <- realize p_rfp from dependencies
+  return product
+
+workflow build_gfp_host(
+  p_gfp: Material<Plasmid>,
+) -> (
+  strain: Material<Strain>,
+  plate: Material<Plate>,
+):
+  dependencies = [p_gfp]
   cells <- provision DH5alpha
-  culture <- transform construct into cells
+  strain, culture <- transform gfp_host from dependencies into cells
   culture <- recover culture for 1 h
   culture <- dilute culture
   plate <- plate culture on chloramphenicol
-  return product, plate
+  return strain, plate
+
+workflow build_rfp_host(
+  p_rfp: Material<Plasmid>,
+) -> (
+  strain: Material<Strain>,
+  plate: Material<Plate>,
+):
+  dependencies = [p_rfp]
+  cells <- provision DH5alpha
+  strain, culture <- transform rfp_host from dependencies into cells
+  culture <- recover culture for 1 h
+  culture <- dilute culture
+  plate <- plate culture on chloramphenicol
+  return strain, plate
 `,
 }
 
 const buildInventoryFile: PlaygroundFile = {
   path: 'designs/inventory.lab',
   contents: `# Typed inventory identities, kept separate from the workflow that uses
-# them (the strain and selection this build needs, and nothing else).
+# them (the chassis and selection this build needs, and nothing else).
 use std.bio.inventory
 
-competent_ecoli = strain("competent_ecoli")
+competent_ecoli = chassis("competent_ecoli")
 kanamycin = antibiotic("kanamycin")
+p15A_kan = backbone("p15A_kan")
+BsaI = restriction_enzyme("BsaI")
+GFP = part("GFP")
 `,
 }
 
@@ -272,14 +325,32 @@ workflow await_colonies(plate: Material<Plate>) -> ColonyGrowth:
       observations: observations,
     }
 
-workflow build_plasmid(design: Plasmid) -> Accepted<Plasmid> | Rejected<Plasmid>:
+plasmid p_reporter:
+  sequence: dna("ACGTACGT")
+  backbone: p15A_kan
+  components: [GFP]
+  restriction_enzyme: BsaI
 
+  require topology == circular
+  accept sequence == design.sequence
+
+strain reporter_host:
+  chassis: competent_ecoli
+  plasmids: [p_reporter]
+  selection: kanamycin
+
+workflow build_plasmid() -> Accepted<Plasmid> | Rejected<Plasmid>:
+
+  design = p_reporter
   fragments <- synthesize design
   construct <- assemble fragments
+  plasmids = [construct]
   cells <- provision competent_ecoli
-  culture <- transform construct into cells
+  strain, culture <- transform reporter_host from plasmids into cells
   culture <- recover culture for 1 h
+  culture <- dilute culture
   plate <- plate culture on kanamycin
+  <- dispose strain
 
   colony_result <- await_colonies plate
 
@@ -359,7 +430,7 @@ export const playgroundProjects: PlaygroundProject[] = [
   {
     id: 'reporter-library',
     label: 'Reporter library',
-    note: 'One generic workflow builds both plasmids. Try renaming p_gfp.',
+    note: 'Two plasmids, each assembled and then transformed into its own strain. Try renaming p_gfp.',
     defaultFile: reportersFile.path,
     files: [reportersFile, realizePlasmidFile],
   },

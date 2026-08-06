@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, ExternalLink } from 'lucide-react'
+import { ArrowLeft, ArrowRight, ExternalLink, Search } from 'lucide-react'
 import {
   useEffect,
   useRef,
@@ -15,6 +15,8 @@ import {
   getDocPage,
 } from '../lib/docs-content'
 import { mdxComponents } from '../components/mdx-components'
+import { SHORTCUT_LABEL, useOpenDocsSearch } from '../lib/docs-search-context'
+import { usePageMeta } from '../lib/use-page-meta'
 
 interface TocEntry {
   id: string
@@ -110,6 +112,15 @@ export function DocsPage() {
   const page = getDocPage(slug)
   const articleRef = useRef<HTMLElement>(null)
   const { toc, active } = useDocToc(articleRef, slug)
+  const openSearch = useOpenDocsSearch()
+
+  usePageMeta({
+    title: page ? `${page.frontmatter.title} — Lab` : 'Not in the docs — Lab',
+    description: page?.frontmatter.description,
+    path: `/docs/${slug}`,
+    type: 'article',
+    noindex: !page,
+  })
 
   if (!page) return <DocNotFound slug={slug} />
 
@@ -125,6 +136,24 @@ export function DocsPage() {
           aria-label="Documentation"
           className="sticky top-[92px] max-h-[calc(100dvh-112px)] overflow-y-auto py-16 pr-2"
         >
+          {/*
+            * Shaped like the field it opens, and sitting at the head of the
+            * column it searches. The shortcut works site-wide; this is just
+            * the place it is advertised.
+            */}
+          <button
+            aria-keyshortcuts="Meta+K Control+K"
+            className="press mb-8 flex w-full items-center gap-2 rounded-lg border border-ink/15 bg-shell/60 py-2 pl-2.5 pr-2 text-[13px] text-umber hover:border-ink/30 hover:text-ink"
+            onClick={openSearch}
+            type="button"
+          >
+            <Search aria-hidden="true" size={14} />
+            Search
+            <kbd className="ml-auto rounded-[5px] border border-ink/12 bg-ink/5 px-1.5 py-0.5 font-sans text-[10.5px] text-umber-soft">
+              {SHORTCUT_LABEL}
+            </kbd>
+          </button>
+
           {docGroups.map((group) => (
             <div className="mt-7 first:mt-0" key={group.group}>
               <span className="micro text-ink/40">{group.group}</span>
@@ -196,22 +225,33 @@ export function DocsPage() {
         >
           Documentation
         </label>
-        <select
-          className="mt-2 min-h-12 w-full rounded-xl border border-ink/20 bg-shell px-3 py-2.5 text-[15px] text-ink lg:hidden"
-          id="doc-page-select"
-          onChange={(event) => navigate(`/docs/${event.target.value}`)}
-          value={slug}
-        >
-          {docGroups.map((group) => (
-            <optgroup key={group.group} label={group.group}>
-              {group.pages.map((groupPage) => (
-                <option key={groupPage.slug} value={groupPage.slug}>
-                  {groupPage.frontmatter.title}
-                </option>
-              ))}
-            </optgroup>
-          ))}
-        </select>
+        {/* The narrow-screen counterpart of the sidebar: jump to a page, or search across them. */}
+        <div className="mt-2 flex gap-2 lg:hidden">
+          <select
+            className="min-h-12 min-w-0 flex-1 rounded-xl border border-ink/20 bg-shell px-3 py-2.5 text-[15px] text-ink"
+            id="doc-page-select"
+            onChange={(event) => navigate(`/docs/${event.target.value}`)}
+            value={slug}
+          >
+            {docGroups.map((group) => (
+              <optgroup key={group.group} label={group.group}>
+                {group.pages.map((groupPage) => (
+                  <option key={groupPage.slug} value={groupPage.slug}>
+                    {groupPage.frontmatter.title}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+          <button
+            aria-label="Search the documentation"
+            className="press grid min-h-12 w-12 shrink-0 place-items-center rounded-xl border border-ink/20 text-umber"
+            onClick={openSearch}
+            type="button"
+          >
+            <Search aria-hidden="true" size={18} />
+          </button>
+        </div>
 
         <div className="mx-auto max-w-3xl">
           <div className="mt-8 lg:mt-0">

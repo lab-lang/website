@@ -218,8 +218,8 @@ export const diagnostics = [
   {
     id: 'double-spend',
     title: 'A material used twice',
-    source: `culture <- transform construct into cells
-second  <- transform construct into cells`,
+    source: `strain, culture <- transform reporter_host from plasmids into cells
+second  <- transform reporter_host from plasmids into cells`,
     error:
       "affine material-flow error in workflow 'double_spend' at body.4:\n  physical value 'construct' is no longer available",
     explanation:

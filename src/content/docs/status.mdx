@@ -15,13 +15,16 @@ implementation covers, the implementation is what's true today.
 
 | Feature | Status |
 | --- | --- |
-| Plasmid and circuit declarations | Parse, resolve, type, lower |
+| `plasmid`, `strain`, and circuit declarations | Parse, resolve, type, lower |
+| Quantity-valued chemistry properties | Parse, resolve, unit-checked at lowering |
 | `require` and `accept` claims | Parse, resolve, type, lower |
 | Workflows, outcomes, and matching | Parse, resolve, type, lower |
 | Reactive `when every` / `when after` | Parse, resolve, type; no execution runtime |
 | Action contracts and material flow | Verified in the frontend |
 | `part` declarations | Syntax pending |
 | External packages and lockfiles | Path dependencies only; registry deps rejected outright |
+| Workspaces of member packages | Members, default member, shared lockfile |
+| Target profiles and `lab build --target` | One backend; profile validated, not dispatched on |
 | Durable workflow runtime | Not implemented |
 
 ## Standard library lowering
@@ -32,7 +35,8 @@ have no LAIR lowering yet: `capture`, `synthesize`, `assemble`, `pick`,
 `dispose`. Only `provision`, `transform`, `recover`, `dilute`, and `plate`
 reach LAIR directly, plus the separate `realize` effect from
 `std.bio.build`, which the Protocol dialect conversion expands into
-synthesize and assemble operations internally. See
+synthesize and assemble operations internally. `realize` produces a plasmid
+and `transform` produces a strain, so a build graph spans both artifact kinds. See
 [Action contracts](/docs/guide/action-contracts) for the full table and
 [LAIR dialects](/docs/compiler/lair-dialects) for how that expansion works.
 
@@ -48,11 +52,14 @@ synthesize and assemble operations internally. See
 
 ## Backend: Opentrons OT-2
 
-Experimental, simulator-checked. Validates reaction volume, replicate and
+Experimental, simulator-checked. Deck layout, labware, instruments, and
+capacity come from a target profile rather than from constants, and
+allocation spills across every plate a profile declares. Validates each
+design's reaction balance against its own stated volume, replicate and
 dilution bounds, plate capacity, source-rack capacity, and tip capacity.
 Does not yet query a live inventory service, resolve inventory lots, ingest
 SBOL, design compatible overhangs, normalize source concentrations, prepare
-DNA between dependent batches, or attach runtime evidence to acceptance
+DNA between dependent waves, or attach runtime evidence to acceptance
 decisions. See [Opentrons OT-2](/docs/backends/opentrons-ot2).
 
 ## Editor tooling

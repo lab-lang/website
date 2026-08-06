@@ -33,6 +33,7 @@ The host must serve `index.html` as the fallback for client-side routes such as 
 - `src/components/`: shared site and source-code presentation
 - `src/data/examples.ts`: representative Lab examples
 - `src/content/docs/`: documentation content, see below
+- `src/lib/use-page-meta.ts`: per-route title, description, canonical and card tags
 - `public/brand/`: brand assets, generated, see below
 
 ## Brand assets
@@ -50,6 +51,14 @@ python3 -m venv .venv
 It also needs `rsvg-convert` for the PNG exports (`brew install librsvg`) and
 an installed `node_modules`, since it reads Crimson Pro from the
 `@fontsource-variable/crimson-pro` package.
+
+`public/og/lab.png`, the card a link to the site unfurls to, is generated the
+same way by `scripts/og-images.py`, which shares its typesetting with
+`scripts/brandlib.py`:
+
+```sh
+.venv/bin/python scripts/og-images.py
+```
 
 Do not hand-edit these files. The word in each wordmark is emitted as outlines
 rather than live text, so there is nothing editable in them anyway; that is
@@ -84,6 +93,13 @@ order: 50
 
 The page's URL is its file path relative to `src/content/docs/`, so
 `guide/the-two-arrows.mdx` serves at `/docs/guide/the-two-arrows`.
+
+Search needs no wiring either. `src/lib/remark-doc-search.ts` splits each page
+at its headings during the MDX build and exports the plaintext as `sections`,
+which `src/lib/docs-search.ts` ranks; a new page is searchable as soon as it
+renders. Results deep-link to a heading, so anchors have to match: both the
+index and the rendered heading id come from `slugify` over the heading's full
+text, formatting included.
 
 The body is ordinary Markdown: headings, lists, GFM tables, blockquotes,
 styled automatically to match the rest of the site by the component map in

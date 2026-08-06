@@ -35,8 +35,9 @@ two everywhere a workflow is written.
 workflow build_plasmid(design: Plasmid) -> Accepted<Plasmid> | Rejected<Plasmid>:
   fragments <- synthesize design
   construct <- assemble fragments
+  plasmids = [construct]
   cells <- provision competent_ecoli
-  culture <- transform construct into cells
+  strain, culture <- transform reporter_host from plasmids into cells
   culture <- recover culture for 1 h
   plate <- plate culture on kanamycin
 ```

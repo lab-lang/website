@@ -19,7 +19,9 @@ import { SourceCode } from './source-code'
 
 const CHARS_PER_TICK = 3
 const TICK_MS = 20
-const HOLD_BEFORE_DEPLOY = 1500
+const HOLD_BEFORE_BUILD = 600
+/** How long the compiler panel stays up receding. Matches `.stage-recede`. */
+const HANDOFF_MS = 300
 
 type View = 'design' | 'execution'
 
@@ -117,15 +119,19 @@ function Specimen({ onReplay }: { onReplay: () => void }) {
   const [pinned, setPinned] = useState(false)
   const [fileId, setFileId] = useState<FileId>('plasmid')
   const [buildStep, setBuildStep] = useState<number | null>(null)
+  const [handingOff, setHandingOff] = useState(false)
+  /* The compiler panel is arriving or holding; the design behind it recedes. */
   const building = buildStep !== null
+  /* It is on screen either way, coming up over the design or leaving the target. */
+  const compiling = building || handingOff
 
   const complete = reducedMotion || typed >= OPENING.length
 
-  /* Once the program is written, it compiles and deploys on its own. */
+  /* Once the program is written, the build starts on its own. */
   useEffect(() => {
     if (!complete || pinned || reducedMotion || view === 'execution') return
 
-    const timer = window.setTimeout(() => setBuildStep(0), HOLD_BEFORE_DEPLOY)
+    const timer = window.setTimeout(() => setBuildStep(0), HOLD_BEFORE_BUILD)
     return () => window.clearTimeout(timer)
   }, [complete, pinned, reducedMotion, view])
 
@@ -134,8 +140,10 @@ function Specimen({ onReplay }: { onReplay: () => void }) {
     if (buildStep === null) return
 
     if (buildStep >= BUILD_STAGES.length) {
+      /* The target mounts under the compiler panel, which then recedes off it. */
       const timer = window.setTimeout(() => {
         setBuildStep(null)
+        setHandingOff(true)
         setView('execution')
       }, 300)
       return () => window.clearTimeout(timer)
@@ -147,6 +155,14 @@ function Specimen({ onReplay }: { onReplay: () => void }) {
     )
     return () => window.clearTimeout(timer)
   }, [buildStep])
+
+  /* The compiler panel comes down once it has faded off the target. */
+  useEffect(() => {
+    if (!handingOff) return
+
+    const timer = window.setTimeout(() => setHandingOff(false), HANDOFF_MS)
+    return () => window.clearTimeout(timer)
+  }, [handingOff])
 
   /* Only the opening file types itself; switching files shows it whole. */
   const typing = fileId === 'plasmid' && !complete
@@ -172,6 +188,7 @@ function Specimen({ onReplay }: { onReplay: () => void }) {
     setFileId(next)
     setPinned(true)
     setBuildStep(null)
+    setHandingOff(false)
     setView('design')
   }
 
@@ -179,10 +196,12 @@ function Specimen({ onReplay }: { onReplay: () => void }) {
     setPinned(true)
     /* Going to the target compiles; coming back is just a change of view. */
     if (next === 'execution' && view !== 'execution' && !reducedMotion) {
+      setHandingOff(false)
       setBuildStep(0)
       return
     }
     setBuildStep(null)
+    setHandingOff(false)
     setView(next)
   }
 
@@ -268,35 +287,51 @@ function Specimen({ onReplay }: { onReplay: () => void }) {
          * min-w-0: the stage panels pan wider than the screen, and without it
          * that width sizes the grid track instead of the panel's scroller.
          */}
-        <div className="order-1 h-[340px] min-w-0 sm:h-[470px] lg:order-2">
-          {building ? (
-            <div className="stage-panel h-full" key="build">
-              <BuildTransition step={buildStep ?? 0} />
-            </div>
-          ) : view === 'design' && fileId === 'workflow' ? (
-            <div className="stage-panel h-full" key="flow">
-              <WorkflowGraph />
-            </div>
-          ) : view === 'design' && fileId === 'circuit' ? (
-            <div className="stage-panel h-full" key="circuit">
-              <CircuitGraph />
-            </div>
-          ) : view === 'design' && fileId === 'main' ? (
-            <div className="stage-panel h-full" key="program">
-              <ProgramGraph />
-            </div>
-          ) : view === 'design' ? (
-            <div
-              className="stage-panel h-full overflow-hidden p-3 sm:p-8"
-              key="design"
-            >
-              <div className="mx-auto h-full w-full max-w-[540px]">
-                <DrawnMap accepted tokens={revealed} />
+        <div className="relative order-1 h-[340px] min-w-0 sm:h-[470px] lg:order-2">
+          {/*
+           * The compiler panel comes up over the design it is compiling rather
+           * than replacing it outright, so the design recedes under it instead
+           * of cutting to an empty panel.
+           */}
+          <div className={`h-full ${building ? 'stage-recede' : ''}`}>
+            {view === 'design' && fileId === 'workflow' ? (
+              <div className="stage-panel h-full" key="flow">
+                <WorkflowGraph />
               </div>
-            </div>
-          ) : (
-            <div className="stage-panel h-full" key="execution">
-              <LiquidHandler />
+            ) : view === 'design' && fileId === 'circuit' ? (
+              <div className="stage-panel h-full" key="circuit">
+                <CircuitGraph />
+              </div>
+            ) : view === 'design' && fileId === 'main' ? (
+              <div className="stage-panel h-full" key="program">
+                <ProgramGraph />
+              </div>
+            ) : view === 'design' ? (
+              <div
+                className="stage-panel h-full overflow-hidden p-3 sm:p-8"
+                key="design"
+              >
+                <div className="mx-auto h-full w-full max-w-[540px]">
+                  <DrawnMap accepted tokens={revealed} />
+                </div>
+              </div>
+            ) : (
+              <div className="stage-emerge h-full" key="execution">
+                <LiquidHandler />
+              </div>
+            )}
+          </div>
+
+          {compiling && (
+            <div
+              className={`absolute inset-0 ${
+                handingOff ? 'stage-recede' : 'stage-emerge'
+              }`}
+              key="build"
+            >
+              <BuildTransition
+                step={handingOff ? BUILD_STAGES.length : (buildStep ?? 0)}
+              />
             </div>
           )}
         </div>

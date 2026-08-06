@@ -37,35 +37,75 @@ const QUANTITY = String.raw`\b\d+(?:\.\d+)?(?:\s*(?:ng\/uL|µL|uL|bp|kb|min|h|C)
  */
 const FIELD_NAMES = 'material|evidence|record|observation|event|outcome'
 
+/** Declaration keywords that introduce a named entity, per the editor grammar. */
+const LAB_DECLARATIONS =
+  'part|circuit|plasmid|record|material|observation|evidence|event|outcome|workflow|strain'
+
+/*
+ * Mirrors editors/vscode/syntaxes/lab.tmLanguage.json in the compiler
+ * repository, rule for rule and in its order, so a program reads the same on
+ * this site as it does in the editor. Each branch is a named group, and
+ * LAB_SCOPES maps that name to one of the six colours above.
+ */
+const LAB_RULES: [string, string][] = [
+  ['cmt', String.raw`#[^\n]*`],
+  ['str', String.raw`"(?:[^"\\]|\\.)*"`],
+  // The durable arrow, and the action it performs.
+  ['eff', String.raw`<-`],
+  ['act', String.raw`(?<=<- )[A-Za-z_][A-Za-z0-9_]*`],
+  ['op', String.raw`->|==|!=|<=|>=`],
+  ['qty', QUANTITY],
+  // The module path in `use std.bio.parts`, and the name a declaration binds.
+  ['ns', String.raw`(?<=\buse )[A-Za-z_][A-Za-z0-9_.]*`],
+  ['decl', String.raw`(?<=^(?:${LAB_DECLARATIONS}) )[A-Za-z_][A-Za-z0-9_]*`],
+  ['fld', String.raw`\b(?:${FIELD_NAMES})\s*:`],
+  ['kw', String.raw`(?<!\.)\b(?:${LAB_KEYWORDS})\b`],
+  ['konst', String.raw`\b(?:None|true|false)\b`],
+  // Types, by position rather than by an initial capital. See the note on the
+  // `types` rule in the editor grammar for why case is not the signal.
+  ['gen', String.raw`\b[A-Za-z_][A-Za-z0-9_]*(?=<[A-Za-z_])`],
+  ['targ', String.raw`(?<=[A-Za-z0-9_])<[A-Za-z_][^<>\n]*>`],
+  ['ret', String.raw`(?<=->)\s*[A-Za-z_][A-Za-z0-9_]*`],
+  ['variant', String.raw`(?<=\bcase)\s+[A-Za-z_][A-Za-z0-9_]*`],
+  ['ctor', String.raw`\b[A-Za-z_][A-Za-z0-9_]*(?=\s*\{)`],
+  ['call', String.raw`\b[A-Za-z_][A-Za-z0-9_]*(?=\s*\()`],
+]
+
+const LAB_SCOPES: Record<string, string> = {
+  cmt: CLASS.comment,
+  str: CLASS.string,
+  eff: `${CLASS.durable} font-medium`,
+  act: CLASS.durable,
+  op: CLASS.keyword,
+  qty: CLASS.quantity,
+  ns: CLASS.entity,
+  decl: CLASS.entity,
+  fld: CLASS.base,
+  kw: CLASS.keyword,
+  konst: CLASS.keyword,
+  gen: CLASS.entity,
+  targ: CLASS.entity,
+  ret: CLASS.entity,
+  variant: CLASS.entity,
+  ctor: CLASS.entity,
+  call: CLASS.entity,
+}
+
 interface Grammar {
   pattern: RegExp
-  classify: (token: string) => string
+  /** Used when the pattern's alternatives are not named groups. */
+  classify?: (token: string) => string
+  /** Maps a named group to its colour, for grammars that scope by rule. */
+  scopes?: Record<string, string>
 }
 
 const GRAMMARS: Record<SourceLanguage, Grammar> = {
   lab: {
     pattern: new RegExp(
-      `("(?:[^"\\\\]|\\\\.)*"` +
-        `|#[^\\n]*` +
-        `|<-|->|==|>=|<=` +
-        `|${QUANTITY}` +
-        `|\\b(?:${FIELD_NAMES})\\s*:` +
-        // A keyword after a dot is a module path segment, as in `lab.designs.circuit`.
-        `|(?<!\\.)\\b(?:${LAB_KEYWORDS})\\b` +
-        `|\\b[A-Z][A-Za-z0-9_]*\\b)`,
+      LAB_RULES.map(([name, rule]) => `(?<${name}>${rule})`).join('|'),
       'g',
     ),
-    classify: (token) => {
-      if (token.startsWith('#')) return CLASS.comment
-      if (token.startsWith('"')) return CLASS.string
-      if (token === '<-') return `${CLASS.durable} font-medium`
-      if (/^(?:->|==|>=|<=)$/.test(token)) return CLASS.keyword
-      if (/^\d/.test(token)) return CLASS.quantity
-      if (token.endsWith(':')) return CLASS.base
-      if (new RegExp(`^(?:${LAB_KEYWORDS})$`).test(token)) return CLASS.keyword
-      if (/^[A-Z]/.test(token)) return CLASS.entity
-      return CLASS.base
-    },
+    scopes: LAB_SCOPES,
   },
   python: {
     pattern: new RegExp(
@@ -140,6 +180,38 @@ const GRAMMARS: Record<SourceLanguage, Grammar> = {
   },
 }
 
+/**
+ * A scoped grammar walks its matches so each one keeps the colour of the rule
+ * that matched it, and the text between matches stays plain. Splitting cannot
+ * do this: it hands the classifier the gaps as well as the matches, with
+ * nothing to tell them apart.
+ */
+function scopedSpans(line: string, grammar: Grammar) {
+  const spans: { text: string; className: string }[] = []
+  let cursor = 0
+
+  for (const match of line.matchAll(grammar.pattern)) {
+    const start = match.index ?? 0
+    if (start > cursor) {
+      spans.push({ text: line.slice(cursor, start), className: CLASS.base })
+    }
+    const rule = Object.keys(match.groups ?? {}).find(
+      (name) => match.groups?.[name] !== undefined,
+    )
+    spans.push({
+      text: match[0],
+      className: (rule && grammar.scopes?.[rule]) || CLASS.base,
+    })
+    cursor = start + match[0].length
+  }
+
+  if (cursor < line.length) {
+    spans.push({ text: line.slice(cursor), className: CLASS.base })
+  }
+
+  return spans
+}
+
 function HighlightedLine({
   line,
   grammar,
@@ -147,17 +219,23 @@ function HighlightedLine({
   line: string
   grammar: Grammar
 }) {
-  const tokens = line.split(grammar.pattern)
+  const spans = grammar.scopes
+    ? scopedSpans(line, grammar)
+    : line
+        .split(grammar.pattern)
+        .filter(Boolean)
+        .map((token) => ({
+          text: token,
+          className: grammar.classify?.(token) ?? CLASS.base,
+        }))
 
   return (
     <>
-      {tokens.map((token, index) =>
-        token ? (
-          <span className={grammar.classify(token)} key={index}>
-            {token}
-          </span>
-        ) : null,
-      )}
+      {spans.map((span, index) => (
+        <span className={span.className} key={index}>
+          {span.text}
+        </span>
+      ))}
     </>
   )
 }

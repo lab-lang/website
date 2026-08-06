@@ -13,6 +13,17 @@ const DRAW_MS = 760
 /** Each arc waits on the one before it so the map assembles feature by feature. */
 const STAGGER_MS = 110
 
+/**
+ * Arcs sharing a token are written by the same line of source and so are
+ * revealed together. They stagger against each other rather than against the
+ * whole map, which lets the first arc of a group draw the moment its
+ * identifier appears.
+ */
+const STAGGER_ORDER = features.map(
+  (feature, index) =>
+    index - features.findIndex((other) => other.token === feature.token),
+)
+
 /** Tangential reach of the arrowhead past the arc's end point. */
 const ARROW_LENGTH = 11
 /** Radial spread of the arrowhead either side of the ring. */
@@ -52,11 +63,12 @@ function arcLength(radius: number, fromDegrees: number, toDegrees: number) {
 function FeatureArc({
   feature,
   drawn,
-  index,
+  order,
 }: {
   feature: Feature
   drawn: boolean
-  index: number
+  /** Place in the stagger among the arcs revealed alongside this one. */
+  order: number
 }) {
   const sweepId = `sweep-${useId().replace(/:/g, '')}`
   const from = bpToAngle(feature.start)
@@ -69,7 +81,7 @@ function FeatureArc({
   const pointsRight = Math.cos((mid * Math.PI) / 180) >= 0
   const elbowX = leaderEnd.x + (pointsRight ? 12 : -12)
   const textX = elbowX + (pointsRight ? 7 : -7)
-  const startDelay = index * STAGGER_MS
+  const startDelay = order * STAGGER_MS
 
   /*
    * Body and head are one shape revealed by one travelling edge. The sweep runs
@@ -257,8 +269,8 @@ export function PlasmidMap({
         <FeatureArc
           drawn={revealed.includes(feature.token)}
           feature={feature}
-          index={index}
           key={feature.label}
+          order={STAGGER_ORDER[index]}
         />
       ))}
 

@@ -23,27 +23,17 @@ import shutil
 import subprocess
 import tempfile
 
-try:
-    import uharfbuzz as hb
-    from fontTools.pens.svgPathPen import SVGPathPen
-    from fontTools.ttLib import TTFont
-    from fontTools.varLib.instancer import instantiateVariableFont
-except ModuleNotFoundError as missing:  # pragma: no cover - setup guidance
-    raise SystemExit(
-        f"error: {missing.name} is not installed\n"
-        "       python3 -m venv .venv\n"
-        "       .venv/bin/pip install -r scripts/requirements.txt\n"
-        "       .venv/bin/python scripts/brand-assets.py"
-    ) from missing
-
-ROOT = pathlib.Path(__file__).resolve().parent.parent
-PUBLIC = ROOT / "public"
-BRAND = PUBLIC / "brand"
-FONT = (
-    ROOT
-    / "node_modules/@fontsource-variable/crimson-pro/files"
-    / "crimson-pro-latin-wght-normal.woff2"
+from brandlib import (
+    FONT,
+    PUBLIC,
+    ROOT,
+    glyph,
+    load_face,
+    require_font,
+    text_outline,
 )
+
+BRAND = PUBLIC / "brand"
 
 PAPER = "#f0e3c9"
 AMBER = "#e1901f"
@@ -62,21 +52,6 @@ BASELINE = 44  # centers the cap height, 24.08 at this size, against the tile
 FULL_NAME = "The Lab Programming Language"
 
 
-def glyph(quiet, quiet_opacity, loud, indent="  "):
-    """The mark itself: `=` above `<-`, on a 64 unit grid."""
-    opacity = f' fill-opacity="{quiet_opacity}"' if quiet_opacity else ""
-    return "\n".join(
-        indent + line
-        for line in [
-            f'<rect x="17" y="17.5" width="31" height="5.5" rx="2.75"'
-            f' fill="{quiet}"{opacity}/>',
-            f'<rect x="22" y="36" width="26" height="5.5" rx="2.75" fill="{loud}"/>',
-            f'<path d="M27 33.25 20 38.75 27 44.25" fill="none" stroke="{loud}"'
-            ' stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>',
-        ]
-    )
-
-
 def mark_svg(title, body, tile=None):
     parts = [
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img"'
@@ -90,46 +65,8 @@ def mark_svg(title, body, tile=None):
     return "\n".join(parts)
 
 
-def load_face(scratch):
-    """Pin the variable font to one weight and hand it to HarfBuzz for shaping."""
-    static = instantiateVariableFont(TTFont(FONT), {"wght": FONT_WEIGHT}, inplace=False)
-    static.flavor = None
-    pinned = scratch / "crimson-pinned.ttf"
-    static.save(pinned)
-    return static, hb.Font(hb.Face(hb.Blob.from_file_path(str(pinned))))
-
-
-def text_outline(static, shaper, text):
-    """Return (svg_paths, advance) for text with its baseline at the origin."""
-    scale = FONT_SIZE / static["head"].unitsPerEm
-    glyphs = static.getGlyphSet()
-    order = static.getGlyphOrder()
-
-    buffer = hb.Buffer()
-    buffer.add_str(text)
-    buffer.guess_segment_properties()
-    hb.shape(shaper, buffer, {"kern": True, "liga": True})
-
-    paths = []
-    x = 0.0
-    for info, position in zip(buffer.glyph_infos, buffer.glyph_positions):
-        pen = SVGPathPen(glyphs, ntos=lambda value: f"{value:.2f}")
-        glyphs[order[info.codepoint]].draw(pen)
-        commands = pen.getCommands()
-        if commands:
-            dx = x + position.x_offset * scale
-            dy = -position.y_offset * scale
-            paths.append(
-                f'<path transform="translate({dx:.2f} {dy:.2f})'
-                f' scale({scale:.6f} {-scale:.6f})" d="{commands}"/>'
-            )
-        x += position.x_advance * scale + TRACKING
-
-    return "".join(paths), x - TRACKING
-
-
 def wordmark_svg(static, shaper, title, text, text_fill):
-    paths, advance = text_outline(static, shaper, text)
+    paths, advance = text_outline(static, shaper, text, FONT_SIZE, TRACKING)
     width = round(TEXT_X + advance) + 1
     source = "\n".join(
         [
@@ -177,10 +114,7 @@ WORDMARKS = {
 
 
 def main():
-    if not FONT.exists():
-        raise SystemExit(
-            f"error: {FONT.relative_to(ROOT)} not found\n" "       run: pnpm install"
-        )
+    require_font()
     if not shutil.which("rsvg-convert"):
         raise SystemExit(
             "error: rsvg-convert not found\n"
@@ -196,7 +130,7 @@ def main():
         print(f"==> {path.relative_to(ROOT)}  64x64")
 
     with tempfile.TemporaryDirectory() as tmp:
-        static, shaper = load_face(pathlib.Path(tmp))
+        static, shaper = load_face(pathlib.Path(tmp), FONT_WEIGHT)
         for name, (title, text, fill) in WORDMARKS.items():
             source, width = wordmark_svg(static, shaper, title, text, fill)
             path = BRAND / f"{name}.svg"

@@ -418,6 +418,20 @@ html.dark {
   .stage-panel {
     animation: stage-in 420ms var(--ease-crisp) both;
   }
+
+  /*
+   * The design being compiled, settling back under the compiler panel. Eased in
+   * so it holds most of its opacity while the panel above it is arriving; the
+   * two curves overlap rather than meeting at an empty frame.
+   */
+  .stage-recede {
+    animation: stage-recede 300ms ease-in both;
+  }
+
+  /* The compiler panel, coming up over a design that is still on screen. */
+  .stage-emerge {
+    animation: stage-emerge 300ms ease-out 60ms both;
+  }
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -460,6 +474,28 @@ html.dark {
   }
 }
 
+@keyframes stage-recede {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+}
+
+@keyframes stage-emerge {
+  from {
+    opacity: 0;
+    transform: scale(1.012);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -480,6 +516,17 @@ html.dark {
   .typing-caret,
   .stage-panel {
     animation: none;
+  }
+
+  /* The panels swap outright, so the one on its way out is simply gone. */
+  .stage-recede {
+    animation: none;
+    opacity: 0;
+  }
+
+  .stage-emerge {
+    animation: none;
+    opacity: 1;
   }
 
   .lift,

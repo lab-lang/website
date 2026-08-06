@@ -57,15 +57,25 @@ plasmid reporter:
 export const heroWorkflowExample = `use std.bio.inventory
 use std.lab.plasmid_actions
 
-DH5alpha = strain("DH5alpha")
+DH5alpha = chassis("DH5alpha")
 kanamycin = antibiotic("kanamycin")
 
-workflow build(design: Plasmid) -> Accepted<Plasmid> | Rejected<Plasmid>:
+strain reporter_host:
+  chassis: DH5alpha
+  plasmids: [reporter]
+  selection: kanamycin
+
+workflow build() -> Accepted<Plasmid> | Rejected<Plasmid>:
+  design = reporter
   fragments <- synthesize design
   construct <- assemble fragments
+  plasmids = [construct]
   cells <- provision DH5alpha
-  culture <- transform construct into cells
+  strain, culture <- transform reporter_host from plasmids into cells
+  culture <- recover culture for 1 h
+  culture <- dilute culture
   plate <- plate culture on kanamycin
+  <- dispose strain
 
   candidates <- pick 4 isolated colonies from plate
   <- dispose plate
@@ -89,7 +99,7 @@ export const heroMainExample = `use lab.designs.plasmid
 use lab.workflows.workflow
 
 workflow main() -> Accepted<Plasmid> | Rejected<Plasmid>:
-  result <- build reporter
+  result <- build
 
   match result:
     case Accepted:
@@ -109,13 +119,17 @@ workflow main() -> Accepted<Plasmid> | Rejected<Plasmid>:
 export const workflowExample = `use std.bio.inventory
 use std.lab.plasmid_actions
 
-workflow build_plasmid(design: Plasmid) -> Accepted<Plasmid> | Rejected<Plasmid>:
+workflow build_plasmid() -> Accepted<Plasmid> | Rejected<Plasmid>:
+  design = reporter
   fragments <- synthesize design
   construct <- assemble fragments
+  plasmids = [construct]
   cells <- provision competent_ecoli
-  culture <- transform construct into cells
+  strain, culture <- transform reporter_host from plasmids into cells
   culture <- recover culture for 1 h
+  culture <- dilute culture
   plate <- plate culture on kanamycin
+  <- dispose strain
 
   colony_result <- await_colonies plate
 

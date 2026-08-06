@@ -1,5 +1,6 @@
 import { ArrowDownToLine } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { usePageMeta } from '../lib/use-page-meta'
 
 /**
  * Every token carries both of its values. The name is what components reach
@@ -195,6 +196,13 @@ function TypeSample({
 }
 
 export function BrandPage() {
+  usePageMeta({
+    title: 'Brand — Lab',
+    description:
+      'The Lab mark and wordmarks, what each asset is for, and the rules for setting them.',
+    path: '/brand',
+  })
+
   return (
     <>
       <section className="agar-wash relative overflow-hidden" id="intro">

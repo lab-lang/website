@@ -1,17 +1,27 @@
-import type {
-  ComponentPropsWithoutRef,
-  ReactElement,
-  ReactNode,
+import {
+  isValidElement,
+  type ComponentPropsWithoutRef,
+  type ReactElement,
+  type ReactNode,
 } from 'react'
 import type { MDXComponents } from 'mdx/types'
 import { Link } from 'react-router-dom'
 import { slugify } from '../lib/slugify'
 import { SourceCode, type SourceLanguage } from './source-code'
 
+/*
+ * Recurses through elements, not just strings, so a word set in bold or code
+ * still reaches the anchor. `Why **material** is different` otherwise derives
+ * the id `why-is-different`, which neither matches the heading a reader sees
+ * nor the one the search index derives from the same source.
+ */
 function headingText(children: ReactNode): string {
   if (typeof children === 'string') return children
   if (typeof children === 'number') return String(children)
   if (Array.isArray(children)) return children.map(headingText).join('')
+  if (isValidElement(children)) {
+    return headingText((children.props as { children?: ReactNode }).children)
+  }
   return ''
 }
 
