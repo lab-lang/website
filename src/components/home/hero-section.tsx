@@ -72,7 +72,13 @@ export function HeroSection() {
           </div>
         </div>
 
-        <div className="mt-8">
+        {/*
+         * Desktop only: the specimen is an illustration sized for a wide
+         * viewport, and on a phone it costs several screens of scrolling
+         * without room to breathe. The phone visitor goes straight to the
+         * prose sections instead.
+         */}
+        <div className="mt-8 hidden sm:block">
           <HeroSpecimen />
         </div>
       </SectionBody>
