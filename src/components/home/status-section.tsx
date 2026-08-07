@@ -1,8 +1,10 @@
 import { ArrowRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
+import { InstallCommand } from '@/components/home/install-command'
 import { ClosingNote, SectionBody, SectionIntro } from '@/components/section'
 import { REPO_URL } from '@/lib/site'
+import { useInView } from '@/lib/use-in-view'
 
 const shipped = [
   'Parsing, resolution, and type checking',
@@ -24,17 +26,25 @@ const pending = [
 
 /** Honesty about maturity, in the project's own terms. */
 export function StatusSection() {
+  const { ref, inView } = useInView<HTMLDivElement>()
+
   return (
     <section className="border-t border-ink/12 bg-sand/40" id="status">
       <SectionBody className="py-14 sm:py-20 lg:py-28">
+        {/*
+         * Only the intro settles in. The shipped/pending lists are the
+         * section's information payload — candor does not fade in, and a
+         * reveal spanning a grid taller than a phone viewport would hold
+         * visible content blank.
+         */}
         <div className="grid gap-12 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1fr)] lg:gap-20">
-          <div>
+          <div className="reveal" data-shown={inView} ref={ref}>
             <SectionIntro
               kicker="Where this stands"
               lede="The language and its intermediate representations are still changing, and the durable workflow runtime has not been built. Generated protocols are a compiler concept spike: a laboratory must verify and qualify them before anything is executed."
               ledeClassName="mt-6 text-[15px] leading-[1.72]"
               title="Current state of the Lab."
-              titleClassName="text-[clamp(1.9rem,3.6vw,2.9rem)]"
+              titleClassName="text-[clamp(1.65rem,3.6vw,2.9rem)]"
             />
             <Link
               className="press mt-8 inline-flex items-center gap-2 rounded-xl bg-ink px-5 py-3 text-[14px] text-paper shadow-[0_10px_24px_-8px_rgb(43_28_17_/_0.5)]"
@@ -81,9 +91,25 @@ export function StatusSection() {
           </div>
         </div>
 
-        <ClosingNote note="Lab is developed in the open under Apache-2.0.">
+        {/*
+         * The phone visitor's exit ramp: they will not curl-pipe-sh from a
+         * phone, so the install command waits here as the thing to remember
+         * for the bench, and the repo link wears primary weight — the one
+         * conversion a phone reader completes in the moment.
+         */}
+        <div className="mt-16 sm:hidden">
+          <p className="micro text-ink/55">Back at your bench</p>
+          <div className="mt-3">
+            <InstallCommand />
+          </div>
+        </div>
+
+        <ClosingNote
+          className="mt-10 sm:mt-16"
+          note="Lab is developed in the open under Apache-2.0."
+        >
           <a
-            className="press inline-flex w-fit items-center gap-2 rounded-xl border border-ink/20 px-5 py-2.5 text-[14px] text-ink hover:border-ink/40"
+            className="press inline-flex w-fit items-center gap-2 rounded-xl border border-transparent bg-ink px-5 py-2.5 text-[14px] text-paper shadow-[0_10px_24px_-8px_rgb(43_28_17_/_0.5)] sm:border-ink/20 sm:bg-transparent sm:text-ink sm:shadow-none sm:hover:border-ink/40"
             href={REPO_URL}
             rel="noreferrer"
             target="_blank"

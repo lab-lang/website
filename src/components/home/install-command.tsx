@@ -18,9 +18,10 @@ export function InstallCommand() {
 
   return (
     <div className="flex items-center gap-2 rounded-xl border border-ink/15 bg-sand py-2 pl-4 pr-2">
-      {/* Scrolls rather than truncating: on a phone the tail is the interesting part. */}
+      {/* Wraps on a phone and scrolls above sm: you should be able to read
+       * everything you are about to pipe into sh. */}
       <code
-        className="rail rail-quiet min-w-0 flex-1 whitespace-nowrap font-mono text-[12.5px] text-ink"
+        className="rail rail-quiet min-w-0 flex-1 whitespace-normal break-all font-mono text-[12.5px] text-ink sm:whitespace-nowrap"
         title={INSTALL}
       >
         <span className="text-amber-deep">$</span> {INSTALL}

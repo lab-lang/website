@@ -1,5 +1,5 @@
 import { Check, RotateCcw } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { BuildTransition } from '@/components/build-transition'
 import { CircuitGraph } from '@/components/circuit-graph'
@@ -18,8 +18,8 @@ import {
 import { features } from '@/data/plasmid-features'
 import { usePrefersReducedMotion } from '@/lib/use-prefers-reduced-motion'
 
-const CHARS_PER_TICK = 3
-const TICK_MS = 20
+const CHARS_PER_TICK = 6
+const TICK_MS = 40
 const HOLD_BEFORE_BUILD = 600
 /** How long the compiler panel stays up receding. Matches `.stage-recede`. */
 const HANDOFF_MS = 300
@@ -66,14 +66,15 @@ const SOURCES: Record<FileId, string> = {
 const OPENING = heroPlasmidExample
 
 /**
- * Types the program out character by character. Replay remounts this component,
- * so the count starts fresh without an effect having to reset it.
+ * Types the program out character by character once `active` flips true.
+ * Replay remounts this component, so the count starts fresh without an
+ * effect having to reset it.
  */
-function useTypedSource(reducedMotion: boolean) {
+function useTypedSource(active: boolean) {
   const [typed, setTyped] = useState(0)
 
   useEffect(() => {
-    if (reducedMotion) return
+    if (!active) return
 
     const timer = window.setInterval(() => {
       setTyped((current) => {
@@ -87,9 +88,38 @@ function useTypedSource(reducedMotion: boolean) {
     }, TICK_MS)
 
     return () => window.clearInterval(timer)
-  }, [reducedMotion])
+  }, [active])
 
   return typed
+}
+
+/**
+ * The show waits for its audience: on a phone the specimen sits below the
+ * fold, and typing that starts on page load would finish before anyone
+ * scrolls to it. One-shot, like a reveal — and a jump that lands past the
+ * specimen counts as seen, so a deep link is never stuck on an empty pane.
+ */
+function useStarted(ref: React.RefObject<HTMLDivElement | null>) {
+  const [started, setStarted] = useState(false)
+
+  useEffect(() => {
+    const node = ref.current
+    if (!node || started) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting || entry.boundingClientRect.bottom <= 0) {
+          setStarted(true)
+        }
+      },
+      { threshold: 0.3 },
+    )
+    observer.observe(node)
+
+    return () => observer.disconnect()
+  }, [ref, started])
+
+  return started
 }
 
 /** Holds the arcs back a frame so they draw in when the file is opened. */
@@ -121,7 +151,9 @@ export function HeroSpecimen() {
 
 function Specimen({ onReplay }: { onReplay: () => void }) {
   const reducedMotion = usePrefersReducedMotion()
-  const typed = useTypedSource(reducedMotion)
+  const rootRef = useRef<HTMLDivElement | null>(null)
+  const started = useStarted(rootRef)
+  const typed = useTypedSource(!reducedMotion && started)
   const [view, setView] = useState<View>('design')
   const [pinned, setPinned] = useState(false)
   const [fileId, setFileId] = useState<FileId>('plasmid')
@@ -136,11 +168,18 @@ function Specimen({ onReplay }: { onReplay: () => void }) {
 
   /* Once the program is written, the build starts on its own. */
   useEffect(() => {
-    if (!complete || pinned || reducedMotion || view === 'execution') return
+    if (
+      !started ||
+      !complete ||
+      pinned ||
+      reducedMotion ||
+      view === 'execution'
+    )
+      return
 
     const timer = window.setTimeout(() => setBuildStep(0), HOLD_BEFORE_BUILD)
     return () => window.clearTimeout(timer)
-  }, [complete, pinned, reducedMotion, view])
+  }, [started, complete, pinned, reducedMotion, view])
 
   /* Walk the compile stages, then hand the panel to the target. */
   useEffect(() => {
@@ -213,7 +252,10 @@ function Specimen({ onReplay }: { onReplay: () => void }) {
   }
 
   return (
-    <div className="relative overflow-hidden rounded-[20px] border border-ink/25 bg-vessel shadow-[0_30px_80px_-20px_rgb(43_28_17_/_0.45)]">
+    <div
+      className="relative overflow-hidden rounded-[20px] border border-ink/25 bg-vessel shadow-[0_30px_80px_-20px_rgb(43_28_17_/_0.45)]"
+      ref={rootRef}
+    >
       <div className="relative flex flex-col gap-2 border-b border-white/10 px-4 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-5">
         {/*
          * Four filenames plus the view toggle do not fit a phone on one line,
@@ -221,13 +263,13 @@ function Specimen({ onReplay }: { onReplay: () => void }) {
          */}
         <div
           aria-label="Example file"
-          className="rail rail-quiet -mx-4 flex min-w-0 items-center gap-1 px-4 sm:mx-0 sm:px-0"
+          className="rail rail-quiet rail-fade -mx-4 flex min-w-0 items-center gap-1 px-4 sm:mx-0 sm:px-0"
           role="tablist"
         >
           {files.map((file) => (
             <button
               aria-selected={fileId === file.id}
-              className={`press shrink-0 rounded-md px-2.5 py-1.5 font-mono text-[11px] ${
+              className={`press shrink-0 rounded-md px-2.5 py-3 font-mono text-[11px] sm:py-1.5 ${
                 fileId === file.id
                   ? 'bg-[#f6ece0]/10 text-[#f6ece0]/85'
                   : 'text-[#f6ece0]/35 hover:text-[#f6ece0]/65'
@@ -254,7 +296,7 @@ function Specimen({ onReplay }: { onReplay: () => void }) {
                 aria-selected={
                   building ? item.id === 'execution' : view === item.id
                 }
-                className={`press rounded-md px-3 py-1.5 ${
+                className={`press rounded-md px-3 py-2.5 sm:py-1.5 ${
                   (building ? item.id === 'execution' : view === item.id)
                     ? 'bg-gfp/15 text-gfp'
                     : 'text-[#f6ece0]/40 hover:text-[#f6ece0]/75'
@@ -270,7 +312,7 @@ function Specimen({ onReplay }: { onReplay: () => void }) {
           </div>
 
           <button
-            className="press grid size-9 shrink-0 place-items-center rounded-md border border-white/10 text-[#f6ece0]/40 hover:border-white/25 hover:text-[#f6ece0]/80 sm:size-7"
+            className="press grid size-10 shrink-0 place-items-center rounded-md border border-white/10 text-[#f6ece0]/40 hover:border-white/25 hover:text-[#f6ece0]/80 sm:size-7"
             onClick={onReplay}
             title="Replay"
             type="button"
@@ -283,7 +325,14 @@ function Specimen({ onReplay }: { onReplay: () => void }) {
 
       <div className="relative grid lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
         <div className="order-2 min-w-0 border-t border-white/10 lg:order-1 lg:border-r lg:border-t-0">
-          <div className="h-[320px] overflow-y-auto sm:h-[470px]">
+          {/*
+           * On a phone the pane cannot own vertical scroll — a fixed-height
+           * inner scroller stacked in the page captures the swipe. It is tall
+           * enough to hold the opening file whole; longer files trail off
+           * behind the bottom fade, because the pane is an illustration, not
+           * a workbench.
+           */}
+          <div className="scroll-fade-y h-[440px] overflow-hidden sm:h-[470px] sm:overflow-y-auto">
             <SourceCode cursor={typing} language="lab" source={visibleSource} />
           </div>
         </div>
@@ -348,7 +397,7 @@ function Specimen({ onReplay }: { onReplay: () => void }) {
             lowering to opentrons_ot2…
           </p>
         ) : view === 'execution' ? (
-          <p className="min-w-0 truncate font-mono text-[11px] text-[#f6ece0]/45 sm:text-xs">
+          <p className="min-w-0 truncate font-mono text-[11px] text-[#f6ece0]/55 sm:text-xs">
             <span className="text-amber">compiled for opentrons_ot2</span> ·
             concept protocol, qualify before running
           </p>
@@ -369,7 +418,7 @@ function Specimen({ onReplay }: { onReplay: () => void }) {
             </p>
           </>
         ) : (
-          <p className="font-mono text-[11px] text-[#f6ece0]/45 sm:text-xs">
+          <p className="font-mono text-[11px] text-[#f6ece0]/55 sm:text-xs">
             writing portable intent…
           </p>
         )}

@@ -178,6 +178,26 @@ workflow await_colonies(plate: Material<Plate>) -> ColonyGrowth:
       observations: observations,
     }`
 
+/**
+ * The phone-width excerpt of `reactiveExample`: both `when` clauses whole —
+ * they are the section's whole argument — with the record payloads elided so
+ * the pair fits one screen with no inner scroll.
+ */
+export const reactiveExampleMobile = `workflow await_colonies(plate: Material<Plate>) -> ColonyGrowth:
+
+  state observations: List<PlateObservation> = []
+
+  when every 30 min:
+    image <- capture image of plate
+    colonies = detect_colonies(image)
+    observations = observations + [PlateObservation{…}]
+
+    if colonies.isolated.count >= 8:
+      return Ready{plate: plate, colonies: colonies, …}
+
+  when after 18 h:
+    return TimedOut{plate: plate, observations: observations}`
+
 export const circuitExample = `use std.bio.parts
 use std.bio.backbones
 

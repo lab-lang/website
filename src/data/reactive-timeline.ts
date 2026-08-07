@@ -19,5 +19,13 @@ export const RESOLVED_INDEX = COLONY_COUNTS.findIndex(
   (count) => count >= THRESHOLD,
 )
 
+/**
+ * The last firing of the lag phase. Playback starts here so the first count
+ * change lands within a second of the chart being watched, instead of
+ * crawling along the flat zero line.
+ */
+export const LAG_END_INDEX = COLONY_COUNTS.findIndex((count) => count > 0) - 1
+
 export const STEP_MS = 220
-export const HOLD_MS = 1800
+/* The resolved state is the point of the chart, so it is the dominant dwell. */
+export const HOLD_MS = 3600

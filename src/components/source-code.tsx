@@ -260,7 +260,7 @@ export function SourceCode({
   return (
     <pre
       className={`px-4 py-4 font-mono text-[13px] leading-[1.6] sm:px-6 sm:text-[13.5px] ${
-        scroll ? 'overflow-x-auto' : 'overflow-hidden'
+        scroll ? 'overflow-x-auto scroll-fade-x' : 'overflow-hidden'
       } ${className}`}
     >
       <code>

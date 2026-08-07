@@ -14,12 +14,15 @@ export function HeroSection() {
         </p>
 
         <div>
-          <h1 className="type-display mt-6 text-[clamp(2rem,5.65vw,5.25rem)]">
+          <h1 className="type-display mt-6 text-[clamp(2.375rem,5.65vw,5.25rem)]">
             <span className="block text-pretty">
               A programming language for biology.
             </span>
-            <span className="mt-[0.06em] block text-pretty text-[0.85em] font-light text-amber-deep">
-              A compiler for the self-driving laboratory.
+            {/* The compound never fractures across a line break. */}
+            <span className="mt-[0.06em] block text-balance text-[0.82em] font-light text-amber-deep">
+              A compiler for the{' '}
+              <span className="whitespace-nowrap">self-driving</span>{' '}
+              laboratory.
             </span>
           </h1>
         </div>
@@ -31,7 +34,9 @@ export function HeroSection() {
          */}
         <div className="mt-9 grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
           <div className="min-w-0">
-            <p className="type-deck max-w-[33em] text-pretty text-[clamp(1.05rem,1.6vw,1.5rem)] text-ink/78">
+            {/* The serif deck never sets below 18px: Crimson Pro's small
+             * x-height needs it to hold optical parity with 16px Archivo. */}
+            <p className="type-deck max-w-[33em] text-pretty text-[clamp(1.125rem,1.6vw,1.5rem)] text-ink/78">
               Lab is a programming language and compiler toolchain for making
               laboratory work portable, inspectable, and reliable across people,
               instruments, and facilities.
@@ -39,22 +44,29 @@ export function HeroSection() {
           </div>
 
           <div className="min-w-0 lg:w-[474px] lg:shrink-0">
-            <div className="flex flex-col gap-3 sm:flex-row">
+            {/* One row on a phone: stacked full-width buttons push the
+             * specimen most of a screen further down. */}
+            <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-row">
               <Link
-                className="press inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-ink px-5 py-3 text-[15px] text-paper shadow-[0_10px_24px_-8px_rgb(43_28_17_/_0.5)] sm:text-[14px]"
+                className="press inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-ink px-3 py-3 text-[14px] text-paper shadow-[0_10px_24px_-8px_rgb(43_28_17_/_0.5)] sm:px-5"
                 to="/docs"
               >
                 Read the docs
                 <ArrowRight aria-hidden="true" size={16} />
               </Link>
               <Link
-                className="press inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-ink/20 px-5 py-3 text-[15px] text-ink hover:border-ink/40 sm:text-[14px]"
+                className="press inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-ink/20 px-3 py-3 text-[14px] text-ink hover:border-ink/40 sm:px-5"
                 to="/playground"
               >
                 Open the playground
               </Link>
             </div>
-            <div className="mt-3">
+            {/*
+             * Desktop only: curl-pipe-sh is a workstation action. The phone
+             * visitor meets the same command in the closing note instead,
+             * once the page has made its case.
+             */}
+            <div className="mt-3 hidden sm:block">
               <InstallCommand />
             </div>
           </div>

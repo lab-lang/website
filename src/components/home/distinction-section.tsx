@@ -1,15 +1,20 @@
 import { SectionBody, SectionIntro } from '@/components/section'
+import { useInView } from '@/lib/use-in-view'
 
 /** The distinction the language exists to make. */
 export function DistinctionSection() {
+  const { ref, inView } = useInView<HTMLDivElement>()
+
   return (
     <section className="border-y border-ink/12 bg-sand/40" id="distinction">
       <SectionBody className="py-14 sm:py-20 lg:py-28">
-        <SectionIntro
-          kicker="The distinction"
-          title="Two kinds of step, and only one can be repeated."
-          titleClassName="max-w-[20ch] text-[clamp(2rem,4.2vw,3.4rem)]"
-        />
+        <div className="reveal" data-shown={inView} ref={ref}>
+          <SectionIntro
+            kicker="The distinction"
+            title="Two kinds of step, and only one can be repeated."
+            titleClassName="max-w-[20ch] text-[clamp(1.65rem,4.2vw,3.4rem)]"
+          />
+        </div>
 
         <div className="mt-10 grid gap-10 sm:mt-14 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1fr)] lg:gap-16">
           <div>
@@ -24,7 +29,7 @@ export function DistinctionSection() {
               it, so Lab makes the difference visible in the syntax instead of
               hiding it behind a function call.
             </p>
-            <p className="mt-6 font-mono text-[12px] text-umber-soft">
+            <p className="mt-6 font-mono text-[12px] text-umber">
               docs/language/semantics.md
             </p>
           </div>
@@ -51,7 +56,7 @@ export function DistinctionSection() {
                 A physical or external action with a real-world consequence.
                 Recorded once in the journal and never repeated.
               </p>
-              <p className="mt-5 font-mono text-[12px] text-[#f6ece0]/40">
+              <p className="mt-5 font-mono text-[12px] text-[#f6ece0]/60">
                 culture &lt;- transform construct into cells
               </p>
             </div>

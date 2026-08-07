@@ -16,7 +16,7 @@ export function LoweringRail() {
        */}
       <div
         aria-label="Compilation stages"
-        className="rail rail-quiet -mx-5 px-5 sm:mx-0 sm:px-0"
+        className="rail rail-quiet rail-fade -mx-5 px-5 sm:mx-0 sm:px-0"
         role="tablist"
       >
         <div className="flex min-w-max items-stretch gap-1">
@@ -56,9 +56,14 @@ export function LoweringRail() {
                   >
                     {stage.label}
                   </span>
+                  {/*
+                   * The micro label alone identifies a stage; the emit string
+                   * is a flag-length mouthful that clips mid-word at phone
+                   * width, so it only rides along where it fits whole.
+                   */}
                   <span
-                    className={`mt-1.5 block font-mono text-[10px] ${
-                      selected ? 'text-[#f6ece0]/60' : 'text-[#f6ece0]/25'
+                    className={`mt-1.5 hidden font-mono text-[11px] sm:block ${
+                      selected ? 'text-[#f6ece0]/60' : 'text-[#f6ece0]/45'
                     }`}
                   >
                     {stage.emit}
@@ -83,7 +88,7 @@ export function LoweringRail() {
           <p className="prose-lab mt-5 text-[15px] leading-[1.72] text-[#f6ece0]/60">
             {active.description}
           </p>
-          <p className="mt-7 border-t border-[#f6ece0]/12 pt-4 font-mono text-[11px] text-[#f6ece0]/35">
+          <p className="mt-7 border-t border-[#f6ece0]/12 pt-4 font-mono text-[11px] text-[#f6ece0]/50">
             {active.filename}
           </p>
         </div>
@@ -92,7 +97,13 @@ export function LoweringRail() {
           className="stage-panel overflow-hidden rounded-xl border border-[#f6ece0]/12 bg-black/25"
           key={`${active.id}-code`}
         >
-          <div className="max-h-[340px] overflow-auto sm:max-h-[440px]">
+          {/*
+           * Below sm the artifact is a capped excerpt behind the bottom fade
+           * rather than an inner scroller — a fixed-height vertical scroller
+           * stacked in the page captures the swipe, and the emitted tail
+           * lines carry no argument.
+           */}
+          <div className="scroll-fade-y max-h-[340px] overflow-hidden sm:max-h-[440px] sm:overflow-auto">
             <SourceCode
               language={active.language}
               showLineNumbers={active.language !== 'shell'}

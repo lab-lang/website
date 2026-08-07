@@ -3,6 +3,7 @@ import { Copy, Eye, LogOut } from 'lucide-react'
 import { SectionBody, SectionIntro } from '@/components/section'
 import { SourceCode } from '@/components/source-code'
 import { diagnostics } from '@/data/artifacts'
+import { useInView } from '@/lib/use-in-view'
 
 const ownership = [
   {
@@ -30,28 +31,36 @@ const ownership = [
 
 /** Material flow, evidenced with real compiler output. */
 export function MaterialFlowSection() {
+  const { ref, inView } = useInView<HTMLDivElement>()
+
   return (
     <section id="material-flow">
       <SectionBody className="py-14 sm:py-20 lg:py-28">
-        <SectionIntro
-          className="max-w-3xl"
-          kicker="Material flow"
-          lede="Physical materials are affine: they cannot be implicitly copied, and they must end up returned, stored, transferred, or disposed. Every action declares how it treats what you hand it."
-          title="The compiler knows you only have one tube and one tip."
-        />
+        <div className="reveal" data-shown={inView} ref={ref}>
+          <SectionIntro
+            className="max-w-3xl"
+            kicker="Material flow"
+            lede="Physical materials are affine: they cannot be implicitly copied, and they must end up returned, stored, transferred, or disposed. Every action declares how it treats what you hand it."
+            title="The compiler knows you only have one tube and one tip."
+          />
+        </div>
 
         <div className="mt-12 grid gap-px overflow-hidden rounded-2xl border border-ink/15 bg-ink/12 sm:grid-cols-3">
           {ownership.map((mode) => (
-            <div className="bg-shell/70 p-6 sm:p-7" key={mode.mode}>
-              <div className="flex items-center gap-3">
+            <div className="bg-shell/70 p-5 sm:p-7" key={mode.mode}>
+              <div className="flex flex-wrap items-center gap-3">
                 <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-amber/12 text-amber-deep">
                   <mode.icon aria-hidden="true" size={16} strokeWidth={2} />
                 </span>
                 <code className="font-mono text-[15px] text-ink">
                   {mode.mode}
                 </code>
+                {/* Rides the icon row on a phone; its own line above the
+                 * detail where the cards sit three abreast. */}
+                <h3 className="type-head ml-auto text-lg sm:ml-0 sm:mt-3 sm:basis-full">
+                  {mode.subject}
+                </h3>
               </div>
-              <h3 className="type-head mt-6 text-lg">{mode.subject}</h3>
               <p className="prose-lab mt-2.5 text-[14px] leading-[1.65] text-umber">
                 {mode.detail}
               </p>
@@ -74,7 +83,7 @@ export function MaterialFlowSection() {
               key={diagnostic.id}
             >
               <div className="border-b border-ink/12 bg-sand/50 px-5 py-3">
-                <span className="micro text-ink/50">{diagnostic.title}</span>
+                <span className="micro text-ink/65">{diagnostic.title}</span>
               </div>
               <SourceCode
                 className="bg-vessel"
@@ -82,7 +91,13 @@ export function MaterialFlowSection() {
                 showLineNumbers={false}
                 source={diagnostic.source}
               />
-              <pre className="overflow-x-auto border-t border-white/8 bg-vessel px-5 pb-5 pt-1 font-mono text-[12.5px] leading-[1.7] text-mcherry">
+              {/*
+               * The diagnostic is prose and wraps — it is the evidence this
+               * section stakes its claim on, and a message that has to be
+               * panned sideways to finish reading is not evidence. The
+               * hanging indent keeps continuation lines subordinate.
+               */}
+              <pre className="-indent-4 whitespace-pre-wrap break-words border-t border-white/8 bg-vessel pb-5 pl-9 pr-5 pt-1 font-mono text-[13px] leading-[1.7] text-mcherry">
                 <code>{diagnostic.error}</code>
               </pre>
               <p className="prose-lab bg-shell/70 px-5 py-4 text-[14px] leading-[1.6] text-umber">

@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { usePrefersReducedMotion } from '@/lib/use-prefers-reduced-motion'
+import { useVisible } from '@/lib/use-visible'
 
 /**
  * The reagents, volumes, and thermocycler profile below are the ones the
@@ -401,10 +402,14 @@ function Pipette({
 
 export function LiquidHandler() {
   const reducedMotion = usePrefersReducedMotion()
+  const { ref, visible } = useVisible<HTMLDivElement>()
   const [index, setIndex] = useState(0)
+  /* Where the run stands, surviving the effect teardown while off screen. */
+  const indexRef = useRef(0)
 
+  /* The deck runs only while watched: freeze on leave, resume on re-entry. */
   useEffect(() => {
-    if (reducedMotion) return
+    if (reducedMotion || !visible) return
 
     let cancelled = false
     let timer = 0
@@ -413,17 +418,18 @@ export function LiquidHandler() {
       timer = window.setTimeout(() => {
         if (cancelled) return
         const next = (current + 1) % TIMELINE.length
+        indexRef.current = next
         setIndex(next)
         advance(next)
       }, TIMELINE[current].ms)
     }
 
-    advance(0)
+    advance(indexRef.current)
     return () => {
       cancelled = true
       window.clearTimeout(timer)
     }
-  }, [reducedMotion])
+  }, [reducedMotion, visible])
 
   const frame = reducedMotion ? TIMELINE[TIMELINE.length - 1] : TIMELINE[index]
   const geometry = frameGeometry(frame)
@@ -437,7 +443,7 @@ export function LiquidHandler() {
       : `${transfer.reagent} · ${transfer.volume} µL`
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col" ref={ref}>
       <div className="flex items-center justify-between px-5 pt-3">
         <div className="flex items-center gap-2">
           <span

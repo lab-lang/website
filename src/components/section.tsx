@@ -32,7 +32,7 @@ export function SectionIntro({
   lede,
   tone = 'light',
   className = '',
-  titleClassName = 'text-[clamp(2rem,4.2vw,3.4rem)]',
+  titleClassName = 'text-[clamp(1.65rem,4.2vw,3.4rem)]',
   ledeClassName = 'mt-6 text-[16px] leading-[1.7] sm:text-[17px]',
 }: {
   kicker: string
