@@ -7,7 +7,7 @@ import {
   type RefObject,
 } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { REPO_URL } from '../lib/site'
+import { REPO_URL, pageTitle } from '../lib/site'
 import {
   DEFAULT_DOC_SLUG,
   docGroups,
@@ -115,7 +115,7 @@ export function DocsPage() {
   const openSearch = useOpenDocsSearch()
 
   usePageMeta({
-    title: page ? `${page.frontmatter.title} — Lab` : 'Not in the docs — Lab',
+    title: pageTitle(page ? page.frontmatter.title : 'Not in the docs'),
     description: page?.frontmatter.description,
     path: `/docs/${slug}`,
     type: 'article',

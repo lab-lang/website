@@ -15,3 +15,8 @@ export const DEFAULT_TITLE = 'The Lab Programming Language'
 
 export const DEFAULT_DESCRIPTION =
   'Lab is a programming language and compiler toolchain for describing biology and orchestrating work in the laboratory.'
+
+/** Every route but the homepage names itself ahead of the site. */
+export function pageTitle(page: string) {
+  return `${page} — ${DEFAULT_TITLE}`
+}

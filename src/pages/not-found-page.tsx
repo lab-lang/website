@@ -1,12 +1,13 @@
 import { ArrowLeft } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
+import { pageTitle } from '../lib/site'
 import { usePageMeta } from '../lib/use-page-meta'
 
 export function NotFoundPage() {
   const { pathname } = useLocation()
 
   usePageMeta({
-    title: 'Not found — Lab',
+    title: pageTitle('Not found'),
     description: 'That page is not part of this experiment.',
     noindex: true,
     path: pathname,

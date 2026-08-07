@@ -1,5 +1,6 @@
 import { ArrowDownToLine } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { pageTitle } from '../lib/site'
 import { usePageMeta } from '../lib/use-page-meta'
 
 /**
@@ -197,7 +198,7 @@ function TypeSample({
 
 export function BrandPage() {
   usePageMeta({
-    title: 'Brand — Lab',
+    title: pageTitle('Brand'),
     description:
       'The Lab mark and wordmarks, what each asset is for, and the rules for setting them.',
     path: '/brand',

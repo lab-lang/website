@@ -2,7 +2,7 @@ import { ArrowRight, ExternalLink } from 'lucide-react'
 import { useState } from 'react'
 import { SourceCode, type SourceLanguage } from '../components/source-code'
 import { Link } from 'react-router-dom'
-import { REPO_URL } from '../lib/site'
+import { REPO_URL, pageTitle } from '../lib/site'
 import { usePageMeta } from '../lib/use-page-meta'
 import { implementations } from '../data/comparison'
 import { labSource } from '../data/generated-ot2'
@@ -177,7 +177,7 @@ export function WhyPage() {
     implementations[0]
 
   usePageMeta({
-    title: 'Why Lab — how it compares',
+    title: pageTitle('Why Lab'),
     description:
       'A protocol written for a robot is mostly deck geometry. Lab lets you describe the construct, the constraints, and the evidence, and generates the machine-specific part for whatever instrument you end up on.',
     path: '/why',

@@ -1,6 +1,6 @@
 import { ArrowRight, Bug, ExternalLink, MessageSquare, ScrollText } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { REPO_URL } from '../lib/site'
+import { REPO_URL, pageTitle } from '../lib/site'
 import { usePageMeta } from '../lib/use-page-meta'
 
 const channels = [
@@ -109,7 +109,7 @@ const decisions = [
 
 export function CommunityPage() {
   usePageMeta({
-    title: 'Community — Lab',
+    title: pageTitle('Community'),
     description:
       'Where Lab is discussed and decided: issues, discussions, and a numbered log of every accepted tradeoff in the language.',
     path: '/community',
