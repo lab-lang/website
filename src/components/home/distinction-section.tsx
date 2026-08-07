@@ -10,8 +10,10 @@ export function DistinctionSection() {
       <SectionBody className="py-14 sm:py-20 lg:py-28">
         <div className="reveal" data-shown={inView} ref={ref}>
           <SectionIntro
+            className="max-w-3xl"
             kicker="The distinction"
-            title="Two kinds of step, and only one can be repeated."
+            lede="A protocol is a program that acts on living material, and a single run can span days. Computers restart and instruments drop offline in that time, so when a run is interrupted, Lab resumes it by replaying the program from the beginning against a journal of everything that already happened. That puts one question at the center of the language: Which lines are safe to run again?"
+            title="Code can run twice. An experiment happens once."
             titleClassName="max-w-[20ch] text-[clamp(1.65rem,4.2vw,3.4rem)]"
           />
         </div>
@@ -24,10 +26,15 @@ export function DistinctionSection() {
               but must not repeat a completed physical action.”
             </blockquote>
             <p className="prose-lab mt-6 text-[15px] leading-[1.72] text-umber">
-              Ordinary programs can retry anything. A laboratory cannot. Once
-              cells are transformed or a tube is consumed, no runtime can undo
-              it, so Lab makes the difference visible in the syntax instead of
-              hiding it behind a function call.
+              So every line declares which kind it is.{' '}
+              <code className="font-mono text-[0.9em] text-ink">=</code> binds
+              the result of a computation: data in, data out, nothing in the
+              world has changed, so replay simply evaluates it again.{' '}
+              <code className="font-mono text-[0.9em] text-ink">&lt;-</code>{' '}
+              performs a physical action, like transforming cells or consuming a
+              tube. It is journaled the moment it completes and read back, never
+              redone, on every replay after. One glance tells you whether a line
+              can happen twice.
             </p>
             <p className="mt-6 font-mono text-[12px] text-umber">
               docs/language/semantics.md
