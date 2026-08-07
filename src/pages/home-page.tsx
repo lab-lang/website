@@ -241,8 +241,6 @@ export function HomePage() {
           </div>
 
           <div className="relative mt-10 overflow-hidden rounded-2xl border border-ink/20 bg-vessel">
-            <div className="emission-wash pointer-events-none absolute inset-0" />
-
             <div className="relative grid lg:grid-cols-2">
               <div className="flex h-[360px] min-w-0 flex-col border-b border-white/10 sm:h-[620px] lg:border-b-0 lg:border-r">
                 <div className="border-b border-white/10 px-5 py-3">

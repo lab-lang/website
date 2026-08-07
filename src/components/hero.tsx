@@ -207,8 +207,6 @@ function Specimen({ onReplay }: { onReplay: () => void }) {
 
   return (
     <div className="relative overflow-hidden rounded-[20px] border border-ink/25 bg-vessel shadow-[0_30px_80px_-20px_rgb(43_28_17_/_0.45)]">
-      <div className="emission-wash absolute inset-0" />
-
       <div className="relative flex flex-col gap-2 border-b border-white/10 px-4 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-5">
         {/*
          * Four filenames plus the view toggle do not fit a phone on one line,
