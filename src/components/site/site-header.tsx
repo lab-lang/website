@@ -83,7 +83,7 @@ export function SiteHeader() {
         className={`sticky top-0 z-50 border-b border-ink/12 backdrop-blur-xl transition-[background-color,box-shadow] duration-300 ${scrolled ? 'nav-elevated bg-paper/95' : 'bg-paper/80'}`}
       >
         <div className="mx-auto flex h-[60px] max-w-[1480px] items-center justify-between px-5 sm:h-[68px] sm:px-8 lg:px-10">
-          <Wordmark />
+          <Wordmark full />
 
           <nav
             aria-label="Primary"

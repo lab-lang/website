@@ -55,7 +55,17 @@ export function GithubMark({ size = 14 }: { size?: number }) {
   )
 }
 
-export function Wordmark({ size = 30 }: { size?: number }) {
+/**
+ * `full` spells out "The Lab Programming Language" where the row can afford
+ * it (lg and up); narrower viewports keep the short "Lab" wordmark.
+ */
+export function Wordmark({
+  full = false,
+  size = 30,
+}: {
+  full?: boolean
+  size?: number
+}) {
   return (
     <Link
       aria-label="Lab home"
@@ -64,7 +74,13 @@ export function Wordmark({ size = 30 }: { size?: number }) {
     >
       <span className="nudge inline-flex items-center gap-2.5 group-hover:translate-x-[-3px]">
         <Mark size={size} />
-        <span className="type-head text-[20px] tracking-[-0.012em]">Lab</span>
+        <span className="type-head text-[20px] tracking-[-0.012em]">
+          {full && <span className="hidden lg:inline">The </span>}
+          Lab
+          {full && (
+            <span className="hidden lg:inline"> Programming Language</span>
+          )}
+        </span>
       </span>
     </Link>
   )
