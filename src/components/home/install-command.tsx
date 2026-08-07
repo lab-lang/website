@@ -1,7 +1,7 @@
 import { Check, Copy } from 'lucide-react'
 import { useState } from 'react'
 
-const INSTALL = 'curl -sSf https://lab-lang.org/install.sh | sh'
+const INSTALL = 'curl -sSf https://www.lab-lang.org/install.sh | sh'
 
 export function InstallCommand() {
   const [copied, setCopied] = useState(false)

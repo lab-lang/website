@@ -2,7 +2,7 @@
 # Installs lab, labc, and lab-opt from the latest GitHub release of
 # lab-lang/lab.
 #
-#   curl -sSf https://lab-lang.org/install.sh | sh
+#   curl -sSf https://www.lab-lang.org/install.sh | sh
 #
 # Environment overrides:
 #   LAB_VERSION        Install a specific tag (e.g. v0.2.0) instead of latest.
