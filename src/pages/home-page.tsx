@@ -69,7 +69,7 @@ function InstallCommand() {
   }
 
   return (
-    <div className="flex items-center gap-2 rounded-xl border border-ink/15 bg-shell/70 py-2 pl-4 pr-2">
+    <div className="flex items-center gap-2 rounded-xl border border-ink/15 bg-sand py-2 pl-4 pr-2">
       {/* Scrolls rather than truncating: on a phone the tail is the interesting part. */}
       <code
         className="rail rail-quiet min-w-0 flex-1 whitespace-nowrap font-mono text-[12.5px] text-ink"
