@@ -8,8 +8,9 @@ import {
   type Node,
   type NodeProps,
 } from '@xyflow/react'
+
 import '@xyflow/react/dist/style.css'
-import { PROGRAM_EDGES, PROGRAM_NODES } from '../data/program-nodes'
+import { PROGRAM_EDGES, PROGRAM_NODES } from '@/data/program-nodes'
 
 type ProgramData = {
   label: string

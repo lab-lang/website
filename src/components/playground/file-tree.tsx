@@ -1,6 +1,14 @@
-import { AlertCircle, ChevronRight, FilePlus, Folder, FolderOpen, Trash2 } from 'lucide-react'
+import {
+  AlertCircle,
+  ChevronRight,
+  FilePlus,
+  Folder,
+  FolderOpen,
+  Trash2,
+} from 'lucide-react'
 import { useState } from 'react'
-import type { PlaygroundFile } from '../../data/playground-projects'
+
+import type { PlaygroundFile } from '@/data/playground-projects'
 
 const FOLDER_ORDER = ['designs', 'workflows', 'programs', 'policies', '']
 
@@ -42,7 +50,8 @@ export function FileTree({
     grouped.set(folder, list)
   }
   const folders = [...grouped.keys()].sort(
-    (a, b) => FOLDER_ORDER.indexOf(a) - FOLDER_ORDER.indexOf(b) || a.localeCompare(b),
+    (a, b) =>
+      FOLDER_ORDER.indexOf(a) - FOLDER_ORDER.indexOf(b) || a.localeCompare(b),
   )
 
   function toggle(folder: string) {
@@ -75,11 +84,21 @@ export function FileTree({
                     size={12}
                   />
                   {isOpen ? (
-                    <FolderOpen aria-hidden="true" className="shrink-0 text-[#f6ece0]/45" size={13} />
+                    <FolderOpen
+                      aria-hidden="true"
+                      className="shrink-0 text-[#f6ece0]/45"
+                      size={13}
+                    />
                   ) : (
-                    <Folder aria-hidden="true" className="shrink-0 text-[#f6ece0]/45" size={13} />
+                    <Folder
+                      aria-hidden="true"
+                      className="shrink-0 text-[#f6ece0]/45"
+                      size={13}
+                    />
                   )}
-                  <span className="micro truncate text-[#f6ece0]/55">{folder}</span>
+                  <span className="micro truncate text-[#f6ece0]/55">
+                    {folder}
+                  </span>
                 </button>
                 <button
                   aria-label={`New file in ${folder}`}
@@ -93,7 +112,9 @@ export function FileTree({
             )}
 
             {isOpen && (
-              <div className={`flex flex-col gap-px ${isRoot ? '' : 'ml-2.5 border-l border-white/8 pl-1.5'}`}>
+              <div
+                className={`flex flex-col gap-px ${isRoot ? '' : 'ml-2.5 border-l border-white/8 pl-1.5'}`}
+              >
                 {grouped.get(folder)!.map((file) => {
                   const active = file.path === activePath
                   const hasErrors = errorPaths.has(file.path)
@@ -116,7 +137,8 @@ export function FileTree({
                             setRenaming(null)
                           }}
                           onKeyDown={(event) => {
-                            if (event.key === 'Enter') event.currentTarget.blur()
+                            if (event.key === 'Enter')
+                              event.currentTarget.blur()
                             if (event.key === 'Escape') setRenaming(null)
                           }}
                         />

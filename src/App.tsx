@@ -1,19 +1,22 @@
 import { lazy, Suspense, useEffect } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
-import { DocsSearchProvider } from './components/docs-search'
-import { SiteShell } from './components/site-shell'
-import { BrandPage } from './pages/brand-page'
-import { CommunityPage } from './pages/community-page'
-import { DocsPage } from './pages/docs-page'
-import { HomePage } from './pages/home-page'
-import { NotFoundPage } from './pages/not-found-page'
-import { WhyPage } from './pages/why-page'
-import { DEFAULT_DOC_SLUG } from './lib/docs-content'
+
+import { DocsSearchProvider } from '@/components/docs/docs-search'
+import { SiteShell } from '@/components/site/site-shell'
+import { DEFAULT_DOC_SLUG } from '@/lib/docs-content'
+import { BrandPage } from '@/pages/brand-page'
+import { CommunityPage } from '@/pages/community-page'
+import { DocsPage } from '@/pages/docs-page'
+import { HomePage } from '@/pages/home-page'
+import { NotFoundPage } from '@/pages/not-found-page'
+import { WhyPage } from '@/pages/why-page'
 
 // CodeMirror and the wasm compiler are heavy and only ever used on this one
 // route — code-split it so the rest of the site's first load stays light.
 const PlaygroundPage = lazy(() =>
-  import('./pages/playground-page').then((mod) => ({ default: mod.PlaygroundPage })),
+  import('@/pages/playground-page').then((mod) => ({
+    default: mod.PlaygroundPage,
+  })),
 )
 
 function RouteEffects() {

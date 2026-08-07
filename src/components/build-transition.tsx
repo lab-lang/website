@@ -1,5 +1,6 @@
 import { Check } from 'lucide-react'
-import { BUILD_STAGES } from '../data/build-stages'
+
+import { BUILD_STAGES } from '@/data/build-stages'
 
 export function BuildTransition({ step }: { step: number }) {
   const progress = Math.min(step / BUILD_STAGES.length, 1)
@@ -40,7 +41,11 @@ export function BuildTransition({ step }: { step: number }) {
               </span>
               <span
                 className={`w-14 shrink-0 ${
-                  done ? 'text-gfp' : active ? 'text-amber' : 'text-[#f6ece0]/50'
+                  done
+                    ? 'text-gfp'
+                    : active
+                      ? 'text-amber'
+                      : 'text-[#f6ece0]/50'
                 }`}
               >
                 {stage.name}

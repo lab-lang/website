@@ -35,7 +35,8 @@ export interface DocumentSymbol {
   children?: DocumentSymbol[]
 }
 
-export type CompletionKind = 'keyword' | 'type' | 'value' | 'function' | 'module'
+export type CompletionKind =
+  'keyword' | 'type' | 'value' | 'function' | 'module'
 
 export interface CompletionItem {
   label: string

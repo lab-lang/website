@@ -13,12 +13,13 @@ and transforms textual LAIR directly.
 
 ## `lab`
 
-| Command | Does |
-| --- | --- |
-| `lab new <path>` | Scaffolds a package: `lab.toml` plus `src/programs/main.lab`. |
-| `lab check <path>` | Resolves, type-checks, and verifies material flow for one file or a whole package. |
-| `lab build <path> [--out-dir <dir>]` | Checks, then writes one `*.module.json` per module, a package index, and a `lab.lock`. |
-| `lab metadata <path>` | Prints the resolved manifest and module list without compiling. |
+| Command                              | Does                                                                                      |
+| ------------------------------------ | ----------------------------------------------------------------------------------------- |
+| `lab new <path>`                     | Scaffolds a package: `lab.toml` plus `src/programs/main.lab`.                             |
+| `lab check <path>`                   | Resolves, type-checks, and verifies material flow for one file or a whole package.        |
+| `lab build <path> [--out-dir <dir>]` | Checks, then writes one `*.module.json` per module, a package index, and a `lab.lock`.    |
+| `lab metadata <path>`                | Prints the resolved manifest and module list without compiling.                           |
+| `lab update [--check]`               | Installs the latest `lab`/`labc`/`lab-opt` release; `--check` only reports if one exists. |
 
 Every subcommand accepts a global `--json` flag for machine-readable output.
 
@@ -28,19 +29,19 @@ Every subcommand accepts a global `--json` flag for machine-readable output.
 labc <source.lab> --emit <target> [--output-dir <dir>] [--inventory <file.json>]
 ```
 
-| `--emit` value | Produces |
-| --- | --- |
-| `human` (default) | A readable summary of the checked module. |
-| `source-ast` | The spanned source AST, as JSON. |
-| `module-ir` | The checked module, as JSON: the portable frontend boundary. |
-| `automation-json` | The OT-2 execution plan, as JSON. |
-| `manual-protocol` | A Markdown protocol for a person to follow by hand. |
-| `opentrons-assembly` | The generated Python assembly script. |
-| `opentrons-transformation` | The generated Python transformation script. |
-| `opentrons-plating` | The generated Python plating script. |
-| `automation-bundle` | Every OT-2 artifact together, written to `--output-dir`. |
-| `dependency-plan` | The resolved build-dependency graph, given `--inventory`. |
-| `full-build-bundle` | Dependency planning plus an OT-2 bundle per artifact, given `--inventory` and `--output-dir`. |
+| `--emit` value             | Produces                                                                                      |
+| -------------------------- | --------------------------------------------------------------------------------------------- |
+| `human` (default)          | A readable summary of the checked module.                                                     |
+| `source-ast`               | The spanned source AST, as JSON.                                                              |
+| `module-ir`                | The checked module, as JSON: the portable frontend boundary.                                  |
+| `automation-json`          | The OT-2 execution plan, as JSON.                                                             |
+| `manual-protocol`          | A Markdown protocol for a person to follow by hand.                                           |
+| `opentrons-assembly`       | The generated Python assembly script.                                                         |
+| `opentrons-transformation` | The generated Python transformation script.                                                   |
+| `opentrons-plating`        | The generated Python plating script.                                                          |
+| `automation-bundle`        | Every OT-2 artifact together, written to `--output-dir`.                                      |
+| `dependency-plan`          | The resolved build-dependency graph, given `--inventory`.                                     |
+| `full-build-bundle`        | Dependency planning plus an OT-2 bundle per artifact, given `--inventory` and `--output-dir`. |
 
 ## `lab-opt`
 

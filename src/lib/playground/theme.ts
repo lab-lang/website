@@ -1,7 +1,8 @@
 import { HighlightStyle, syntaxHighlighting } from '@codemirror/language'
 import { EditorView } from '@codemirror/view'
 import { tags as t } from '@lezer/highlight'
-import { durableEffectTag } from './language'
+
+import { durableEffectTag } from '@/lib/playground/language'
 
 /**
  * Colors match the dark code panel already established in index.css and
@@ -55,9 +56,11 @@ export const labEditorTheme = EditorView.theme(
     '.cm-cursor, .cm-dropCursor': {
       borderLeftColor: 'var(--color-gfp)',
     },
-    '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection': {
-      backgroundColor: 'color-mix(in oklab, var(--color-gfp) 25%, transparent)',
-    },
+    '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection':
+      {
+        backgroundColor:
+          'color-mix(in oklab, var(--color-gfp) 25%, transparent)',
+      },
     '.cm-activeLine': {
       backgroundColor: 'color-mix(in oklab, white 4%, transparent)',
     },

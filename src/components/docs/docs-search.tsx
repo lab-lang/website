@@ -1,14 +1,15 @@
 import { CornerDownLeft, Search, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { docGroups } from '../lib/docs-content'
-import { isTyping, OpenSearch } from '../lib/docs-search-context'
+
+import { docGroups } from '@/lib/docs-content'
 import {
   highlight,
   searchDocs,
   searchTerms,
   type DocSearchResult,
-} from '../lib/docs-search'
+} from '@/lib/docs-search'
+import { isTyping, OpenSearch } from '@/lib/docs-search-context'
 
 /**
  * With no query there is nothing to rank, so the palette lists the doc set
@@ -86,13 +87,7 @@ function Hint({ children }: { children: string }) {
   )
 }
 
-function DocsSearch({
-  open,
-  onClose,
-}: {
-  open: boolean
-  onClose: () => void
-}) {
+function DocsSearch({ open, onClose }: { open: boolean; onClose: () => void }) {
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [active, setActive] = useState(0)

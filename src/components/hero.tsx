@@ -1,21 +1,22 @@
 import { Check, RotateCcw } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
+
+import { BuildTransition } from '@/components/build-transition'
+import { CircuitGraph } from '@/components/circuit-graph'
+import { LiquidHandler } from '@/components/liquid-handler'
+import { PlasmidMap } from '@/components/plasmid-map'
+import { ProgramGraph } from '@/components/program-graph'
+import { SourceCode } from '@/components/source-code'
+import { WorkflowGraph } from '@/components/workflow-graph'
+import { BUILD_STAGES, BUILD_STEP_MS } from '@/data/build-stages'
 import {
   heroCircuitExample,
   heroMainExample,
   heroPlasmidExample,
   heroWorkflowExample,
-} from '../data/examples'
-import { features } from '../data/plasmid-features'
-import { usePrefersReducedMotion } from '../lib/use-prefers-reduced-motion'
-import { BUILD_STAGES, BUILD_STEP_MS } from '../data/build-stages'
-import { BuildTransition } from './build-transition'
-import { CircuitGraph } from './circuit-graph'
-import { WorkflowGraph } from './workflow-graph'
-import { ProgramGraph } from './program-graph'
-import { LiquidHandler } from './liquid-handler'
-import { PlasmidMap } from './plasmid-map'
-import { SourceCode } from './source-code'
+} from '@/data/examples'
+import { features } from '@/data/plasmid-features'
+import { usePrefersReducedMotion } from '@/lib/use-prefers-reduced-motion'
 
 const CHARS_PER_TICK = 3
 const TICK_MS = 20
@@ -92,7 +93,13 @@ function useTypedSource(reducedMotion: boolean) {
 }
 
 /** Holds the arcs back a frame so they draw in when the file is opened. */
-function DrawnMap({ tokens, accepted }: { tokens: string[]; accepted: boolean }) {
+function DrawnMap({
+  tokens,
+  accepted,
+}: {
+  tokens: string[]
+  accepted: boolean
+}) {
   const joined = tokens.join('|')
   const [shown, setShown] = useState<string[]>([])
 

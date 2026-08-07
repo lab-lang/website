@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { stages } from '../data/artifacts'
-import { SourceCode } from './source-code'
+
+import { SourceCode } from '@/components/source-code'
+import { stages } from '@/data/artifacts'
 
 export function LoweringRail() {
   const [activeId, setActiveId] = useState(stages[0].id)

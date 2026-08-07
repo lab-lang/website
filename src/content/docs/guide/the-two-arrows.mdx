@@ -8,17 +8,17 @@ order: 40
 
 Lab's punctuation is small and each symbol does exactly one thing:
 
-| Form | Meaning |
-| --- | --- |
-| `:` | Opens a declaration or control block |
-| `name: value` | Declares a property on a biological declaration |
-| `{ name: value }` | Constructs or destructures typed data |
-| `[ … ]` | Collection literal |
-| `< … >` | Type arguments |
-| `=` | Deterministic evaluation or state transition |
-| `<-` | Durable physical or external effect |
-| `->` | Declares a workflow result |
-| `#` | Line comment |
+| Form              | Meaning                                         |
+| ----------------- | ----------------------------------------------- |
+| `:`               | Opens a declaration or control block            |
+| `name: value`     | Declares a property on a biological declaration |
+| `{ name: value }` | Constructs or destructures typed data           |
+| `[ … ]`           | Collection literal                              |
+| `< … >`           | Type arguments                                  |
+| `=`               | Deterministic evaluation or state transition    |
+| `<-`              | Durable physical or external effect             |
+| `->`              | Declares a workflow result                      |
+| `#`               | Line comment                                    |
 
 ## `=` may be replayed. `<-` may not.
 
@@ -50,11 +50,11 @@ completion event. None of it may be silently re-run.
 Every durable action's contract states how it treats each operand it
 receives:
 
-| Mode | Meaning |
-| --- | --- |
-| `copy` | Freely reusable information; the action reads it, ownership is unaffected |
-| `borrow` | Observes a material without consuming it; ownership does not change |
-| `take` | Transfers ownership of a material into the action |
+| Mode     | Meaning                                                                   |
+| -------- | ------------------------------------------------------------------------- |
+| `copy`   | Freely reusable information; the action reads it, ownership is unaffected |
+| `borrow` | Observes a material without consuming it; ownership does not change       |
+| `take`   | Transfers ownership of a material into the action                         |
 
 `provision DH5alpha` takes a `copy` operand: `DH5alpha` is a typed inventory
 identity, not physical material, so there's nothing to give up. `transform

@@ -1,11 +1,5 @@
 export type SourceLanguage =
-  | 'lab'
-  | 'python'
-  | 'ir'
-  | 'markdown'
-  | 'shell'
-  | 'toml'
-  | 'json'
+  'lab' | 'python' | 'ir' | 'markdown' | 'shell' | 'toml' | 'json'
 
 /**
  * Six token colours, each carrying one meaning. The durable-effect arrow gets
@@ -116,7 +110,8 @@ const GRAMMARS: Record<SourceLanguage, Grammar> = {
       if (token.startsWith('#')) return CLASS.comment
       if (token.startsWith('"')) return CLASS.string
       if (/^\d/.test(token)) return CLASS.quantity
-      if (new RegExp(`^(?:${PYTHON_KEYWORDS})$`).test(token)) return CLASS.keyword
+      if (new RegExp(`^(?:${PYTHON_KEYWORDS})$`).test(token))
+        return CLASS.keyword
       if (/^[A-Z]/.test(token)) return CLASS.entity
       return CLASS.base
     },

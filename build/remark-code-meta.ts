@@ -1,6 +1,6 @@
-import { visit } from 'unist-util-visit'
 import type { Root, Code } from 'mdast'
 import type { Plugin } from 'unified'
+import { visit } from 'unist-util-visit'
 // Side-effect import: registers `hProperties` on mdast node `data`.
 import type {} from 'mdast-util-to-hast'
 

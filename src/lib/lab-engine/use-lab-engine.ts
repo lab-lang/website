@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { LabEngine } from './engine'
+
+import { LabEngine } from '@/lib/lab-engine/engine'
 
 export type EngineStatus = 'loading' | 'ready' | 'error'
 

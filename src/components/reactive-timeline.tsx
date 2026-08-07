@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { usePrefersReducedMotion } from '../lib/use-prefers-reduced-motion'
+
 import {
   CHART_MAX,
   COLONY_COUNTS,
@@ -9,7 +9,8 @@ import {
   STEP_MS,
   THRESHOLD,
   TOTAL_HOURS,
-} from '../data/reactive-timeline'
+} from '@/data/reactive-timeline'
+import { usePrefersReducedMotion } from '@/lib/use-prefers-reduced-motion'
 
 const AXIS_X0 = 60
 const AXIS_X1 = 470

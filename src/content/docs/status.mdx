@@ -13,19 +13,19 @@ implementation covers, the implementation is what's true today.
 
 ## Language
 
-| Feature | Status |
-| --- | --- |
-| `plasmid`, `strain`, and circuit declarations | Parse, resolve, type, lower |
-| Quantity-valued chemistry properties | Parse, resolve, unit-checked at lowering |
-| `require` and `accept` claims | Parse, resolve, type, lower |
-| Workflows, outcomes, and matching | Parse, resolve, type, lower |
-| Reactive `when every` / `when after` | Parse, resolve, type; no execution runtime |
-| Action contracts and material flow | Verified in the frontend |
-| `part` declarations | Syntax pending |
-| External packages and lockfiles | Path dependencies only; registry deps rejected outright |
-| Workspaces of member packages | Members, default member, shared lockfile |
-| Target profiles and `lab build --target` | One backend; profile validated, not dispatched on |
-| Durable workflow runtime | Not implemented |
+| Feature                                       | Status                                                  |
+| --------------------------------------------- | ------------------------------------------------------- |
+| `plasmid`, `strain`, and circuit declarations | Parse, resolve, type, lower                             |
+| Quantity-valued chemistry properties          | Parse, resolve, unit-checked at lowering                |
+| `require` and `accept` claims                 | Parse, resolve, type, lower                             |
+| Workflows, outcomes, and matching             | Parse, resolve, type, lower                             |
+| Reactive `when every` / `when after`          | Parse, resolve, type; no execution runtime              |
+| Action contracts and material flow            | Verified in the frontend                                |
+| `part` declarations                           | Syntax pending                                          |
+| External packages and lockfiles               | Path dependencies only; registry deps rejected outright |
+| Workspaces of member packages                 | Members, default member, shared lockfile                |
+| Target profiles and `lab build --target`      | One backend; profile validated, not dispatched on       |
+| Durable workflow runtime                      | Not implemented                                         |
 
 ## Standard library lowering
 
@@ -42,13 +42,13 @@ and `transform` produces a strain, so a build graph spans both artifact kinds. S
 
 ## Compiler
 
-| Feature | Status |
-| --- | --- |
-| Design and Workflow LAIR lowering | Implemented |
-| Workflow → Protocol dialect conversion | One conversion: the plasmid-build path |
-| Material linearity analysis | Implemented, runs at two stages |
-| LAIR pass pipeline | Infrastructure built; one registered pass |
-| Backends | One: Opentrons OT-2 |
+| Feature                                | Status                                    |
+| -------------------------------------- | ----------------------------------------- |
+| Design and Workflow LAIR lowering      | Implemented                               |
+| Workflow → Protocol dialect conversion | One conversion: the plasmid-build path    |
+| Material linearity analysis            | Implemented, runs at two stages           |
+| LAIR pass pipeline                     | Infrastructure built; one registered pass |
+| Backends                               | One: Opentrons OT-2                       |
 
 ## Backend: Opentrons OT-2
 

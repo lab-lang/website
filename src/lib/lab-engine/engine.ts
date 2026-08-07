@@ -1,4 +1,7 @@
-import { byteOffsetToUtf16Index, utf16IndexToByteOffset } from './byte-offset'
+import {
+  byteOffsetToUtf16Index,
+  utf16IndexToByteOffset,
+} from '@/lib/lab-engine/byte-offset'
 import type {
   CompletionItem,
   Diagnostic,
@@ -8,9 +11,9 @@ import type {
   SemanticToken,
   Span,
   TextEdit,
-} from './types'
+} from '@/lib/lab-engine/types'
 
-type WasmModule = typeof import('../../wasm/lab-ide-wasm/lab_ide_wasm.js')
+type WasmModule = typeof import('@/wasm/lab-ide-wasm/lab_ide_wasm.js')
 type LabWorkspace = InstanceType<WasmModule['LabWorkspace']>
 
 /**
@@ -37,7 +40,7 @@ export class LabEngine {
 
   private async load(): Promise<void> {
     if (!this.modulePromise) {
-      this.modulePromise = import('../../wasm/lab-ide-wasm/lab_ide_wasm.js')
+      this.modulePromise = import('@/wasm/lab-ide-wasm/lab_ide_wasm.js')
     }
     const mod = await this.modulePromise
     await mod.default()
@@ -64,7 +67,12 @@ export class LabEngine {
    * the engine derives a name from the path, which is right for a loose file
    * but not for one laid out under a package.
    */
-  async setDocument(path: string, version: number, text: string, module?: string): Promise<void> {
+  async setDocument(
+    path: string,
+    version: number,
+    text: string,
+    module?: string,
+  ): Promise<void> {
     await this.whenReady()
     if (module) {
       this.require().setModuleDocument(path, BigInt(version), text, module)
@@ -88,11 +96,15 @@ export class LabEngine {
 
   async documentSymbols(path: string): Promise<DocumentSymbol[]> {
     await this.whenReady()
-    const result = (this.require().documentSymbols(path) ?? []) as DocumentSymbol[]
+    const result = (this.require().documentSymbols(path) ??
+      []) as DocumentSymbol[]
     return result.map((symbol) => this.convertSymbol(path, symbol))
   }
 
-  async completions(path: string, utf16Offset: number): Promise<CompletionItem[]> {
+  async completions(
+    path: string,
+    utf16Offset: number,
+  ): Promise<CompletionItem[]> {
     await this.whenReady()
     const offset = this.byteOffset(path, utf16Offset)
     return (this.require().completions(path, offset) ?? []) as CompletionItem[]
@@ -106,10 +118,14 @@ export class LabEngine {
     return { ...result, span: this.toUtf16Span(path, result.span) }
   }
 
-  async definition(path: string, utf16Offset: number): Promise<Location | undefined> {
+  async definition(
+    path: string,
+    utf16Offset: number,
+  ): Promise<Location | undefined> {
     await this.whenReady()
     const offset = this.byteOffset(path, utf16Offset)
-    const result = this.require().definition(path, offset) as Location | undefined
+    const result = this.require().definition(path, offset) as
+      Location | undefined
     if (!result) return undefined
     return this.convertLocation(result)
   }
@@ -121,17 +137,29 @@ export class LabEngine {
     return result.map((location) => this.convertLocation(location))
   }
 
-  async rename(path: string, utf16Offset: number, newName: string): Promise<TextEdit[]> {
+  async rename(
+    path: string,
+    utf16Offset: number,
+    newName: string,
+  ): Promise<TextEdit[]> {
     await this.whenReady()
     const offset = this.byteOffset(path, utf16Offset)
-    const result = (this.require().rename(path, offset, newName) ?? []) as TextEdit[]
-    return result.map((edit) => ({ ...edit, span: this.toUtf16Span(edit.source, edit.span) }))
+    const result = (this.require().rename(path, offset, newName) ??
+      []) as TextEdit[]
+    return result.map((edit) => ({
+      ...edit,
+      span: this.toUtf16Span(edit.source, edit.span),
+    }))
   }
 
   async semanticTokens(path: string): Promise<SemanticToken[]> {
     await this.whenReady()
-    const result = (this.require().semanticTokens(path) ?? []) as SemanticToken[]
-    return result.map((token) => ({ ...token, span: this.toUtf16Span(path, token.span) }))
+    const result = (this.require().semanticTokens(path) ??
+      []) as SemanticToken[]
+    return result.map((token) => ({
+      ...token,
+      span: this.toUtf16Span(path, token.span),
+    }))
   }
 
   async formatDocument(path: string): Promise<string | undefined> {
@@ -153,7 +181,10 @@ export class LabEngine {
   }
 
   private convertLocation(location: Location): Location {
-    return { ...location, span: this.toUtf16Span(location.source, location.span) }
+    return {
+      ...location,
+      span: this.toUtf16Span(location.source, location.span),
+    }
   }
 
   private convertDiagnostic(diagnostic: Diagnostic): Diagnostic {
@@ -172,7 +203,9 @@ export class LabEngine {
       ...symbol,
       span: this.toUtf16Span(path, symbol.span),
       selection_span: this.toUtf16Span(path, symbol.selection_span),
-      children: symbol.children?.map((child) => this.convertSymbol(path, child)),
+      children: symbol.children?.map((child) =>
+        this.convertSymbol(path, child),
+      ),
     }
   }
 }

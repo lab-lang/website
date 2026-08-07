@@ -1,5 +1,6 @@
 import type { MDXContent } from 'mdx/types'
-import type { DocSection } from './remark-doc-search'
+
+import type { DocSection } from '@/lib/doc-section'
 
 export interface DocFrontmatter {
   title: string

@@ -16,7 +16,7 @@ anything: both run entirely on the checked source.
 
 The verifier tracks every `material`-typed value as a **place**: a named
 binding, or a field projection of one, such as `colony_result.plate`. Each
-place is either *live* (owned here) or *consumed* (given away). Every use of
+place is either _live_ (owned here) or _consumed_ (given away). Every use of
 a material-typed value is checked against its current state:
 
 - Passing a live place to a `take` operand consumes it; it becomes

@@ -10,19 +10,19 @@ Every value in Lab belongs to one of seven kinds. Six are immutable
 information; one, `material`, has physical identity and cannot be copied.
 That split is the foundation the rest of the language's checking builds on.
 
-| Kind | Carries | Copyable |
-| --- | --- | --- |
-| `record` | Immutable structured information | Yes |
-| `design` | Immutable, freely reusable biological intent | Yes |
-| `material` | Physical identity: a real sample, culture, or plate | No, affine |
-| `observation` | Immutable data with provenance attached | Yes |
-| `evidence` | Immutable data shaped for evaluating a claim | Yes |
-| `event` | An immutable, durable-journal occurrence | Yes |
-| `outcome` | A tagged result a workflow settles into | Yes |
+| Kind          | Carries                                             | Copyable   |
+| ------------- | --------------------------------------------------- | ---------- |
+| `record`      | Immutable structured information                    | Yes        |
+| `design`      | Immutable, freely reusable biological intent        | Yes        |
+| `material`    | Physical identity: a real sample, culture, or plate | No, affine |
+| `observation` | Immutable data with provenance attached             | Yes        |
+| `evidence`    | Immutable data shaped for evaluating a claim        | Yes        |
+| `event`       | An immutable, durable-journal occurrence            | Yes        |
+| `outcome`     | A tagged result a workflow settles into             | Yes        |
 
 ## Why `material` is different
 
-A `design` describes a plasmid; a `material` *is* a tube of it sitting in a
+A `design` describes a plasmid; a `material` _is_ a tube of it sitting in a
 rack. Two workflows can both read the same design freely, the same way two
 functions can both read the same constant, since a design has no physical
 existence to run out of. A `material` does. Once a workflow takes ownership

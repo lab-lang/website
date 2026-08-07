@@ -8,12 +8,13 @@ import {
   type Node,
   type NodeProps,
 } from '@xyflow/react'
+
 import '@xyflow/react/dist/style.css'
 import {
   WORKFLOW_EDGES,
   WORKFLOW_KIND_COLOR,
   WORKFLOW_NODES,
-} from '../data/workflow-graph'
+} from '@/data/workflow-graph'
 
 type MaterialData = {
   label: string

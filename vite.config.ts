@@ -1,12 +1,15 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
+import { fileURLToPath } from 'node:url'
+
 import mdx from '@mdx-js/rollup'
-import remarkGfm from 'remark-gfm'
+import tailwindcss from '@tailwindcss/vite'
+import react from '@vitejs/plugin-react'
 import remarkFrontmatter from 'remark-frontmatter'
+import remarkGfm from 'remark-gfm'
 import remarkMdxFrontmatter from 'remark-mdx-frontmatter'
-import remarkCodeMeta from './src/lib/remark-code-meta.ts'
-import remarkDocSearch from './src/lib/remark-doc-search.ts'
+import { defineConfig } from 'vite'
+
+import remarkCodeMeta from './build/remark-code-meta.ts'
+import remarkDocSearch from './build/remark-doc-search.ts'
 
 export default defineConfig({
   plugins: [
@@ -26,4 +29,9 @@ export default defineConfig({
     react({ include: /\.(jsx|js|mdx|md|tsx|ts)$/ }),
     tailwindcss(),
   ],
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
 })

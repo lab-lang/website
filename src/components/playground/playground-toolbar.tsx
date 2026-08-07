@@ -60,7 +60,10 @@ export function PlaygroundToolbar({
           Reset
         </button>
 
-        <span aria-hidden="true" className="mx-1.5 hidden h-4 w-px bg-white/12 sm:block" />
+        <span
+          aria-hidden="true"
+          className="mx-1.5 hidden h-4 w-px bg-white/12 sm:block"
+        />
 
         <button
           className={BUTTON}
@@ -71,7 +74,12 @@ export function PlaygroundToolbar({
         >
           Format
         </button>
-        <button className={BUTTON} onClick={onCopy} title="Copy the file in the editor" type="button">
+        <button
+          className={BUTTON}
+          onClick={onCopy}
+          title="Copy the file in the editor"
+          type="button"
+        >
           {copied ? 'Copied' : 'Copy'}
         </button>
       </div>

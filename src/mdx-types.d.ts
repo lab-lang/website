@@ -9,7 +9,8 @@ declare module 'mdx/types.js' {
 // declaration, so its default export is re-declared here too.
 declare module '*.mdx' {
   import type { Element, MDXProps } from 'mdx/types'
-  import type { DocFrontmatter } from './lib/docs-content'
+
+  import type { DocFrontmatter } from '@/lib/docs-content'
 
   export const frontmatter: DocFrontmatter
 

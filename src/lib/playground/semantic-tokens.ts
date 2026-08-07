@@ -1,6 +1,7 @@
 import { StateEffect, StateField } from '@codemirror/state'
 import { Decoration, EditorView, type DecorationSet } from '@codemirror/view'
-import type { SemanticToken, SemanticTokenKind } from '../lab-engine/types'
+
+import type { SemanticToken, SemanticTokenKind } from '@/lib/lab-engine/types'
 
 /**
  * Decorations sourced from the real compiler's semantic tokens, layered
@@ -28,7 +29,10 @@ const KIND_CLASS: Record<SemanticTokenKind, string> = {
 }
 
 export const semanticTokenTheme = EditorView.baseTheme({
-  '.cm-lab-semantic-comment': { color: '#8a7458 !important', fontStyle: 'italic' },
+  '.cm-lab-semantic-comment': {
+    color: '#8a7458 !important',
+    fontStyle: 'italic',
+  },
   '.cm-lab-semantic-keyword': { color: '#eaa54a !important' },
   '.cm-lab-semantic-string': { color: '#cbb98a !important' },
   '.cm-lab-semantic-number': { color: '#f2708f !important' },
@@ -61,7 +65,10 @@ function buildDecorations(tokens: SemanticToken[]): DecorationSet {
   const marks = sorted
     .filter((token) => token.span.end > token.span.start)
     .map((token) =>
-      Decoration.mark({ class: KIND_CLASS[token.kind] }).range(token.span.start, token.span.end),
+      Decoration.mark({ class: KIND_CLASS[token.kind] }).range(
+        token.span.start,
+        token.span.end,
+      ),
     )
   return Decoration.set(marks, true)
 }

@@ -8,8 +8,9 @@ import {
   type Node,
   type NodeProps,
 } from '@xyflow/react'
+
 import '@xyflow/react/dist/style.css'
-import { CIRCUIT_PARTS } from '../data/circuit-parts'
+import { CIRCUIT_PARTS } from '@/data/circuit-parts'
 
 /**
  * SBOL Visual glyph geometry (SynBioDex/SBOL-visual, CC0) on the standard 45×45

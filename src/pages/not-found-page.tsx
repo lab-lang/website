@@ -1,7 +1,8 @@
 import { ArrowLeft } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
-import { pageTitle } from '../lib/site'
-import { usePageMeta } from '../lib/use-page-meta'
+
+import { pageTitle } from '@/lib/site'
+import { usePageMeta } from '@/lib/use-page-meta'
 
 export function NotFoundPage() {
   const { pathname } = useLocation()

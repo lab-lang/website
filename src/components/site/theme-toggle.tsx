@@ -1,6 +1,12 @@
 import { Check, Monitor, Moon, Sun } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { applyTheme, readStoredChoice, watchSystemTheme, type ThemeChoice } from '../lib/theme'
+
+import {
+  applyTheme,
+  readStoredChoice,
+  watchSystemTheme,
+  type ThemeChoice,
+} from '@/lib/theme'
 
 const OPTIONS: { choice: ThemeChoice; label: string; Icon: typeof Sun }[] = [
   { choice: 'system', label: 'System', Icon: Monitor },
@@ -56,7 +62,8 @@ export function ThemeToggle() {
     setOpen(false)
   }
 
-  const active = OPTIONS.find((option) => option.choice === choice) ?? OPTIONS[0]
+  const active =
+    OPTIONS.find((option) => option.choice === choice) ?? OPTIONS[0]
   const ActiveIcon = active.Icon
 
   return (
@@ -74,7 +81,9 @@ export function ThemeToggle() {
               <button
                 aria-checked={selected}
                 className={`press flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left text-[14px] ${
-                  selected ? 'bg-ink/8 text-ink' : 'text-umber hover:bg-ink/5 hover:text-ink'
+                  selected
+                    ? 'bg-ink/8 text-ink'
+                    : 'text-umber hover:bg-ink/5 hover:text-ink'
                 }`}
                 key={value}
                 onClick={() => select(value)}
@@ -84,7 +93,11 @@ export function ThemeToggle() {
                 <Icon aria-hidden="true" size={15} strokeWidth={1.9} />
                 {label}
                 {selected && (
-                  <Check aria-hidden="true" className="ml-auto text-amber-deep" size={14} />
+                  <Check
+                    aria-hidden="true"
+                    className="ml-auto text-amber-deep"
+                    size={14}
+                  />
                 )}
               </button>
             )

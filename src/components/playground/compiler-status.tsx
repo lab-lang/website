@@ -1,4 +1,4 @@
-import type { EngineStatus } from '../../lib/lab-engine/use-lab-engine'
+import type { EngineStatus } from '@/lib/lab-engine/use-lab-engine'
 
 const COPY: Record<EngineStatus, { label: string; dot: string }> = {
   loading: { label: 'Compiler loading', dot: 'bg-amber animate-pulse' },
@@ -6,7 +6,13 @@ const COPY: Record<EngineStatus, { label: string; dot: string }> = {
   error: { label: 'Compiler unavailable', dot: 'bg-mcherry' },
 }
 
-export function CompilerStatus({ status, title }: { status: EngineStatus; title?: string }) {
+export function CompilerStatus({
+  status,
+  title,
+}: {
+  status: EngineStatus
+  title?: string
+}) {
   const { label, dot } = COPY[status]
   return (
     <span

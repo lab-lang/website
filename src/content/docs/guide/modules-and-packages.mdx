@@ -15,28 +15,28 @@ others in the language's design documents.
 `std` is owned by the language itself, not by any package. The bundled
 modules today:
 
-| Module | Provides |
-| --- | --- |
-| `std.prelude` | Implicit, foundational types, including `dna` |
-| `std.bio.parts` | Part declarations |
-| `std.bio.backbones` | Backbone declarations |
-| `std.bio.inventory` | Typed external-identity constructors (`part`, `backbone`, `restriction_enzyme`, `chassis`, `antibiotic`) |
-| `std.bio.build` | The `realize` effect |
-| `std.lab.plasmid_actions` | The laboratory action contracts, see [Action contracts](/docs/guide/action-contracts) |
+| Module                    | Provides                                                                                                 |
+| ------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `std.prelude`             | Implicit, foundational types, including `dna`                                                            |
+| `std.bio.parts`           | Part declarations                                                                                        |
+| `std.bio.backbones`       | Backbone declarations                                                                                    |
+| `std.bio.inventory`       | Typed external-identity constructors (`part`, `backbone`, `restriction_enzyme`, `chassis`, `antibiotic`) |
+| `std.bio.build`           | The `realize` effect                                                                                     |
+| `std.lab.plasmid_actions` | The laboratory action contracts, see [Action contracts](/docs/guide/action-contracts)                    |
 
 ## Project layout
 
 ```markdown
 my-plasmid/
-  lab.toml
-  src/
-    designs/
-    policies/
-    workflows/
-    programs/
-  tests/
-  .lab/
-    runs/          # generated, never hand-authored
+lab.toml
+src/
+designs/
+policies/
+workflows/
+programs/
+tests/
+.lab/
+runs/ # generated, never hand-authored
 ```
 
 A module's fully qualified name is derived from its path. `src/workflows/
@@ -54,9 +54,13 @@ version = "0.1.0"
 entry = "programs/main.lab"
 
 [dependencies]
+
 # path form
+
 some-lib = { path = "../some-lib" }
+
 # version form, parsed but not yet resolvable (see below)
+
 another-lib = "0.3"
 ```
 

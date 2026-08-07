@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { usePrefersReducedMotion } from '../lib/use-prefers-reduced-motion'
+
+import { usePrefersReducedMotion } from '@/lib/use-prefers-reduced-motion'
 
 /**
  * The reagents, volumes, and thermocycler profile below are the ones the
@@ -16,12 +17,7 @@ const TRANSFERS = [
 ]
 
 type FrameKind =
-  | 'home'
-  | 'to-source'
-  | 'aspirate'
-  | 'to-well'
-  | 'dispense'
-  | 'cycle'
+  'home' | 'to-source' | 'aspirate' | 'to-well' | 'dispense' | 'cycle'
 
 interface Frame {
   kind: FrameKind
@@ -170,12 +166,7 @@ function SlotLabel({ x, text }: { x: number; text: string }) {
  */
 function Gantry() {
   return (
-    <path
-      d={GANTRY_PATH}
-      fill="#6f7d74"
-      stroke="#f6ece0"
-      strokeOpacity=".14"
-    />
+    <path d={GANTRY_PATH} fill="#6f7d74" stroke="#f6ece0" strokeOpacity=".14" />
   )
 }
 
@@ -377,7 +368,14 @@ function Pipette({
       <circle cx="-19" cy={RAIL_Y + 3} fill="var(--color-gfp)" r="3" />
 
       <g style={{ transform: `translateY(${dy}px)`, transition: descend }}>
-        <rect fill="#7d8c82" height="22" rx="2" width="6" x="-3" y={RAIL_Y + 64} />
+        <rect
+          fill="#7d8c82"
+          height="22"
+          rx="2"
+          width="6"
+          x="-3"
+          y={RAIL_Y + 64}
+        />
         <rect
           fill="#c3ccc5"
           height="38"

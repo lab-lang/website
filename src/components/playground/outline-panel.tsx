@@ -1,4 +1,4 @@
-import type { DocumentSymbol, SymbolKind } from '../../lib/lab-engine/types'
+import type { DocumentSymbol, SymbolKind } from '@/lib/lab-engine/types'
 
 const KIND_LABEL: Record<SymbolKind, string> = {
   module: 'module',
@@ -28,11 +28,20 @@ function SymbolRow({
         style={{ paddingLeft: `${8 + depth * 14}px` }}
         type="button"
       >
-        <span className="truncate font-mono text-[12px] text-[#f2e8db]/85">{symbol.name}</span>
-        <span className="micro shrink-0 text-[#f6ece0]/30">{KIND_LABEL[symbol.kind]}</span>
+        <span className="truncate font-mono text-[12px] text-[#f2e8db]/85">
+          {symbol.name}
+        </span>
+        <span className="micro shrink-0 text-[#f6ece0]/30">
+          {KIND_LABEL[symbol.kind]}
+        </span>
       </button>
       {symbol.children?.map((child, index) => (
-        <SymbolRow depth={depth + 1} key={index} onJump={onJump} symbol={child} />
+        <SymbolRow
+          depth={depth + 1}
+          key={index}
+          onJump={onJump}
+          symbol={child}
+        />
       ))}
     </>
   )

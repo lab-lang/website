@@ -1,4 +1,5 @@
 import { useId } from 'react'
+
 import {
   CENTER,
   features,
@@ -6,7 +7,7 @@ import {
   RING_WIDTH,
   TOTAL_BP,
   type Feature,
-} from '../data/plasmid-features'
+} from '@/data/plasmid-features'
 
 /** How long one feature takes to sweep from its start angle to its end angle. */
 const DRAW_MS = 760
@@ -90,10 +91,7 @@ function FeatureArc({
    */
   const sweepFrom = from - degreesForArc(SWEEP_BLEED)
   const sweepTo =
-    to +
-    degreesForArc(
-      (feature.directional ? ARROW_LENGTH : 0) + SWEEP_BLEED,
-    )
+    to + degreesForArc((feature.directional ? ARROW_LENGTH : 0) + SWEEP_BLEED)
 
   return (
     <g>

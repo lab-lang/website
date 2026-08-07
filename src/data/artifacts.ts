@@ -1,5 +1,5 @@
-import type { SourceLanguage } from '../components/source-code'
-import { reporterExample } from './examples'
+import type { SourceLanguage } from '@/components/source-code'
+import { reporterExample } from '@/data/examples'
 
 /**
  * The five artifacts below are what the toolchain actually produces for one
@@ -185,7 +185,7 @@ export const stages: Stage[] = [
     filename: 'reporter.ir',
     headline: 'Meaning survives lowering',
     description:
-      "LAIR, the Lab Automation Intermediate Representation, is where meaning survives specialization: a design layer for artifact intent, a workflow layer for target-neutral realization, and a protocol layer for target-selected operations. Every material value is typed, and the verifier requires that each has at most one consumer.",
+      'LAIR, the Lab Automation Intermediate Representation, is where meaning survives specialization: a design layer for artifact intent, a workflow layer for target-neutral realization, and a protocol layer for target-selected operations. Every material value is typed, and the verifier requires that each has at most one consumer.',
     language: 'ir',
     body: protocolIr,
   },

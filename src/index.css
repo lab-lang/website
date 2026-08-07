@@ -337,7 +337,8 @@ html.dark {
 
   /* Soft depth once the header has content scrolling beneath it. */
   .nav-elevated {
-    box-shadow: 0 14px 30px -22px color-mix(in oklab, var(--cast) 55%, transparent);
+    box-shadow: 0 14px 30px -22px
+      color-mix(in oklab, var(--cast) 55%, transparent);
   }
 
   /*

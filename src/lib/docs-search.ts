@@ -1,4 +1,4 @@
-import { docPages } from './docs-content'
+import { docPages } from '@/lib/docs-content'
 
 export interface DocSearchResult {
   /** Stable identity for React keys and the active-descendant id. */

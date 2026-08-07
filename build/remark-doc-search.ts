@@ -1,19 +1,9 @@
+import { valueToEstree } from 'estree-util-value-to-estree'
 import type { Heading, Root, RootContent } from 'mdast'
 import type { Plugin } from 'unified'
-import { valueToEstree } from 'estree-util-value-to-estree'
-import { slugify } from './slugify'
 
-export interface DocSection {
-  /**
-   * The heading's anchor, matching the id `mdx-components` gives the rendered
-   * heading, so a search result can deep-link straight to it. Empty for the
-   * text that sits above a page's first heading.
-   */
-  id: string
-  heading: string
-  depth: number
-  text: string
-}
+import type { DocSection } from '../src/lib/doc-section'
+import { slugify } from '../src/lib/slugify'
 
 /** Node types whose `value` is prose a reader would search for. */
 const TEXTUAL = new Set(['text', 'inlineCode', 'code'])

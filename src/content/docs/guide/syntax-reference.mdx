@@ -20,16 +20,16 @@ operations, not keywords; see
 [Action contracts](/docs/guide/action-contracts) for the full list. The
 language itself is small enough to read in one pass:
 
-| Group | Keywords |
-| --- | --- |
-| Modules | `use` |
-| Biological design | `circuit`, `plasmid` |
-| Laboratory data | `record`, `material`, `observation`, `evidence`, `event`, `outcome` |
-| Orchestration | `workflow`, `state` |
-| Signatures and contracts | `input`, `output`, `require`, `accept` |
-| Control flow | `if`, `else`, `for`, `in`, `match`, `case`, `return` |
-| Reactive control | `when`, `every`, `after`, `emit` |
-| Boolean operators | `and`, `or`, `not` |
+| Group                    | Keywords                                                            |
+| ------------------------ | ------------------------------------------------------------------- |
+| Modules                  | `use`                                                               |
+| Biological design        | `circuit`, `plasmid`                                                |
+| Laboratory data          | `record`, `material`, `observation`, `evidence`, `event`, `outcome` |
+| Orchestration            | `workflow`, `state`                                                 |
+| Signatures and contracts | `input`, `output`, `require`, `accept`                              |
+| Control flow             | `if`, `else`, `for`, `in`, `match`, `case`, `return`                |
+| Reactive control         | `when`, `every`, `after`, `emit`                                    |
+| Boolean operators        | `and`, `or`, `not`                                                  |
 
 ## Workflow signatures
 
@@ -75,7 +75,7 @@ DH5alpha = chassis("DH5alpha")
 chloramphenicol = antibiotic("chloramphenicol")
 ```
 
-Each constructor only creates a typed *name* for an external identity; it
+Each constructor only creates a typed _name_ for an external identity; it
 does not resolve availability, lot, or provenance. A design references these
 bound names in its properties (`backbone: pSB1C3`, `restriction_enzyme: BsaI`), and a
 workflow references them in action phrases (`provision DH5alpha`, `plate

@@ -1,13 +1,14 @@
+import type { MDXComponents } from 'mdx/types'
 import {
   isValidElement,
   type ComponentPropsWithoutRef,
   type ReactElement,
   type ReactNode,
 } from 'react'
-import type { MDXComponents } from 'mdx/types'
 import { Link } from 'react-router-dom'
-import { slugify } from '../lib/slugify'
-import { SourceCode, type SourceLanguage } from './source-code'
+
+import { SourceCode, type SourceLanguage } from '@/components/source-code'
+import { slugify } from '@/lib/slugify'
 
 /*
  * Recurses through elements, not just strings, so a word set in bold or code
@@ -53,7 +54,12 @@ function DocLink({ href = '', children }: ComponentPropsWithoutRef<'a'>) {
     )
   }
   return (
-    <a className="rule-link text-ink" href={href} rel="noreferrer" target="_blank">
+    <a
+      className="rule-link text-ink"
+      href={href}
+      rel="noreferrer"
+      target="_blank"
+    >
       {children}
     </a>
   )

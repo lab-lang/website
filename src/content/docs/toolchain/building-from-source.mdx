@@ -36,10 +36,10 @@ cargo run -p lab-cli -- new my-plasmid
 
 ```markdown
 my-plasmid/
-  lab.toml
-  src/
-    programs/
-      main.lab
+lab.toml
+src/
+programs/
+main.lab
 ```
 
 `lab.toml` declares the package name, version, and build entry point. Source
@@ -74,7 +74,7 @@ For working on the language itself, or on a single design outside a package,
 target directly, without a `lab.toml`.
 
 ```shell
-cargo run -p lab-compiler --bin labc -- reporter.lab --emit module-ir
+labc reporter.lab --emit module-ir
 ```
 
 See [CLI reference](/docs/compiler/cli-reference) for the full table of

@@ -6,7 +6,7 @@ group: Learn Lab
 order: 60
 ---
 
-import { Callout } from '../../../components/callout'
+import { Callout } from '@/components/docs/callout'
 
 `transform`, `plate`, and `sequence` look like keywords. They are not. Lab's
 grammar has no production for any laboratory verb, and the checker has no
@@ -31,14 +31,14 @@ supply operations that feel exactly as native as `std`.
 Here is the `realize` contract from `std.bio.build`, which is the operation
 that turns a design plus its dependencies into physical material:
 
-| Element | Value |
-| --- | --- |
-| Operation identity | `std.bio.build.realize` |
-| Capability | `artifact_realization` |
-| Phrase | `realize` *design* `from` *dependencies* |
-| `design` | `Plasmid`, mode `copy` |
-| `dependencies` | `List<Material<Plasmid>>`, mode `take` |
-| Result `product` | `Material<Plasmid>` |
+| Element            | Value                                    |
+| ------------------ | ---------------------------------------- |
+| Operation identity | `std.bio.build.realize`                  |
+| Capability         | `artifact_realization`                   |
+| Phrase             | `realize` _design_ `from` _dependencies_ |
+| `design`           | `Plasmid`, mode `copy`                   |
+| `dependencies`     | `List<Material<Plasmid>>`, mode `take`   |
+| Result `product`   | `Material<Plasmid>`                      |
 
 Four things are worth pulling out of that table.
 
@@ -67,11 +67,11 @@ Three modes, and they exist because materials are affine — a physical thing
 has exactly one owning place, and the checker enforces it across branches,
 matches, returns, and reactive handlers.
 
-| Mode | Meaning | After the action |
-| --- | --- | --- |
-| `copy` | freely reusable information | operand still usable |
-| `borrow` | observe without consuming | operand still usable |
-| `take` | transfer the material into the action | operand is gone |
+| Mode     | Meaning                               | After the action     |
+| -------- | ------------------------------------- | -------------------- |
+| `copy`   | freely reusable information           | operand still usable |
+| `borrow` | observe without consuming             | operand still usable |
+| `take`   | transfer the material into the action | operand is gone      |
 
 `borrow` is the interesting one. `capture image of plate` borrows the plate:
 you get an image, and you still have the plate. `plate culture on
@@ -85,8 +85,7 @@ The analysis is place-sensitive rather than name-sensitive. Taking
 <Callout kind="aside">
   Iteration over a collection of materials is currently rejected. It needs a
   consuming-iterator contract that defines ownership for zero, partial,
-  completed, and early-return iteration, and that contract does not exist
-  yet.
+  completed, and early-return iteration, and that contract does not exist yet.
 </Callout>
 
 ## The bundled contracts
@@ -95,33 +94,33 @@ The analysis is place-sensitive rather than name-sensitive. Taking
 exports one. The **Lowers** column is the honest part of this page: it marks
 whether the operation reaches LAIR, or only type-checks.
 
-| Phrase | Capability | Ownership | Results | Lowers |
-| --- | --- | --- | --- | --- |
-| `realize` *design* `from` *deps* | `artifact_realization` | copy, take | `product` | yes |
-| `provision` *chassis* | `inventory` | copy | `cells` | yes |
-| `transform` *design* `from` *plasmids* `into` *cells* | `chemical_transformation` | copy, take, take | `strain`, `culture` | yes |
-| `recover` *culture* `for` *duration* | `culture_incubation` | take | `culture` | yes |
-| `dilute` *culture* | `liquid_handling` | take | `culture` | yes |
-| `plate` *culture* `on` *antibiotic* | `antibiotic_selection` | take, copy | `plate` | yes |
-| `capture image of` *plate* | `plate_imaging` | borrow | `image` | no |
-| `synthesize` *design* | `dna_synthesis` | copy | `fragments` | no |
-| `assemble` *fragments* | `dna_assembly` | take | `construct` (a `Material<Plasmid>`) | no |
-| `pick` *n* `isolated colonies from` *plate* | `colony_picking` | borrow | `candidates` | no |
-| `screen` *candidates* `against` *design* | `clone_screening` | take, copy | `screening` | no |
-| `grow` *clone* `at` *temp* `for` *duration* | `culture_incubation` | take | `culture` | no |
-| `purify` *culture* | `plasmid_purification` | take | `plasmid` | no |
-| `split` *material* | `liquid_handling` | take | `retained`, `aliquot` | no |
-| `sequence` *aliquot* | `sanger_sequencing` | take | `result` | no |
-| `quantify` *material* | `dna_quantification` | borrow | `evidence` | no |
-| `store` *material* `at` *temp* | `cold_storage` | take | `material` | no |
-| `dispose` *material* | `waste_handling` | take | — | no |
+| Phrase                                                | Capability                | Ownership        | Results                             | Lowers |
+| ----------------------------------------------------- | ------------------------- | ---------------- | ----------------------------------- | ------ |
+| `realize` _design_ `from` _deps_                      | `artifact_realization`    | copy, take       | `product`                           | yes    |
+| `provision` _chassis_                                 | `inventory`               | copy             | `cells`                             | yes    |
+| `transform` _design_ `from` _plasmids_ `into` _cells_ | `chemical_transformation` | copy, take, take | `strain`, `culture`                 | yes    |
+| `recover` _culture_ `for` _duration_                  | `culture_incubation`      | take             | `culture`                           | yes    |
+| `dilute` _culture_                                    | `liquid_handling`         | take             | `culture`                           | yes    |
+| `plate` _culture_ `on` _antibiotic_                   | `antibiotic_selection`    | take, copy       | `plate`                             | yes    |
+| `capture image of` _plate_                            | `plate_imaging`           | borrow           | `image`                             | no     |
+| `synthesize` _design_                                 | `dna_synthesis`           | copy             | `fragments`                         | no     |
+| `assemble` _fragments_                                | `dna_assembly`            | take             | `construct` (a `Material<Plasmid>`) | no     |
+| `pick` _n_ `isolated colonies from` _plate_           | `colony_picking`          | borrow           | `candidates`                        | no     |
+| `screen` _candidates_ `against` _design_              | `clone_screening`         | take, copy       | `screening`                         | no     |
+| `grow` _clone_ `at` _temp_ `for` _duration_           | `culture_incubation`      | take             | `culture`                           | no     |
+| `purify` _culture_                                    | `plasmid_purification`    | take             | `plasmid`                           | no     |
+| `split` _material_                                    | `liquid_handling`         | take             | `retained`, `aliquot`               | no     |
+| `sequence` _aliquot_                                  | `sanger_sequencing`       | take             | `result`                            | no     |
+| `quantify` _material_                                 | `dna_quantification`      | borrow           | `evidence`                          | no     |
+| `store` _material_ `at` _temp_                        | `cold_storage`            | take             | `material`                          | no     |
+| `dispose` _material_                                  | `waste_handling`          | take             | —                                   | no     |
 
 Six of eighteen lower. The other twelve parse, resolve, type-check, and pass
 material-flow verification, then stop at portable module IR. A program built
 from them is a valid Lab program that no backend can currently consume.
 
 `synthesize` and `assemble` are a special case: no source-level lowering
-path reaches them, but the Workflow-to-Protocol conversion *generates* both
+path reaches them, but the Workflow-to-Protocol conversion _generates_ both
 when it expands a `realize` operation. See
 [LAIR dialects](/docs/compiler/lair-dialects).
 
@@ -134,7 +133,7 @@ values. `split` shows a contract whose result types are tied to its input:
 retained, aliquot <- split plasmid
 ```
 
-Both results are declared as *same as* the `material` operand, so splitting
+Both results are declared as _same as_ the `material` operand, so splitting
 a `Material<Plasmid>` yields two of them without the contract naming the
 type. `dispose` goes further and accepts any material at all, which is what
 lets one operation end the ownership of a plate, a culture, or a plasmid.
@@ -166,8 +165,8 @@ The same catalog generates the standard library's reference documentation,
 so the docs cannot describe an export surface the compiler does not have.
 
 <Callout kind="note">
-  Source syntax for declaring your own action contracts does not exist yet.
-  The registry interface that `std` goes through is the intended path for
+  Source syntax for declaring your own action contracts does not exist yet. The
+  registry interface that `std` goes through is the intended path for
   package-defined operations, but the surface syntax, visibility rules, and
   package metadata for them are unresolved.
 </Callout>

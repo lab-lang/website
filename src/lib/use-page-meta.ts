@@ -1,11 +1,12 @@
 import { useEffect } from 'react'
+
 import {
   DEFAULT_DESCRIPTION,
   DEFAULT_TITLE,
   SITE_NAME,
   SITE_ORIGIN,
   SOCIAL_IMAGE,
-} from './site'
+} from '@/lib/site'
 
 export interface PageMeta {
   /** The whole `<title>`, including whatever suffix the page wants. */
@@ -28,18 +29,19 @@ export interface PageMeta {
 function upsert(selector: string, create: () => HTMLElement, content: string) {
   const existing = document.head.querySelector(selector)
   const element = existing ?? document.head.appendChild(create())
-  element.setAttribute(
-    element.tagName === 'LINK' ? 'href' : 'content',
-    content,
-  )
+  element.setAttribute(element.tagName === 'LINK' ? 'href' : 'content', content)
 }
 
 function meta(attribute: 'name' | 'property', key: string, content: string) {
-  upsert(`meta[${attribute}="${key}"]`, () => {
-    const element = document.createElement('meta')
-    element.setAttribute(attribute, key)
-    return element
-  }, content)
+  upsert(
+    `meta[${attribute}="${key}"]`,
+    () => {
+      const element = document.createElement('meta')
+      element.setAttribute(attribute, key)
+      return element
+    },
+    content,
+  )
 }
 
 export function usePageMeta({

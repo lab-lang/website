@@ -6,7 +6,7 @@ group: Learn Lab
 order: 20
 ---
 
-import { Callout } from '../../../components/callout'
+import { Callout } from '@/components/docs/callout'
 
 This walks through a real plasmid from an empty directory to generated
 protocols. Everything here runs against the toolchain as it stands today.
@@ -18,10 +18,11 @@ is where live laboratory operations will land once there is a runtime to
 operate.
 
 ```shell
-cargo install --git https://github.com/lab-lang/lab lab-cli --locked
+curl -sSf https://lab-lang.org/install.sh | sh
 ```
 
-That installs `lab` into Cargo's binary directory, normally `~/.cargo/bin`.
+That installs `lab`, `labc`, and `lab-opt` into `~/.lab/bin` and wires it into
+your shell's `PATH`.
 
 ## Create a project
 
@@ -59,7 +60,7 @@ workflow main() -> Material<Plasmid>:
 The plasmid is four lines, and three of them are distinct kinds of claim.
 `sequence:` is a **declarative property**: typed data attached to the
 design, not an assignment that runs. `require` is a constraint checked
-*before* anything is built. `accept` is a claim about the finished material
+_before_ anything is built. `accept` is a claim about the finished material
 that only runtime evidence can settle.
 
 `main` is separate from all three. Naming a module as the manifest's `entry`
@@ -70,7 +71,7 @@ material each call consumes, and `main` is where that dataflow starts.
 
 That distinction is the whole point of the language, so it is worth being
 precise about it. The compiler can prove your design is well-typed, and it
-can prove a workflow produces the *kinds* of evidence your `accept` clauses
+can prove a workflow produces the _kinds_ of evidence your `accept` clauses
 need. It cannot prove what a future measurement will say. Only the third
 judgment — real evidence against the predicate — yields an accepted
 material.
@@ -162,10 +163,10 @@ So `components: [J23101, B0034, GFP, B0015]` is a `List<Part>` of checked
 symbols. Writing `components: ["J23101"]` is a type error, not a shortcut.
 
 <Callout kind="note">
-  A typed identity is not availability. `part("J23101")` says this design
-  refers to a catalog item. It says nothing about whether a suitable lot
-  exists, how much is left, where it is, or whether you should trust its
-  provenance. Those are inventory and runtime questions.
+  A typed identity is not availability. `part("J23101")` says this design refers
+  to a catalog item. It says nothing about whether a suitable lot exists, how
+  much is left, where it is, or whether you should trust its provenance. Those
+  are inventory and runtime questions.
 </Callout>
 
 ### The two arrows
@@ -224,7 +225,7 @@ Target specialization is a compiler-development surface today, exposed
 through `labc` rather than `lab`. From a checkout of the Lab repository:
 
 ```shell
-cargo run -p lab-compiler --bin labc -- \
+labc \
   path/to/tet-reporter/src/programs/main.lab \
   --emit automation-bundle \
   --output-dir /tmp/reporter-build
@@ -232,13 +233,13 @@ cargo run -p lab-compiler --bin labc -- \
 
 Five files, all projected from a single validated execution plan:
 
-| File | What it is |
-| --- | --- |
-| `automation_manifest.json` | the construct, well, and handoff plan |
-| `manual_protocol.md` | English instructions with reaction and plate maps |
-| `assembly_protocol.py` | Golden Gate setup and thermocycling |
-| `transformation_protocol.py` | cell transfer, heat shock, recovery |
-| `plating_protocol.py` | dilution and selective plating |
+| File                         | What it is                                        |
+| ---------------------------- | ------------------------------------------------- |
+| `automation_manifest.json`   | the construct, well, and handoff plan             |
+| `manual_protocol.md`         | English instructions with reaction and plate maps |
+| `assembly_protocol.py`       | Golden Gate setup and thermocycling               |
+| `transformation_protocol.py` | cell transfer, heat shock, recovery               |
+| `plating_protocol.py`        | dilution and selective plating                    |
 
 Nothing in your source named Golden Gate, heat shock, a deck slot, or a
 pipette. The source said `realize`, `transform`, `recover`, `dilute`,
@@ -247,12 +248,12 @@ the chemistry and the hardware. A different target may choose differently,
 or reject a design it cannot lower.
 
 <Callout kind="note">
-  **Generated protocols are not qualified protocols.** Before anyone runs
-  this, a laboratory must verify source concentrations, overhang
-  compatibility, internal restriction sites, labware definitions, deck fit,
-  liquid classes, tip policy, transformation conditions, selection media,
-  and organism-specific incubation. The compiler validates volumes and
-  capacities. It does not validate your biology.
+  **Generated protocols are not qualified protocols.** Before anyone runs this,
+  a laboratory must verify source concentrations, overhang compatibility,
+  internal restriction sites, labware definitions, deck fit, liquid classes, tip
+  policy, transformation conditions, selection media, and organism-specific
+  incubation. The compiler validates volumes and capacities. It does not
+  validate your biology.
 </Callout>
 
 ## Where to go next

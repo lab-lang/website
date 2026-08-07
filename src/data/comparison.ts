@@ -1,5 +1,5 @@
-import type { SourceLanguage } from '../components/source-code'
-import { generatedProtocol } from './generated-ot2'
+import type { SourceLanguage } from '@/components/source-code'
+import { generatedProtocol } from '@/data/generated-ot2'
 
 /*
  * The same build, as each system asks you to express it. These are written by

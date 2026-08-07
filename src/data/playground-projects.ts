@@ -28,7 +28,10 @@ export interface PlaygroundProject {
  * Files in a project without a namespace keep the engine's own path-derived
  * naming, so this returns nothing for them.
  */
-export function moduleIdFor(project: PlaygroundProject, path: string): string | undefined {
+export function moduleIdFor(
+  project: PlaygroundProject,
+  path: string,
+): string | undefined {
   if (!project.namespace) return undefined
   const segments = path
     .replace(/\.lab$/, '')

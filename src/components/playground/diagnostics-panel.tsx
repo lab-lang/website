@@ -1,5 +1,6 @@
 import { AlertTriangle, CheckCircle2, Info, XCircle } from 'lucide-react'
-import type { Diagnostic, DiagnosticSeverity } from '../../lib/lab-engine/types'
+
+import type { Diagnostic, DiagnosticSeverity } from '@/lib/lab-engine/types'
 
 const SEVERITY_ICON: Record<DiagnosticSeverity, typeof XCircle> = {
   error: XCircle,
@@ -28,12 +29,19 @@ export function DiagnosticsPanel({
   diagnosticsByFile: Array<{ path: string; diagnostics: Diagnostic[] }>
   onJump: (path: string, offset: number) => void
 }) {
-  const total = diagnosticsByFile.reduce((sum, entry) => sum + entry.diagnostics.length, 0)
+  const total = diagnosticsByFile.reduce(
+    (sum, entry) => sum + entry.diagnostics.length,
+    0,
+  )
 
   if (total === 0) {
     return (
       <div className="flex items-center gap-2.5 px-4 py-5">
-        <CheckCircle2 aria-hidden="true" className="shrink-0 text-gfp" size={15} />
+        <CheckCircle2
+          aria-hidden="true"
+          className="shrink-0 text-gfp"
+          size={15}
+        />
         <p className="text-[13px] leading-[1.5] text-[#f6ece0]/55">
           No diagnostics. Every open file checks clean.
         </p>
