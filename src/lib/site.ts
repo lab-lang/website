@@ -1,4 +1,7 @@
-export const REPO_URL = 'https://github.com/lab-lang/lab'
+/** The compiler's repository, as `owner/name`: the form the API takes. */
+export const REPO_SLUG = 'lab-lang/lab'
+
+export const REPO_URL = `https://github.com/${REPO_SLUG}`
 
 /**
  * Where the site is served. Canonical links and social card URLs have to be

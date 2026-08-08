@@ -4,13 +4,17 @@ import { Link } from 'react-router-dom'
 import { HeroSpecimen } from '@/components/hero'
 import { InstallCommand } from '@/components/home/install-command'
 import { SectionBody } from '@/components/section'
+import { useLatestRelease } from '@/lib/use-latest-release'
 
 export function HeroSection() {
+  const version = useLatestRelease()
+
   return (
     <section className="agar-wash relative overflow-hidden" id="intro">
       <SectionBody className="pb-14 pt-6 sm:pb-20 sm:pt-10 lg:pb-28">
         <p className="micro text-umber">
-          <span className="normal-case">v</span>0.1.0 · early prototype
+          <span className="normal-case">v</span>
+          {version} · early prototype
         </p>
 
         <div>

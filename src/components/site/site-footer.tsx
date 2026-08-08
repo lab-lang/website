@@ -2,8 +2,11 @@ import { Link } from 'react-router-dom'
 
 import { Wordmark } from '@/components/site/marks'
 import { REPO_URL } from '@/lib/site'
+import { useLatestRelease } from '@/lib/use-latest-release'
 
 export function SiteFooter() {
+  const version = useLatestRelease()
+
   return (
     <footer className="border-t border-ink/12 bg-sand/45">
       <div className="mx-auto max-w-[1480px] px-5 py-12 sm:px-8 sm:py-14 lg:px-10">
@@ -82,7 +85,7 @@ export function SiteFooter() {
 
         <div className="tick-rule mt-12" />
         <div className="mt-5 text-[13px] text-umber-soft">
-          <span>Apache-2.0 · v0.1.0</span>
+          <span>Apache-2.0 · v{version}</span>
         </div>
       </div>
     </footer>
