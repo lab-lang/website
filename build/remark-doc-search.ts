@@ -2,8 +2,8 @@ import { valueToEstree } from 'estree-util-value-to-estree'
 import type { Heading, Root, RootContent } from 'mdast'
 import type { Plugin } from 'unified'
 
-import type { DocSection } from '../src/lib/doc-section'
-import { slugify } from '../src/lib/slugify'
+import type { DocSection } from '../src/lib/doc-section.ts'
+import { slugify } from '../src/lib/slugify.ts'
 
 /** Node types whose `value` is prose a reader would search for. */
 const TEXTUAL = new Set(['text', 'inlineCode', 'code'])
