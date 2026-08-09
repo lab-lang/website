@@ -17,15 +17,16 @@ export interface Feature {
 }
 
 /**
- * Features of the `reporter` plasmid declared in the hero source. Coordinates
- * are illustrative; the arrangement follows a standard iGEM transcription unit
- * on a pSB1C3 backbone, which carries chloramphenicol resistance and a pMB1
- * origin.
+ * Features of the `reporter` plasmid declared in the hero source. Each token is
+ * a symbol the source names, so an arc is drawn as the line that declares it is
+ * typed out. Coordinates are illustrative; the arrangement follows a standard
+ * iGEM transcription unit on a pSB1C3 backbone, which carries chloramphenicol
+ * resistance and a pMB1 origin.
  */
 export const features: Feature[] = [
   {
-    token: 'tet_reporter',
-    label: 'pTet',
+    token: 'J23101',
+    label: 'J23101',
     kind: 'promoter',
     start: 120,
     end: 250,
@@ -34,7 +35,7 @@ export const features: Feature[] = [
     directional: true,
   },
   {
-    token: 'tet_reporter',
+    token: 'B0034',
     label: 'B0034',
     kind: 'RBS',
     start: 290,
@@ -44,8 +45,8 @@ export const features: Feature[] = [
     directional: false,
   },
   {
-    token: 'tet_reporter',
-    label: 'sfGFP',
+    token: 'GFP',
+    label: 'GFP',
     kind: 'CDS',
     start: 390,
     end: 1110,
@@ -54,7 +55,7 @@ export const features: Feature[] = [
     directional: true,
   },
   {
-    token: 'tet_reporter',
+    token: 'B0015',
     label: 'B0015',
     kind: 'terminator',
     start: 1150,

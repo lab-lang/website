@@ -1,0 +1,100 @@
+---
+title: Opentrons Flex
+eyebrow: Backends
+description: The second backend, and the one that proved the boundary. The same verified operations, emitted as JSON protocols instead of Python.
+group: Backends
+order: 320
+---
+
+The Flex backend takes the same `ProtocolLairProgram` the
+[OT-2 backend](/docs/backends/opentrons-ot2) takes, plans the same build, and
+emits Opentrons JSON protocols (protocol schema 8) instead of Python. It is
+the backend that turned "a different robot could consume the same verified
+operations" from a claim about the architecture into something you can run.
+
+## Selecting it
+
+A profile's `[target] backend` key selects both the profile schema and the
+backend that compiles the build:
+
+```toml targets/opentrons-flex.toml
+[target]
+backend = "opentrons.flex"
+
+[instruments.small]
+model = "p50_single_flex"
+mount = "left"
+
+[instruments.large]
+model = "p1000_single_flex"
+mount = "right"
+```
+
+```shell
+lab build --target opentrons-flex
+```
+
+An absent `backend` key means `opentrons.ot2`, so a project written before
+there was a choice builds unchanged, and an unknown backend is an error naming
+the ones this toolchain provides. Two profiles over the same program produce
+two packages with the same wave structure, manifest schema, and
+manual-protocol shape: only the emitted protocols differ.
+
+## The two benches disagree about nearly everything
+
+One profile schema cannot describe both robots, which is why the backend key
+picks the schema too. A Flex names slots `A1` through `D3` rather than `1`
+through `11`; its pipettes are `p50_single_flex` and `p1000_single_flex`; its
+modules are spelled `temperatureModuleV2` and `thermocyclerModuleV2`; and its
+trash is a movable bin declared as an addressable area rather than a fixed
+piece of labware:
+
+```toml
+[deck.trash]
+area = "movableTrashA3"
+```
+
+Each backend keeps its own spelling of every field it interprets, so a Flex
+profile that names an OT-2 pipette fails validation with a sentence rather
+than a robot-side rejection halfway through a run.
+
+## A typed protocol document, not printed JSON
+
+The emitted protocols are built through `lab-opentrons-protocol`, a crate that
+separates the wire model from the authoring API. `schema` is the faithful
+serialization target and validates nothing; `builder` is the checked layer,
+where load methods return typed handles, command methods accept only those
+handles, and the semantic rules the Opentrons protocol engine enforces during
+analysis are checked at construction time. A protocol that reaches `build()`
+is one `opentrons analyze` accepts. Standard labware definitions are embedded
+into the emitted document and used to validate well names and volumes.
+
+Verify a generated bundle against the real analyzer:
+
+```shell
+scripts/analyze-opentrons-flex.sh .lab/build/opentrons-flex
+```
+
+## What is shared, and what is not
+
+The decision that introduced this backend also drew the line between them.
+Planning that names no robot sits beside the backend contracts: provenance
+analysis over Protocol LAIR, build-graph projection, SBS plate geometry and
+well allocation, the labware groupings every bench profile declares, and the
+dependency-report renderers. Backend identity enters that common planning only
+as a parameter, so a capacity error names the machine that planned the build.
+
+Everything else stays inside each machine's boundary: profile vocabulary,
+stage constraints, execution plans, and emitters. A generated artifact is
+recognized as a robot protocol by the emitters' naming convention,
+`*_protocol.py` or `*_protocol.json`, rather than by file extension, because a
+Python file is not the only thing a robot runs.
+
+## Current boundary
+
+Experimental, like the OT-2 backend, and subject to the same limits: it does
+not query a live inventory service, resolve inventory lots, ingest SBOL,
+design compatible overhangs, normalize source concentrations, prepare DNA
+between dependent waves, or attach runtime evidence to acceptance decisions.
+Generated protocols require laboratory review and qualification before
+physical execution.

@@ -23,15 +23,16 @@ const checkSummary = `$ labc reporter.lab
 Lab module compiled
 
 Resolved imports
-  - std.bio.inventory (builtin-standard-library)
+  - std.bio.designs (builtin-standard-library)
+  - std.bio.golden_gate (builtin-standard-library)
 
 Verified declarations
-  - binding J23101
-  - binding B0034
-  - binding GFP
-  - binding B0015
-  - binding pSB1C3
-  - binding BsaI
+  - catalog J23101: Part ("J23101")
+  - catalog B0034: Part ("B0034")
+  - catalog GFP: Part ("GFP")
+  - catalog B0015: Part ("B0015")
+  - catalog pSB1C3: Backbone ("pSB1C3")
+  - catalog BsaI: RestrictionEnzyme ("BsaI")
   - plasmid reporter (2 requirements, 3 acceptance claims)
 
 This is verified portable module IR; no laboratory target was
@@ -66,94 +67,89 @@ const protocolIr = `builtin.module @reporter
 }`
 
 const ot2Python = `def run(protocol: protocol_api.ProtocolContext) -> None:
+    profile = PLAN["deck"]
+    deck = profile["deck"]
+    stage = profile["stages"]["assembly"]
+
     temperature = cast(
         protocol_api.TemperatureModuleContext,
-        protocol.load_module("temperature module gen2", "1"),
+        protocol.load_module(
+            deck["temperature_module"]["model"], deck["temperature_module"]["slot"]
+        ),
     )
-    sources = temperature.load_labware(
-        "opentrons_24_aluminumblock_nest_1.5ml_snapcap"
-    )
+    sources = temperature.load_labware(deck["temperature_module"]["labware"])
     thermocycler = cast(
         protocol_api.ThermocyclerContext,
-        protocol.load_module("thermocycler module gen2"),
+        protocol.load_module(deck["thermocycler"]["model"]),
     )
-    reaction_plate = thermocycler.load_labware(
-        "nest_96_wellplate_100ul_pcr_full_skirt"
-    )
-    tips = protocol.load_labware("opentrons_96_tiprack_20ul", "2")
+    reaction_plate = thermocycler.load_labware(deck["thermocycler"]["labware"])
+    tips = [
+        protocol.load_labware(stage["small_tips"]["labware"], slot)
+        for slot in stage["small_tips"]["slots"]
+    ]
     pipette = protocol.load_instrument(
-        "p20_single_gen2", "left", tip_racks=[tips]
+        profile["instruments"]["small"]["model"],
+        profile["instruments"]["small"]["mount"],
+        tip_racks=tips,
     )
     temperature.set_temperature(4)
     thermocycler.open_lid()
 
     source_wells = PLAN["assembly_source_wells"]
-    for construct in PLAN["constructs"]:
-        additions = [
-            ("reagent:nuclease_free_water", construct["water_volume_ul"]),
-            ("reagent:T4_DNA_ligase_buffer", 2),
-            ("reagent:T4_DNA_ligase", 4),
-            ("enzyme:" + construct["restriction_enzyme"], 2),
-            ("dna:" + construct["backbone"], 2),
-        ] + [("dna:" + part, 2) for part in construct["components"]]`
+    for construct in PLAN["assemblies"]:
+        chemistry = construct["chemistry"]
+        part_volume = chemistry["part_volume_ul"]`
 
-const benchProtocol = `# reporter — manual build protocol
+const benchProtocol = `# Lab automated plasmid build — manual protocol
 
-> Generated for a lab without a robot: the same verified Protocol
-> operations \`labc\` would otherwise hand to a liquid handler,
-> rendered here as something a person can follow at a bench.
-> Review and qualify before running.
+> Concept protocol generated for \`opentrons.ot2\`. Review and qualify it for the actual laboratory before execution.
 
-## What you're building
+## Build summary
 
-One circular construct, four parts in order: pTet, B0034, sfGFP,
-B0015, carried on a pSB1C3 backbone. Golden Gate assembly, one
-enzyme, one pot.
+- Plasmids assembled: 1
+- Strains built: 0
+- Workflow: Golden Gate assembly → heat-shock transformation → serial dilution and selective plating
+- Opentrons API level: 2.21
 
-## Before you start
+## Stage 1 — Golden Gate assembly
 
-- BsaI, T4 DNA ligase, and T4 DNA ligase buffer, thawed on ice
-- pSB1C3 backbone and all four parts, at working concentration
-- Nuclease-free water
-- A thermocycler with a heated lid
-- One PCR tube or well, labeled \`reporter\`
+Keep DNA and enzymes cold. For every reaction, add reagents in the order shown.
 
-## Reaction: reporter
+### reporter
 
-Add reagents to a single tube in the order below, on ice. Mix by
-pipetting, then spin down briefly before cycling.
-
-- Reaction well: A1
+- Reaction wells: A1
 - Final sequence length: 8 bp
 
-| Reagent | Volume |
+| Reagent | Volume per reaction |
 | --- | ---: |
-| Nuclease-free water | 6 µL |
+| Nuclease-free water | 2 µL |
 | T4 DNA ligase buffer | 2 µL |
-| T4 DNA ligase | 1 µL |
-| BsaI | 1 µL |
+| T4 DNA ligase | 4 µL |
+| BsaI | 2 µL |
 | pSB1C3 backbone | 2 µL |
-| pTet | 2 µL |
+| J23101 | 2 µL |
 | B0034 | 2 µL |
-| sfGFP | 2 µL |
+| GFP | 2 µL |
 | B0015 | 2 µL |
 | **Total** | **20 µL** |
 
-## Thermocycler program
+Run 75 cycles of 37 °C for 2 min and 16 °C for 5 min; then 50 °C for 5 min, 80 °C for 10 min, and hold at 4 °C.
 
-Heated lid on, 105 °C.
+## Stage 2 — Heat-shock transformation
 
-1. 37 °C for 2 min, 16 °C for 5 min — repeat for 75 cycles
-2. 50 °C for 5 min (final digestion)
-3. 80 °C for 10 min (enzyme heat-kill)
-4. Hold at 4 °C
+Load the DNA plate as shown, then for each reaction combine that strain's cells and plasmid DNA in the volumes listed below.
 
-## When it's done
+| Strain | Host | Plasmids | DNA wells | Culture destination | Cells (µL) | DNA per plasmid (µL) | Recovery medium (µL) |
+| --- | --- | --- | --- | --- | ---: | ---: | ---: |
 
-The well now holds \`construct\`, the same value \`protocol.assemble\`
-produces in the LAIR view of this program. It is not a stable
-storage form: proceed directly to transformation rather than
-holding the reaction at room temperature.`
+## Stage 3 — Serial dilution and plating
+
+| Strain | Selection | Culture | Dilution wells | Agar wells by dilution | Culture transfer (µL) | Colony transfer (µL) |
+| --- | --- | --- | --- | --- | ---: | ---: |
+
+## Execution boundary
+
+This concept spike allocates one 96-well reaction plate, one DNA plate, one dilution plate, one agar plate, and 24-well source racks. It does not resolve inventory lots, verify DNA concentrations, design overhangs, domesticate internal restriction sites, or qualify the protocol for a specific lab.`
 
 export const stages: Stage[] = [
   {
@@ -180,12 +176,12 @@ export const stages: Stage[] = [
   },
   {
     id: 'lair',
-    emit: '--emit target-selected-protocol',
+    emit: 'lab-opt',
     label: 'LAIR',
     filename: 'reporter.ir',
     headline: 'Meaning survives lowering',
     description:
-      'LAIR, the Lab Automation Intermediate Representation, is where meaning survives specialization: a design layer for artifact intent, a workflow layer for target-neutral realization, and a protocol layer for target-selected operations. Every material value is typed, and the verifier requires that each has at most one consumer.',
+      'LAIR, the Lab Automation Intermediate Representation, is where meaning survives specialization: a design layer for artifact intent, a workflow layer for target-neutral realization, and a protocol layer for target-selected operations. Every material value is typed, and the verifier requires that each has at most one consumer. This is the textual form `lab-opt` parses, verifies, and runs passes over.',
     language: 'ir',
     body: protocolIr,
   },
@@ -218,20 +214,20 @@ export const diagnostics = [
   {
     id: 'double-spend',
     title: 'A material used twice',
-    source: `strain, culture <- transform reporter_host from plasmids into cells
-second  <- transform reporter_host from plasmids into cells`,
+    source: `strain, culture <- transform reporter_host from dependencies into cells
+second, other  <- transform reporter_host from dependencies into more_cells`,
     error:
-      "affine material-flow error in workflow 'double_spend' at body.4:\n  physical value 'construct' is no longer available",
+      "affine material-flow error in workflow 'double_spend' at body.5:\n  physical value 'dependencies' is no longer available",
     explanation:
-      'The construct was consumed by the first transformation. There is no second tube of it, so there is no second use of it.',
+      'The plasmid material was consumed by the first transformation. There is no second tube of it, so there is no second use of it.',
   },
   {
     id: 'unconsumed',
     title: 'A material left behind',
     source: `cells <- provision DH5alpha
-return construct`,
+return product`,
     error:
-      "affine material-flow error in workflow 'leak' at body.3:\n  terminating path still owns cells; return, store, transfer, or dispose it",
+      "affine material-flow error in workflow 'leak' at body.2:\n  terminating path still owns cells; return, store, transfer, or dispose it",
     explanation:
       'Competent cells were provisioned and never used. Physical things do not fall out of scope; someone has to put them somewhere.',
   },

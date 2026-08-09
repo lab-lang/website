@@ -121,4 +121,44 @@ export const decisions: Decision[] = [
       'What depends on what is derived from typed dataflow, not from naming conventions.',
     file: '0011-dependencies-from-material-dataflow.md',
   },
+  {
+    id: '0015',
+    title: 'Roles classify types',
+    status: 'Accepted, implemented',
+    detail:
+      'A role has no values, so it may bound a type parameter and may never be the type of anything. Membership is declared by the type that plays it.',
+    file: '0015-roles-classify-types.md',
+  },
+  {
+    id: '0022',
+    title: 'Fixed grammar, open vocabulary',
+    status: 'Accepted, partially implemented',
+    detail:
+      'A package declares the words its designs are written with. No package may introduce a grammar production, so a lone file stays parseable.',
+    file: '0022-fixed-grammar-open-vocabulary.md',
+  },
+  {
+    id: '0026',
+    title: 'Replicate class is lineage, not a property',
+    status: 'Accepted, implemented',
+    detail:
+      'Two materials are biological replicates when they trace to different beginnings, which is where they came from rather than something a sample carries.',
+    file: '0026-lineage-and-replicates.md',
+  },
+  {
+    id: '0027',
+    title: 'Provenance is a fact about a thing, not its type',
+    status: 'Accepted, implemented',
+    detail:
+      'Built and bought are stated per declaration with build and buy, so the same kind covers both and only the origin differs.',
+    file: '0027-provenance-is-stated-per-thing.md',
+  },
+  {
+    id: '0029',
+    title: "A profile's backend key selects its backend",
+    status: 'Accepted, implemented',
+    detail:
+      'The two robots disagree about slots, pipettes, and modules, so one key picks both the profile schema and the backend that compiles the build.',
+    file: '0029-backend-dispatch.md',
+  },
 ]

@@ -1,5 +1,5 @@
 /**
- * Simulated firings of `when every 30 min:` from the `await_colonies`
+ * Simulated firings of `when every 30 min:` from the `grow_colonies`
  * specimen. Each entry is the isolated-colony count `detect_colonies` would
  * report at that half-hour mark: a lag phase, then colonies crossing
  * "isolated" in irregular clusters rather than one on a metronome, the way a

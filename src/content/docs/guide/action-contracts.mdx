@@ -14,7 +14,7 @@ lookup table keyed on their spelling. Every one of them is a typed contract
 that a module exports.
 
 ```lab
-strain, culture <- transform reporter_host from plasmids into cells
+strain, culture <- transform reporter_host from dependencies into cells
 ```
 
 The parser sees a phrase after `<-` and nothing more. Resolution matches
@@ -31,16 +31,16 @@ supply operations that feel exactly as native as `std`.
 Here is the `realize` contract from `std.bio.build`, which is the operation
 that turns a design plus its dependencies into physical material:
 
-| Element            | Value                                    |
-| ------------------ | ---------------------------------------- |
-| Operation identity | `std.bio.build.realize`                  |
-| Capability         | `artifact_realization`                   |
-| Phrase             | `realize` _design_ `from` _dependencies_ |
-| `design`           | `Plasmid`, mode `copy`                   |
-| `dependencies`     | `List<Material<Plasmid>>`, mode `take`   |
-| Result `product`   | `Material<Plasmid>`                      |
+| Element            | Value                                            |
+| ------------------ | ------------------------------------------------ |
+| Operation identity | `std.bio.build.realize`                          |
+| Capability         | `artifact_realization`                           |
+| Phrase             | `realize` _design_ [ `from` _dependencies_ ]     |
+| `design`           | `Plasmid`, mode `copy`                           |
+| `dependencies`     | `List<Material<Plasmid>>`, mode `take`, optional |
+| Result `product`   | `Material<Plasmid>`, lineage continues           |
 
-Four things are worth pulling out of that table.
+Five things are worth pulling out of that table.
 
 **The operation identity is stable.** Downstream passes match on
 `std.bio.build.realize`, never on the source text `realize`. Renaming the
@@ -57,9 +57,24 @@ because those are physical tubes and they get consumed.
 
 **Results are named.** An operation may return several, and they bind in the
 order the contract declares them. `transform` returns two —
-`strain, culture <- transform reporter_host from plasmids into cells` — because
+`strain, culture <- transform reporter_host from dependencies into cells`, because
 one operation both realizes the named organism and leaves a culture to recover,
 dilute, and plate.
+
+**A trailing clause may be optional.** `realize`'s `from` clause is one, so a
+realization that consumes no artifact leaves it out and means the same thing
+as passing an empty list. Naming the clause commits to its operand: `realize
+x from` with nothing after it is an error, not an omission. Only a clause
+carrying a collection may be optional: a list has an empty value to fall
+back to, and a material does not, so conjuring one would be a lie about a
+physical thing.
+
+Each result also declares its **lineage**: whether it carries on the lineage
+of what went into it, or begins a new one. `realize` assembles DNA, so its
+product continues the lineage of its dependencies; `transform` establishes an
+organism, so its strain begins one. That is what lets the compiler tell three
+independent transformants from three readings of one culture when it checks
+`across N biological replicates`.
 
 ## Ownership modes
 
@@ -79,8 +94,8 @@ chloramphenicol` takes the culture: the culture is now on the plate, and the
 name no longer refers to anything you own.
 
 The analysis is place-sensitive rather than name-sensitive. Taking
-`colony_result.plate` invalidates that physical projection while leaving
-`colony_result.observations` — which is information — perfectly usable.
+`growth.plate` invalidates that physical projection while leaving
+`growth.observations`, which is information, perfectly usable.
 
 <Callout kind="aside">
   Iteration over a collection of materials is currently rejected. It needs a
@@ -90,13 +105,13 @@ The analysis is place-sensitive rather than name-sensitive. Taking
 
 ## The bundled contracts
 
-`std.lab.plasmid_actions` exports seventeen contracts. `std.bio.build`
+`std.lab.plasmid` exports seventeen contracts. `std.bio.build`
 exports one. The **Lowers** column is the honest part of this page: it marks
 whether the operation reaches LAIR, or only type-checks.
 
 | Phrase                                                | Capability                | Ownership        | Results                             | Lowers |
 | ----------------------------------------------------- | ------------------------- | ---------------- | ----------------------------------- | ------ |
-| `realize` _design_ `from` _deps_                      | `artifact_realization`    | copy, take       | `product`                           | yes    |
+| `realize` _design_ [ `from` _deps_ ]                  | `artifact_realization`    | copy, take       | `product`                           | yes    |
 | `provision` _chassis_                                 | `inventory`               | copy             | `cells`                             | yes    |
 | `transform` _design_ `from` _plasmids_ `into` _cells_ | `chemical_transformation` | copy, take, take | `strain`, `culture`                 | yes    |
 | `recover` _culture_ `for` _duration_                  | `culture_incubation`      | take             | `culture`                           | yes    |

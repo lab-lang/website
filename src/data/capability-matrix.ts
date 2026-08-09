@@ -25,8 +25,9 @@ export interface CapabilityRow {
 
 /*
  * Graded on what the artifact carries, not on project health, and not on what
- * a layer built over it could add. Lab's empty mark in the last column is the
- * point of grading honestly: there is one backend today.
+ * a layer built over it could add. Lab's partial mark in the last column is
+ * the point of grading honestly: two backends today, and both of them
+ * Opentrons, so the boundary is proven but the breadth is not there yet.
  */
 export const CAPABILITY_ROWS: CapabilityRow[] = [
   {
@@ -57,6 +58,6 @@ export const CAPABILITY_ROWS: CapabilityRow[] = [
   {
     name: 'Lab',
     href: '/docs/overview',
-    marks: { result: 2, deck: 2, material: 2, checked: 2, machines: 0 },
+    marks: { result: 2, deck: 2, material: 2, checked: 2, machines: 1 },
   },
 ]

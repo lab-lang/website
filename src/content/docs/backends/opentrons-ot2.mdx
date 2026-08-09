@@ -1,15 +1,17 @@
 ---
 title: Opentrons OT-2
 eyebrow: Backends
-description: The only concrete backend so far, a real planner, deterministic emission, and simulator-checked Python.
+description: The first backend, with a real planner, deterministic emission, and simulator-checked Python.
 group: Backends
 order: 310
 ---
 
-Opentrons OT-2 is the toolchain's first, and so far only, compilation
-target. It accepts nothing less specialized than `ProtocolLairProgram`: the
-backend has no entry point that consumes a `CheckedModule` or a
-`PortableLairProgram` directly.
+Opentrons OT-2 is the toolchain's first compilation target, and the one a
+profile gets when it names no backend at all. It accepts nothing less
+specialized than `ProtocolLairProgram`: the backend has no entry point that
+consumes a `CheckedModule` or a `PortableLairProgram` directly. The second
+backend, [Opentrons Flex](/docs/backends/opentrons-flex), consumes exactly the
+same verified operations and emits JSON instead.
 
 ## What this specialization selects
 
@@ -24,11 +26,9 @@ realization for the plasmid-build use case:
 
 If source omits or misorders a required material transition, Workflow
 verification fails before Protocol selection is ever reached: the OT-2
-backend never sees an incomplete build. A different laboratory profile could
-supply a different Workflow-to-Protocol conversion for the same source, and a
-different robot backend could consume the same verified Protocol operations
-with its own execution plan; neither is implemented today, but the boundary
-is built to allow it.
+backend never sees an incomplete build. A different robot backend consuming
+the same verified Protocol operations with its own execution plan is no
+longer hypothetical: that is what the Flex backend is.
 
 ## The plan is real, not templated
 
@@ -64,7 +64,7 @@ each other.
 ## Python is a maintained project, not generated text
 
 The robot-facing Python lives as a pinned, ordinarily-maintained project
-under `backend/opentrons_ot2/python/`, checked with Ruff, strict mypy, and
+under `backend/opentrons/ot2/python/`, checked with Ruff, strict mypy, and
 pytest like any other Python codebase, not assembled from string fragments
 in Rust. Rust's part is a deterministic bundling step: it includes those
 already-checked source files verbatim, swaps the shared `Ot2ExecutionPlan`

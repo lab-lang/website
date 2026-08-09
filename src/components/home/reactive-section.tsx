@@ -47,9 +47,7 @@ export function ReactiveSection() {
              */}
             <div className="flex min-w-0 flex-col border-b border-white/10 lg:h-[620px] lg:border-b-0 lg:border-r">
               <div className="border-b border-white/10 px-5 py-3">
-                <span className="micro text-[#f6ece0]/45">
-                  await_colonies.lab
-                </span>
+                <span className="micro text-[#f6ece0]/45">observe.lab</span>
               </div>
               <div className="lg:hidden">
                 <SourceCode source={reactiveExampleMobile} />

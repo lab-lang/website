@@ -164,12 +164,12 @@ export function ReactiveTimeline() {
             {resolved ? 'Resolved' : 'Watching the plate'}
           </span>
         </div>
-        <span className="micro text-[#f6ece0]/45">await_colonies</span>
+        <span className="micro text-[#f6ece0]/45">grow_colonies</span>
       </div>
 
       <div className="min-h-0 flex-1">
         <svg
-          aria-label="A timeline of the await_colonies workflow checking a plate every 30 minutes. Isolated colonies climb toward a threshold of 8, and the workflow resolves to Ready at 11.5 hours, well before its 18-hour deadline."
+          aria-label="A timeline of the grow_colonies workflow checking a plate every 30 minutes. Isolated colonies climb toward a threshold of 8, and the workflow resolves to Ready at 11.5 hours, well before its 18-hour deadline."
           className="h-full w-full"
           role="img"
           viewBox={VIEW_BOX}

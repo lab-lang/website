@@ -10,22 +10,25 @@
  */
 
 export const labSource = `use std.bio.build
-use std.bio.inventory
-use std.lab.plasmid_actions
+use std.bio.designs
+use std.bio.golden_gate
 
-pTet = part("pTet")
-B0034 = part("B0034")
-sfGFP = part("sfGFP")
-B0015 = part("B0015")
-pSB1C3 = backbone("pSB1C3")
-BsaI = restriction_enzyme("BsaI")
+buy part J23101
+buy part B0034
+buy part GFP
+buy part B0015
+buy backbone pSB1C3
 
+buy restriction_enzyme BsaI:
+  digest_temperature = 37 C
+
+/** The GFP reporter under a strong constitutive promoter. */
 plasmid reporter:
-  sequence: dna("ACGTACGT")
-  backbone: pSB1C3
-  components: [pTet, B0034, sfGFP, B0015]
-  restriction_enzyme: BsaI
-  assembly_replicates: 1
+  sequence = dna("ACGTACGT")
+  backbone = pSB1C3
+  components = [J23101, B0034, GFP, B0015]
+  restriction_enzyme = BsaI
+  assembly_replicates = 1
 
   require topology == circular
   accept sequence == design.sequence
@@ -210,9 +213,9 @@ requirements = {
     "apiLevel": "2.21",  # LAB:API_LEVEL
 }
 PLAN_JSON = (
-    "{\\"schema_version\\":\\"lab.automation.v0\\",\\"target\\":\\"opentrons_ot2\\",\\"api_level\\":"
-    "\\"2.21\\",\\"deck\\":{\\"target\\":{\\"name\\":\\"opentrons-ot2\\",\\"backend\\":\\"opentrons.ot2"
-    "\\",\\"api_level\\":\\"2.21\\"},\\"instruments\\":{\\"small\\":{\\"model\\":\\"p20_single_gen2\\","
+    "{\\"schema_version\\":\\"lab.automation.v0\\",\\"target\\":\\"opentrons.ot2\\",\\"api_level\\":"
+    "\\"2.21\\",\\"deck\\":{\\"target\\":{\\"name\\":\\"reference-bench\\",\\"backend\\":\\"opentrons.ot"
+    "2\\",\\"api_level\\":\\"2.21\\"},\\"instruments\\":{\\"small\\":{\\"model\\":\\"p20_single_gen2\\","
     "\\"mount\\":\\"left\\"},\\"large\\":{\\"model\\":\\"p300_single_gen2\\",\\"mount\\":\\"right\\"}},\\""
     "deck\\":{\\"temperature_module\\":{\\"model\\":\\"temperature module gen2\\",\\"slot\\":\\"1\\","
     "\\"labware\\":\\"opentrons_24_aluminumblock_nest_1.5ml_snapcap\\",\\"capacity\\":24},\\"therm"
@@ -229,12 +232,12 @@ PLAN_JSON = (
     "on_15ml_conical\\",\\"slot\\":\\"4\\",\\"medium_well\\":\\"A1\\"},\\"small_tips\\":{\\"labware\\":"
     "\\"opentrons_96_filtertiprack_20ul\\",\\"slots\\":[\\"9\\"],\\"capacity\\":96},\\"large_tips\\":"
     "{\\"labware\\":\\"opentrons_96_filtertiprack_200ul\\",\\"slots\\":[\\"1\\"],\\"capacity\\":96}}}"
-    "},\\"assembly_source_wells\\":{\\"dna:B0015\\":\\"A1\\",\\"dna:B0034\\":\\"B1\\",\\"dna:pSB1C3\\":"
-    "\\"C1\\",\\"dna:pTet\\":\\"D1\\",\\"dna:sfGFP\\":\\"A2\\",\\"enzyme:BsaI\\":\\"B2\\",\\"reagent:T4_DN"
+    "},\\"assembly_source_wells\\":{\\"dna:B0015\\":\\"A1\\",\\"dna:B0034\\":\\"B1\\",\\"dna:GFP\\":\\"C"
+    "1\\",\\"dna:J23101\\":\\"D1\\",\\"dna:pSB1C3\\":\\"A2\\",\\"enzyme:BsaI\\":\\"B2\\",\\"reagent:T4_DN"
     "A_ligase\\":\\"C2\\",\\"reagent:T4_DNA_ligase_buffer\\":\\"D2\\",\\"reagent:nuclease_free_wate"
     "r\\":\\"A3\\"},\\"transformation_source_wells\\":{\\"reagent:recovery_medium\\":\\"A1\\"},\\"dna"
     "_source_wells\\":{},\\"assemblies\\":[{\\"artifact\\":\\"reporter\\",\\"sequence\\":\\"ACGTACGT"
-    "\\",\\"backbone\\":\\"pSB1C3\\",\\"components\\":[\\"pTet\\",\\"B0034\\",\\"sfGFP\\",\\"B0015\\"],\\"d"
+    "\\",\\"backbone\\":\\"pSB1C3\\",\\"components\\":[\\"J23101\\",\\"B0034\\",\\"GFP\\",\\"B0015\\"],\\"d"
     "ependencies\\":[],\\"restriction_enzyme\\":\\"BsaI\\",\\"assembly_replicates\\":1,\\"water_vol"
     "ume_ul\\":2,\\"assembly_wells\\":[\\"A1\\"],\\"chemistry\\":{\\"reaction_volume_ul\\":20,\\"part"
     "_volume_ul\\":2,\\"enzyme_volume_ul\\":2,\\"ligase_volume_ul\\":4,\\"buffer_volume_ul\\":2,\\""

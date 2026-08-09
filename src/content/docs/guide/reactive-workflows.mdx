@@ -8,27 +8,39 @@ order: 80
 
 Some laboratory steps don't happen on a schedule the program controls, since
 a plate grows colonies somewhere between overnight and never. Reactive clauses
-let a workflow declare handlers that wake on a timer and settle into an
-outcome, instead of forcing every wait into a fixed step count.
+let a workflow declare handlers that wake on a timer and settle into a tagged
+result, instead of forcing every wait into a fixed step count.
 
 ```lab
-observation PlateObservation:
+/** One image, what was counted in it, and how long the plate had been growing. */
+record PlateObservation is Evidential:
   image: Image
   colonies: ColonyMap
   elapsed: Duration
 
-workflow await_colonies(plate: Material<Plate>) -> ColonyGrowth:
+/** What watching a plate produced. */
+record ColonyGrowth:
+  plate: Material<Plate>
+  observations: List<PlateObservation>
+
+  case Ready:
+    colonies: ColonyMap
+
+  case TimedOut
+
+workflow grow_colonies(plate: Material<Plate>) -> ColonyGrowth:
 
   state observations: List<PlateObservation> = []
 
   when every 30 min:
     image <- capture image of plate
     colonies = detect_colonies(image)
-    observations = observations + [PlateObservation{
+    observation = PlateObservation{
       image: image,
       colonies: colonies,
       elapsed: workflow.elapsed,
-    }]
+    }
+    observations = observations + [observation]
 
     if colonies.isolated.count >= 8:
       return Ready{
@@ -54,10 +66,12 @@ since imaging a real plate is a physical action), evaluates it, and appends
 an observation. `when after 18 h:` registers a one-shot timeout handler that
 fires once, regardless of what the recurring handler is doing.
 
-Either handler can end the workflow by returning an outcome: `Ready` when
-eight isolated colonies have been seen, `TimedOut` if the deadline arrives
-first. Whichever fires first wins; the workflow settles into exactly one of
-its declared result cases.
+Either handler can end the workflow by returning one of `ColonyGrowth`'s
+cases: `Ready` when eight isolated colonies have been seen, `TimedOut` if the
+deadline arrives first. Whichever fires first wins; the workflow settles into
+exactly one of its declared result cases. Both cases carry the observations,
+because a plate that never grew is evidence about the transformation rather
+than an absence of information.
 
 ## What this means for replay
 

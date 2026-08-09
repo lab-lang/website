@@ -99,8 +99,9 @@ export function CapabilitySection() {
 
         <p className="prose-lab mt-5 max-w-2xl text-[13.5px] leading-[1.7] text-umber-soft">
           Graded on the artifact itself, not on what a layer built over it could
-          add. Lab&rsquo;s empty mark in the last column is not modesty: there
-          is one backend today.
+          add. Lab&rsquo;s partial mark in the last column is not modesty: there
+          are two backends today, the Opentrons OT-2 and the Flex, and a bench
+          outside that family is still ahead.
         </p>
 
         <p className="prose-lab mt-8 max-w-3xl text-[14px] leading-[1.7] text-umber">

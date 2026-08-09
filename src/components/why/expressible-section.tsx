@@ -1,17 +1,23 @@
 import { SectionBody, SectionIntro } from '@/components/section'
 import { SourceCode } from '@/components/source-code'
 
-/** Three fragments of real syntax, each stating something a protocol script has nowhere to put. */
+/** Four fragments of real syntax, each stating something a protocol script has nowhere to put. */
 const expressible = [
   {
     title: 'What would make this acceptable',
     code: 'accept concentration >= 100 ng/uL',
     detail:
-      'The threshold sits in the program, beside the design it judges. A build that misses it comes back Rejected, carrying the measurement that rejected it.',
+      'The threshold sits in the program, beside the design it judges. A build that misses it is rejected, carrying the measurement that rejected it.',
+  },
+  {
+    title: 'How much evidence that claim needs',
+    code: 'across 3 biological replicates',
+    detail:
+      'Three colonies picked from a plate are independent transformants; one culture measured three times is one organism. The compiler knows which is which, because it knows where each sample came from.',
   },
   {
     title: 'Which tube this actually is',
-    code: 'plate <- plate culture on kanamycin',
+    code: 'plate <- plate culture on chloramphenicol',
     detail:
       'The arrow marks a step that changes the world. The culture it consumes cannot be used again, and a replay of the workflow never performs it twice.',
   },
@@ -19,7 +25,7 @@ const expressible = [
     title: 'When the biology is ready',
     code: 'when every 30 min:',
     detail:
-      'Colonies appear somewhere between overnight and never. The workflow wakes on a timer, watches the plate, and settles into an outcome instead of counting steps.',
+      'Colonies appear somewhere between overnight and never. The workflow wakes on a timer, watches the plate, and settles into a tagged result instead of counting steps.',
   },
 ]
 
@@ -30,7 +36,7 @@ export function ExpressibleSection() {
         <SectionIntro
           className="max-w-3xl"
           kicker="What fits in a program"
-          lede="Every tool above can say what the machine does. None of them has anywhere to put these three, which say what the science requires and let the compiler hold you to it."
+          lede="Every tool above can say what the machine does. None of them has anywhere to put these four, which say what the science requires and let the compiler hold you to it."
           title="What no alternative can express."
         />
 

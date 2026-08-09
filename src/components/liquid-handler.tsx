@@ -9,11 +9,11 @@ import { useVisible } from '@/lib/use-visible'
  * generated protocol adds them.
  */
 const TRANSFERS = [
-  { reagent: 'nuclease-free water', volume: 8, color: '#7fd4e2' },
+  { reagent: 'nuclease-free water', volume: 2, color: '#7fd4e2' },
   { reagent: 'T4 DNA ligase buffer', volume: 2, color: '#f2b95c' },
   { reagent: 'T4 DNA ligase', volume: 4, color: '#e2cf9c' },
-  { reagent: 'BsmBI', volume: 2, color: '#e8446c' },
-  { reagent: 'part_receiver backbone', volume: 2, color: '#cbb59c' },
+  { reagent: 'BsaI', volume: 2, color: '#e8446c' },
+  { reagent: 'pSB1C3 backbone', volume: 2, color: '#cbb59c' },
   { reagent: 'J23101', volume: 2, color: '#93e03f' },
 ]
 

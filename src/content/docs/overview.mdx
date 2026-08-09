@@ -21,52 +21,78 @@ A **design**, such as a plasmid, says what should exist and which claims
 must be supported by evidence:
 
 ```lab reporter.lab
-use std.bio.parts
-use std.bio.inventory
+use std.bio.designs
+use std.bio.golden_gate
 
-pSB1C3 = backbone("pSB1C3")
+buy part J23101
+buy part B0034
+buy part GFP
+buy part B0015
+buy backbone pSB1C3
+buy restriction_enzyme BsaI:
+  digest_temperature = 37 C
 
+/** The GFP reporter under a strong constitutive promoter. */
 plasmid reporter:
-  sequence: dna("ACGTACGT")
-  backbone: pSB1C3
-  components: [pTet, B0034, sfGFP, B0015]
-  restriction_enzyme: BsaI
+  sequence = dna("ACGTACGT")
+  backbone = pSB1C3
+  components = [J23101, B0034, GFP, B0015]
+  restriction_enzyme = BsaI
 
   require topology == circular
   require sites(BsaI) == 0
 
+  across 3 biological replicates
+
   accept sequence == design.sequence
   accept concentration >= 100 ng/uL
-  accept volume >= 20 uL
+  accept volume >= 20 uL across 1 biological replicate
 ```
+
+`plasmid` is not a keyword. It is a word `std.bio.designs` declares with
+`artifact`, together with the schema every plasmid is checked against, and a
+package of your own can declare words the standard library never heard of.
+`across` says what a claim is believed on: three independent transformants,
+not three readings of one culture.
 
 A **workflow** says how physical materials move through a build once a
 design exists. It can also react to the world instead of following a fixed
-script, waking on a timer and settling into an outcome:
+script, waking on a timer and settling into a tagged result:
 
-```lab await-colonies.lab
-workflow await_colonies(plate: Material<Plate>) -> ColonyGrowth:
+```lab observe.lab
+workflow grow_colonies(plate: Material<Plate>) -> ColonyGrowth:
+
+  state observations: List<PlateObservation> = []
+
   when every 30 min:
     image <- capture image of plate
     colonies = detect_colonies(image)
     if colonies.isolated.count >= 8:
-      return Ready{plate: plate, colonies: colonies}
+      return Ready{
+        plate: plate,
+        colonies: colonies,
+        observations: observations,
+      }
 
   when after 18 h:
-    return TimedOut{plate: plate}
+    return TimedOut{plate: plate, observations: observations}
 ```
 
-A plasmid can also cargo a reusable **circuit**: parts composed generically,
-independent of which promoter or coding sequence eventually fill it in.
+A plasmid can also carry a reusable **circuit**: parts composed generically,
+independent of which promoter or coding sequence eventually fill it in. The
+type parameters are introduced where they are first needed, and naming one
+twice is what links its occurrences, so a circuit's result says which signal
+it answers to and which protein it expresses.
 
 ```lab regulated-expression.lab
+use std.bio.designs
 use std.bio.parts
 
-circuit regulated_expression<I: Signal, O: Protein>:
-  input promoter: Promoter<I>
-  input coding: CDS<O>
-  output Circuit<I, O>
-
+/** A promoter driving a coding sequence through a shared RBS and terminator. */
+circuit regulated_expression(
+  promoter: Promoter<Trigger: Signal>,
+  coding: CDS<Product: Protein>,
+) -> Circuit<Trigger, Product>:
   layout:
     promoter
     B0034
@@ -81,20 +107,27 @@ runnable, and reacts to what happens. This is the entry point a project
 actually builds:
 
 ```lab main.lab
-use lab.designs.plasmid
-use lab.workflows.workflow
+use std.lab.plasmid
+use reporter.workflow
+use reporter.observe
 
-workflow main() -> Accepted<Plasmid> | Rejected<Plasmid>:
-  result <- build reporter
+/** A plate reached the point where there was something worth picking. */
+record ColoniesReady is Event:
+  colonies: ColonyMap
 
-  match result:
-    case Accepted:
-      emit built{material: result.material, evidence: result.evidence}
-      return result
+workflow main() -> Material<Strain>:
+  strain, plate <- build_reporter
+  growth <- grow_colonies plate
 
-    case Rejected:
-      emit rejected{reason: result.reason, evidence: result.evidence}
-      return result
+  match growth:
+    case Ready:
+      emit ColoniesReady{colonies: growth.colonies}
+      <- dispose growth.plate
+
+    case TimedOut:
+      <- dispose growth.plate
+
+  return strain
 ```
 
 You don't write instrument-specific steps anywhere in this. The compiler
@@ -129,10 +162,12 @@ install.
 
 ## What exists today
 
-The toolchain parses and checks plasmid and circuit designs, verifies action
-contracts and material ownership, and includes an initial Opentrons OT-2
-backend, checked against the real Opentrons simulator. Editor support (an
-LSP server and a WebAssembly API) gives a `.lab` file diagnostics and
+The toolchain parses and checks artifact kinds, designs, generic circuits,
+and workflows; verifies action contracts, material ownership, and the
+evidence a claim is believed on; and includes an initial Opentrons OT-2
+backend, checked against the real Opentrons simulator. Most of the standard
+library is itself written in Lab. Editor support (an LSP server and a
+WebAssembly API) gives a `.lab` file diagnostics, documentation on hover, and
 completions like any other language. The durable workflow runtime, the part
 that would execute a program continuously against a real laboratory and
 react to what it observes, has not been built yet.

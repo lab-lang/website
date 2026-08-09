@@ -1,33 +1,19 @@
 /**
  * Every program here compiles with the Lab toolchain in this repository's
- * sibling `lab` checkout. Sequences are synthetic compiler fixtures.
+ * sibling `lab` checkout. Together they form one package: a reporter plasmid,
+ * the circuit it carries, the workflow that builds it, the handler that
+ * watches its plate, and the entry point that ties them together. Sequences
+ * are synthetic compiler fixtures.
  */
 
-export const reporterExample = `use std.bio.parts
-use std.bio.inventory
+export const heroCircuitExample = `use std.bio.designs
+use std.bio.parts
 
-pSB1C3 = backbone("pSB1C3")
-
-plasmid reporter:
-  sequence: dna("ACGTACGT")
-  backbone: pSB1C3
-  components: [pTet, B0034, sfGFP, B0015]
-  restriction_enzyme: BsaI
-
-  require topology == circular
-  require sites(BsaI) == 0
-
-  accept sequence == design.sequence
-  accept concentration >= 100 ng/uL
-  accept volume >= 20 uL`
-
-export const heroCircuitExample = `use std.bio.parts
-
-circuit regulated_expression<I: Signal, O: Protein>:
-  input promoter: Promoter<I>
-  input coding: CDS<O>
-  output Circuit<I, O>
-
+/** A promoter driving a coding sequence through a shared RBS and terminator. */
+circuit regulated_expression(
+  promoter: Promoter<Trigger: Signal>,
+  coding: CDS<Product: Protein>,
+) -> Circuit<Trigger, Product>:
   layout:
     promoter
     B0034
@@ -36,134 +22,97 @@ circuit regulated_expression<I: Signal, O: Protein>:
 
 tet_reporter = regulated_expression(pTet, sfGFP)`
 
-export const heroPlasmidExample = `use std.bio.parts
-use std.bio.inventory
-use lab.designs.circuit
+export const heroPlasmidExample = `use std.bio.designs
+use std.bio.golden_gate
 
-pSB1C3 = backbone("pSB1C3")
+buy part J23101
+buy part B0034
+buy part GFP
+buy part B0015
+buy backbone pSB1C3
+buy restriction_enzyme BsaI:
+  digest_temperature = 37 C
 
+/** The GFP reporter under a strong constitutive promoter. */
 plasmid reporter:
-  backbone: pSB1C3
-  cargo: tet_reporter
-  restriction_enzyme: BsaI
+  sequence = dna("ACGTACGT")
+  backbone = pSB1C3
+  components = [J23101, B0034, GFP, B0015]
+  restriction_enzyme = BsaI
 
   require topology == circular
   require sites(BsaI) == 0
 
+  across 3 biological replicates
+
   accept sequence == design.sequence
   accept concentration >= 100 ng/uL
-  accept volume >= 20 uL`
+  accept volume >= 20 uL across 1 biological replicate`
 
-export const heroWorkflowExample = `use std.bio.inventory
-use std.lab.plasmid_actions
+export const heroWorkflowExample = `use std.bio.designs
+use std.bio.build
+use std.lab.plasmid
 
-DH5alpha = chassis("DH5alpha")
-kanamycin = antibiotic("kanamycin")
+use reporter.plasmid
 
+buy chassis DH5alpha:
+  heat_shock_temperature = 42 C
+  recovery_duration = 60 min
+
+buy antibiotic chloramphenicol
+
+/** The reporter carried in a cloning strain. */
 strain reporter_host:
-  chassis: DH5alpha
-  plasmids: [reporter]
-  selection: kanamycin
+  chassis = DH5alpha
+  plasmids = [reporter]
+  selection = chloramphenicol
 
-workflow build() -> Accepted<Plasmid> | Rejected<Plasmid>:
-  design = reporter
-  fragments <- synthesize design
-  construct <- assemble fragments
-  plasmids = [construct]
+/** Assemble the reporter, transform it, and plate what recovers. */
+workflow build_reporter() -> (
+  strain: Material<Strain>,
+  plate: Material<Plate>,
+):
+  product <- realize reporter
+  dependencies = [product]
   cells <- provision DH5alpha
-  strain, culture <- transform reporter_host from plasmids into cells
+  strain, culture <- transform reporter_host from dependencies into cells
   culture <- recover culture for 1 h
   culture <- dilute culture
-  plate <- plate culture on kanamycin
-  <- dispose strain
+  plate <- plate culture on chloramphenicol
+  return strain, plate`
 
-  candidates <- pick 4 isolated colonies from plate
-  <- dispose plate
-  screening <- screen candidates against design
+export const heroObserveExample = `use std.lab.plasmid
 
-  clone <- grow screening.clones.highest_confidence at 37 C for 16 h
-  purified <- purify clone
-  quantity <- quantify purified
-
-  if design.accepts([quantity]):
-    purified <- store purified at -20 C
-    return Accepted{material: purified, evidence: [quantity]}
-
-  return Rejected{
-    material: purified,
-    reason: acceptance_failed,
-    evidence: [quantity],
-  }`
-
-export const heroMainExample = `use lab.designs.plasmid
-use lab.workflows.workflow
-
-workflow main() -> Accepted<Plasmid> | Rejected<Plasmid>:
-  result <- build
-
-  match result:
-    case Accepted:
-      emit built{
-        material: result.material,
-        evidence: result.evidence,
-      }
-      return result
-
-    case Rejected:
-      emit rejected{
-        reason: result.reason,
-        evidence: result.evidence,
-      }
-      return result`
-
-export const workflowExample = `use std.bio.inventory
-use std.lab.plasmid_actions
-
-workflow build_plasmid() -> Accepted<Plasmid> | Rejected<Plasmid>:
-  design = reporter
-  fragments <- synthesize design
-  construct <- assemble fragments
-  plasmids = [construct]
-  cells <- provision competent_ecoli
-  strain, culture <- transform reporter_host from plasmids into cells
-  culture <- recover culture for 1 h
-  culture <- dilute culture
-  plate <- plate culture on kanamycin
-  <- dispose strain
-
-  colony_result <- await_colonies plate
-
-  match colony_result:
-    case TimedOut:
-      <- dispose colony_result.plate
-      return Rejected{
-        material: None,
-        reason: no_colonies,
-        evidence: colony_result.observations,
-      }
-
-    case Ready:
-      candidates <- pick 4 isolated colonies from colony_result.plate
-      <- dispose colony_result.plate
-      screening <- screen candidates against design`
-
-export const reactiveExample = `observation PlateObservation:
+/** One image, what was counted in it, and how long the plate had been growing. */
+record PlateObservation is Evidential:
   image: Image
   colonies: ColonyMap
   elapsed: Duration
 
-workflow await_colonies(plate: Material<Plate>) -> ColonyGrowth:
+/** What watching a plate produced. */
+record ColonyGrowth:
+  plate: Material<Plate>
+  observations: List<PlateObservation>
+
+  case Ready:
+    colonies: ColonyMap
+
+  case TimedOut
+
+/** Image every half hour, and stop at the first plate worth picking from. */
+workflow grow_colonies(plate: Material<Plate>) -> ColonyGrowth:
 
   state observations: List<PlateObservation> = []
 
   when every 30 min:
     image <- capture image of plate
     colonies = detect_colonies(image)
-    observations = observations + [PlateObservation{
+    observation = PlateObservation{
       image: image,
       colonies: colonies,
       elapsed: workflow.elapsed,
-    }]
+    }
+    observations = observations + [observation]
 
     if colonies.isolated.count >= 8:
       return Ready{
@@ -178,12 +127,54 @@ workflow await_colonies(plate: Material<Plate>) -> ColonyGrowth:
       observations: observations,
     }`
 
+export const heroMainExample = `use std.lab.plasmid
+use reporter.workflow
+use reporter.observe
+
+/** A plate reached the point where there was something worth picking. */
+record ColoniesReady is Event:
+  colonies: ColonyMap
+
+/** A plate was given up on: nothing more was going to grow. */
+record PlateAbandoned is Event:
+  observations: List<PlateObservation>
+
+/**
+ * Build the reporter strain, and watch its plate until it has something to say.
+ *
+ * The compiler derives the build order from the material each call consumes
+ * rather than from the order written here.
+ */
+workflow main() -> Material<Strain>:
+  strain, plate <- build_reporter
+  growth <- grow_colonies plate
+
+  match growth:
+    case Ready:
+      emit ColoniesReady{colonies: growth.colonies}
+      <- dispose growth.plate
+
+    case TimedOut:
+      emit PlateAbandoned{observations: growth.observations}
+      <- dispose growth.plate
+
+  return strain`
+
+/** The design on its own, as `labc` compiles a single file. */
+export const reporterExample = heroPlasmidExample
+
+/** The durable build workflow, shown apart from the package it belongs to. */
+export const workflowExample = heroWorkflowExample
+
+/** The reactive handler, shown apart from the package it belongs to. */
+export const reactiveExample = heroObserveExample
+
 /**
  * The phone-width excerpt of `reactiveExample`: both `when` clauses whole —
  * they are the section's whole argument — with the record payloads elided so
  * the pair fits one screen with no inner scroll.
  */
-export const reactiveExampleMobile = `workflow await_colonies(plate: Material<Plate>) -> ColonyGrowth:
+export const reactiveExampleMobile = `workflow grow_colonies(plate: Material<Plate>) -> ColonyGrowth:
 
   state observations: List<PlateObservation> = []
 
@@ -198,32 +189,8 @@ export const reactiveExampleMobile = `workflow await_colonies(plate: Material<Pl
   when after 18 h:
     return TimedOut{plate: plate, observations: observations}`
 
-export const circuitExample = `use std.bio.parts
-use std.bio.backbones
-
-circuit regulated_expression<I: Signal, O: Protein>:
-  input promoter: Promoter<I>
-  input coding: CDS<O>
-  output Circuit<I, O>
-
-  layout:
-    promoter
-    B0034
-    coding
-    B0015
-
-tet_reporter = regulated_expression(pTet, sfGFP)
-
-plasmid p_tet_reporter:
-  backbone: p15A_kan
-  cargo: tet_reporter
-
-  require topology == circular
-  require sites(BsaI) == 0
-  require length <= 12 kb
-
-  accept sequence == design.sequence
-  accept concentration >= 100 ng/uL`
+/** The generic circuit, shown apart from the package it belongs to. */
+export const circuitExample = heroCircuitExample
 
 export const examples = [
   {
@@ -241,7 +208,7 @@ export const examples = [
   {
     id: 'reactive',
     label: 'Reactive timers',
-    note: 'Handlers wake on a schedule and settle into an outcome.',
+    note: 'Handlers wake on a schedule and settle into a tagged result.',
     source: reactiveExample,
   },
   {

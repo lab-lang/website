@@ -15,10 +15,11 @@ rather than as logic duplicated per host.
 about LSP or the browser. Its central type, `Workspace`, holds a set of open
 documents and provides:
 
-- Diagnostics
+- Diagnostics, with secondary spans and a `help` line where one applies
 - Document symbols
-- Completions: keywords, plus top-level declarations from open documents
-- Hover
+- Completions: keywords, plus top-level declarations from open documents,
+  each carrying the documentation its declaration was written with
+- Hover, including on a `use` path, which hovers the module it imports
 - Definition and references
 - Rename: name-based, works across documents, and is aware of comments and
   strings so it doesn't rename inside them

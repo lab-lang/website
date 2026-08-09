@@ -13,15 +13,20 @@ and transforms textual LAIR directly.
 
 ## `lab`
 
-| Command                              | Does                                                                                      |
-| ------------------------------------ | ----------------------------------------------------------------------------------------- |
-| `lab new <path>`                     | Scaffolds a package: `lab.toml` plus `src/programs/main.lab`.                             |
-| `lab check <path>`                   | Resolves, type-checks, and verifies material flow for one file or a whole package.        |
-| `lab build <path> [--out-dir <dir>]` | Checks, then writes one `*.module.json` per module, a package index, and a `lab.lock`.    |
-| `lab metadata <path>`                | Prints the resolved manifest and module list without compiling.                           |
-| `lab update [--check]`               | Installs the latest `lab`/`labc`/`lab-opt` release; `--check` only reports if one exists. |
+| Command                | Does                                                                                                          |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `lab new <path>`       | Scaffolds a package: `lab.toml` plus `src/programs/main.lab`.                                                 |
+| `lab check <path>`     | Resolves, type-checks, and verifies material flow for one file or a whole package.                            |
+| `lab build <path>`     | Checks, writes one `*.module.json` per module plus a package index and `lab.lock`, and compiles for a target. |
+| `lab metadata <path>`  | Prints the resolved manifest and module list without compiling.                                               |
+| `lab update [--check]` | Installs the latest `lab`/`labc`/`lab-opt` release; `--check` only reports if one exists.                     |
 
-Every subcommand accepts a global `--json` flag for machine-readable output.
+`lab build` takes three options of its own: `--out-dir` names the artifact
+directory, `--target` names a profile under `targets/` other than the
+manifest's `[build] target`, and `--no-target` stops at portable module IR.
+The named profile's `[target] backend` key is what selects the machine, so
+`--target` chooses a bench and a backend together. Every subcommand accepts a
+global `--json` flag for machine-readable output.
 
 ## `labc`
 

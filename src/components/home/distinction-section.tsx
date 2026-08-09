@@ -64,7 +64,7 @@ export function DistinctionSection() {
                 Recorded once in the journal and never repeated.
               </p>
               <p className="mt-5 font-mono text-[12px] text-[#f6ece0]/60">
-                culture &lt;- transform construct into cells
+                strain, culture &lt;- transform host from dna into cells
               </p>
             </div>
           </div>

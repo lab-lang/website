@@ -15,7 +15,7 @@ anything: both run entirely on the checked source.
 ## Tracking ownership through a workflow
 
 The verifier tracks every `material`-typed value as a **place**: a named
-binding, or a field projection of one, such as `colony_result.plate`. Each
+binding, or a field projection of one, such as `growth.plate`. Each
 place is either _live_ (owned here) or _consumed_ (given away). Every use of
 a material-typed value is checked against its current state:
 
@@ -31,8 +31,9 @@ a material-typed value is checked against its current state:
   control flow rejoins is rejected: both arms must agree on what's still
   live before execution can continue past the join.
 
-This is why `transform reporter_host from plasmids into cells` marks its material operands consumed:
-neither `plasmids` nor `cells` can be referenced again, while `capture
+This is why `transform reporter_host from dependencies into cells` marks
+its material operands consumed: neither `dependencies` nor `cells` can be
+referenced again, while `capture
 image of plate` leaves `plate` live for the next reading. Reactive handlers
 follow the same rule across invocations: a handler must preserve the
 ownership of any material it captured from one firing to the next, not
@@ -43,9 +44,11 @@ silently reacquire or drop it.
 "Acceptance" is not a single check. It's three, and only the last one
 touches anything physical:
 
-1. **The design is well-typed.** Every property and claim on a `plasmid` or
-   `circuit` declaration resolves and type-checks. This says nothing about
-   whether the design is achievable, only that it's coherent.
+1. **The design is well-typed.** Every property and claim on an artifact or
+   `circuit` declaration resolves against the kind's schema and type-checks,
+   and `declares` confirms the stated properties make a complete design.
+   This says nothing about whether the design is achievable, only that it's
+   coherent.
 2. **The selected workflow covers every evidence obligation.** For each
    `accept` clause on the design, some step in the chosen workflow must
    produce evidence of the matching shape. This is checked at compile time,
@@ -53,6 +56,13 @@ touches anything physical:
 3. **Runtime evidence satisfies the predicate.** Once a workflow actually
    runs, its evidence is evaluated against each `accept` clause. Only
    evidence that satisfies every clause produces an accepted material.
+
+`across N biological replicates` sits alongside these: it says how much
+independent evidence a claim needs, and is checked against the lineage of
+what was measured. Two materials are biological replicates when they trace
+to different beginnings and technical replicates when they trace to the same
+one, so the compiler can tell three transformants from three readings of one
+culture without being told which is which.
 
 Portable checking (judgments 1 and 2) never selects a robot, a deck, a
 chemistry, or a schedule; that's target specialization's job, covered in

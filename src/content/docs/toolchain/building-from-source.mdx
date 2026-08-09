@@ -24,44 +24,48 @@ cargo build --workspace
 package-aware CLI, and `labc`, the single-file developer compiler used
 throughout this documentation for `--emit` inspection. A third, `lab-opt`,
 operates on textual LAIR rather than source and is covered in
-[CLI reference](/docs/compiler/cli-reference).
+[CLI reference](/docs/compiler/cli-reference). They land in
+`target/debug/`, so put that on your `PATH` to run them by name below.
 
 ## Scaffold a project
 
 ```shell
-cargo run -p lab-cli -- new my-plasmid
+lab new my-plasmid
 ```
 
 `lab new` writes a minimal package:
 
-```markdown
+```text
 my-plasmid/
-lab.toml
-src/
-programs/
-main.lab
+  lab.toml
+  .gitignore
+  src/
+    programs/
+      main.lab
 ```
 
-`lab.toml` declares the package name, version, and build entry point. Source
-lives under `src/`, conventionally split into `designs/`, `policies/`,
-`workflows/`, and `programs/`. `lab new` only scaffolds `programs/main.lab`
-to start. [Modules and packages](/docs/guide/modules-and-packages) covers the
-full manifest shape and module naming convention.
+`lab.toml` declares the package name, version, edition, and build entry
+point. Source lives under `src/`, conventionally split into `designs/`,
+`workflows/`, and `programs/`, and a bench to compile for lives under
+`targets/`. `lab new` only scaffolds `src/programs/main.lab` to start.
+[Modules and packages](/docs/guide/modules-and-packages) covers the full
+manifest shape and module naming convention.
 
 ## Check, build, and inspect
 
 ```shell
-cargo run -p lab-cli -- check my-plasmid
-cargo run -p lab-cli -- build my-plasmid
-cargo run -p lab-cli -- metadata my-plasmid
+lab check my-plasmid
+lab build my-plasmid
+lab metadata my-plasmid
 ```
 
 `lab check` resolves imports, type-checks, and verifies material flow for a
 single `.lab` file or a whole project. `lab build` does the same and then
 writes one `*.module.json` artifact per module plus a package index and a
-`lab.lock` file under `.lab/build/`. `lab metadata` prints the resolved
-manifest and module list without compiling anything, useful for confirming
-`lab.toml` resolved the way you expect before a build.
+`lab.lock` file under `.lab/build/`, and compiles for the target the manifest
+names; pass `--no-target` to stop at portable module IR. `lab metadata`
+prints the resolved manifest and module list without compiling anything,
+useful for confirming `lab.toml` resolved the way you expect before a build.
 
 Every `lab` subcommand accepts a global `--json` flag for machine-readable
 output, which is what the language server and other tooling consume instead

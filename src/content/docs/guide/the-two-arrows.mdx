@@ -11,14 +11,17 @@ Lab's punctuation is small and each symbol does exactly one thing:
 | Form              | Meaning                                         |
 | ----------------- | ----------------------------------------------- |
 | `:`               | Opens a declaration or control block            |
-| `name: value`     | Declares a property on a biological declaration |
+| `name = value`    | Declares a property on a biological declaration |
+| `name: Type`      | A field, parameter, or annotation               |
 | `{ name: value }` | Constructs or destructures typed data           |
 | `[ … ]`           | Collection literal                              |
 | `< … >`           | Type arguments                                  |
 | `=`               | Deterministic evaluation or state transition    |
 | `<-`              | Durable physical or external effect             |
-| `->`              | Declares a workflow result                      |
-| `#`               | Line comment                                    |
+| `->`              | Declares a circuit or workflow result           |
+| `//`              | Line comment                                    |
+| `/** … */`        | Documentation for the declaration below it      |
+| `/*! … */`        | Documentation for the module the file opens     |
 
 ## `=` may be replayed. `<-` may not.
 
@@ -32,18 +35,44 @@ execution time doesn't exist yet, but the checker already distinguishes the
 two everywhere a workflow is written.
 
 ```lab
-workflow build_plasmid(design: Plasmid) -> Accepted<Plasmid> | Rejected<Plasmid>:
-  fragments <- synthesize design
-  construct <- assemble fragments
-  plasmids = [construct]
-  cells <- provision competent_ecoli
-  strain, culture <- transform reporter_host from plasmids into cells
+workflow build_reporter() -> (
+  strain: Material<Strain>,
+  plate: Material<Plate>,
+):
+  product <- realize reporter
+  dependencies = [product]
+  cells <- provision DH5alpha
+  strain, culture <- transform reporter_host from dependencies into cells
   culture <- recover culture for 1 h
-  plate <- plate culture on kanamycin
+  culture <- dilute culture
+  plate <- plate culture on chloramphenicol
+  return strain, plate
 ```
 
-Every line here is a durable command: a physical action bound to a recorded
-completion event. None of it may be silently re-run.
+Every `<-` line here is a durable command: a physical action bound to a
+recorded completion event. None of it may be silently re-run. `dependencies
+= [product]` is the one line replay is free to re-evaluate, because building
+a list is arithmetic rather than an event.
+
+## Inside a declaration body, `=` and `:` divide cleanly
+
+The same two marks separate a declaration's values from its types. `=`
+associates a name with a value, and `:` gives a name a type, which is why an
+artifact's schema is written with colons and an instance of it with equals:
+
+```lab
+artifact Plasmid:
+  sequence?: DNA
+  backbone?: Backbone
+
+plasmid reporter:
+  sequence = dna("ACGTACGT")
+  backbone = pSB1C3
+```
+
+A property's value is a deterministic expression, evaluated once and never
+repeated: it is definitively not an effect, which is what `=` says and `<-`
+would deny.
 
 ## Operand modes: what an action does with what you hand it
 
@@ -56,11 +85,12 @@ receives:
 | `borrow` | Observes a material without consuming it; ownership does not change       |
 | `take`   | Transfers ownership of a material into the action                         |
 
-`provision DH5alpha` takes a `copy` operand: `DH5alpha` is a typed inventory
-identity, not physical material, so there's nothing to give up. `transform
-construct into cells` takes two `take` operands: both `construct` and
-`cells` are consumed, and the workflow can no longer use either afterward;
-only the newly returned `culture` is live. `capture image of plate` takes
+`provision DH5alpha` takes a `copy` operand: `DH5alpha` is a typed external
+identity declared with `buy`, not physical material, so there's nothing to
+give up. `transform reporter_host from dependencies into cells` takes `take`
+operands: both the dependency material and `cells` are consumed, and the
+workflow can no longer use either afterward; only the newly returned
+`strain` and `culture` are live. `capture image of plate` takes
 `plate` with `borrow`; the plate is observed, not consumed, and remains
 available to `plate` for the next reading. This is exactly the information
 [material flow](/docs/guide/material-flow-and-acceptance) verifies against

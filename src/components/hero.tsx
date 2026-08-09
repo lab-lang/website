@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { BuildTransition } from '@/components/build-transition'
 import { CircuitGraph } from '@/components/circuit-graph'
+import { HandlerGraph } from '@/components/handler-graph'
 import { LiquidHandler } from '@/components/liquid-handler'
 import { PlasmidMap } from '@/components/plasmid-map'
 import { ProgramGraph } from '@/components/program-graph'
@@ -12,6 +13,7 @@ import { BUILD_STAGES, BUILD_STEP_MS } from '@/data/build-stages'
 import {
   heroCircuitExample,
   heroMainExample,
+  heroObserveExample,
   heroPlasmidExample,
   heroWorkflowExample,
 } from '@/data/examples'
@@ -31,13 +33,13 @@ const views: Array<{ id: View; label: string }> = [
   { id: 'execution', label: 'Build' },
 ]
 
-type FileId = 'workflow' | 'circuit' | 'plasmid' | 'main'
+type FileId = 'workflow' | 'circuit' | 'plasmid' | 'observe' | 'main'
 
 const files: Array<{ id: FileId; name: string; summary: string }> = [
   {
     id: 'workflow',
     name: 'workflow.lab',
-    summary: '1 workflow, 12 durable effects',
+    summary: '1 strain, 1 workflow · 6 durable effects',
   },
   {
     id: 'circuit',
@@ -50,9 +52,14 @@ const files: Array<{ id: FileId; name: string; summary: string }> = [
     summary: '2 requirements, 3 acceptance claims',
   },
   {
+    id: 'observe',
+    name: 'observe.lab',
+    summary: '1 reactive workflow · 2 timers',
+  },
+  {
     id: 'main',
     name: 'main.lab',
-    summary: 'entry point · 1 design, 1 workflow',
+    summary: 'entry point · 2 events, 1 match',
   },
 ]
 
@@ -60,6 +67,7 @@ const SOURCES: Record<FileId, string> = {
   workflow: heroWorkflowExample,
   circuit: heroCircuitExample,
   plasmid: heroPlasmidExample,
+  observe: heroObserveExample,
   main: heroMainExample,
 }
 
@@ -258,7 +266,7 @@ function Specimen({ onReplay }: { onReplay: () => void }) {
     >
       <div className="relative flex flex-col gap-2 border-b border-white/10 px-4 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-5">
         {/*
-         * Four filenames plus the view toggle do not fit a phone on one line,
+         * Five filenames plus the view toggle do not fit a phone on one line,
          * so on small screens the files take their own scrolling row.
          */}
         <div
@@ -355,6 +363,10 @@ function Specimen({ onReplay }: { onReplay: () => void }) {
             ) : view === 'design' && fileId === 'circuit' ? (
               <div className="stage-panel h-full" key="circuit">
                 <CircuitGraph />
+              </div>
+            ) : view === 'design' && fileId === 'observe' ? (
+              <div className="stage-panel h-full" key="handlers">
+                <HandlerGraph />
               </div>
             ) : view === 'design' && fileId === 'main' ? (
               <div className="stage-panel h-full" key="program">

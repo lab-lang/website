@@ -15,28 +15,78 @@ others in the language's design documents.
 `std` is owned by the language itself, not by any package. The bundled
 modules today:
 
-| Module                    | Provides                                                                                                 |
-| ------------------------- | -------------------------------------------------------------------------------------------------------- |
-| `std.prelude`             | Implicit, foundational types, including `dna`                                                            |
-| `std.bio.parts`           | Part declarations                                                                                        |
-| `std.bio.backbones`       | Backbone declarations                                                                                    |
-| `std.bio.inventory`       | Typed external-identity constructors (`part`, `backbone`, `restriction_enzyme`, `chassis`, `antibiotic`) |
-| `std.bio.build`           | The `realize` effect                                                                                     |
-| `std.lab.plasmid_actions` | The laboratory action contracts, see [Action contracts](/docs/guide/action-contracts)                    |
+| Module                | Provides                                                                                     |
+| --------------------- | -------------------------------------------------------------------------------------------- |
+| `std.prelude`         | Implicit, foundational types and pure operations, including `dna`                            |
+| `std.bio.designs`     | The artifact kinds (`plasmid`, `strain`, `part`, `backbone`, and the rest) and their schemas |
+| `std.bio.golden_gate` | What Golden Gate assembly and heat-shock transformation contribute to those schemas          |
+| `std.bio.parts`       | Catalogued parts and the roles they play                                                     |
+| `std.bio.backbones`   | Catalogued assembly backbones                                                                |
+| `std.bio.reporters`   | Reporters and the readouts they produce                                                      |
+| `std.bio.build`       | The `realize` effect                                                                         |
+| `std.lab.plasmid`     | The laboratory action contracts, see [Action contracts](/docs/guide/action-contracts)        |
+
+### Standard modules written in Lab
+
+A bundled module whose whole surface is expressible in Lab is written in Lab
+rather than in Rust, and resolves through the same checked interface a
+package module does. `std.bio.designs`, `std.bio.golden_gate`,
+`std.bio.parts`, `std.bio.backbones`, and `std.bio.reporters` all are.
+Nothing in the checker distinguishes them from a package, and their own
+documentation comments become their reference entries, so the reference
+cannot drift from a second description of the same exports. A module needing
+pure functions or durable action contracts stays in Rust, because neither
+has a source declaration form yet.
+
+## Packages extend the vocabulary, not the grammar
+
+A package declares a word together with the schema its declarations are
+checked against:
+
+```lab
+artifact Plasmid:
+  sequence?: DNA
+```
+
+Any module importing that package may then write `plasmid p_gfp:`. The
+parser never learns the word: an unknown word followed by a name and a block
+is always an artifact instance, and which kind it names is resolved while
+checking. That is what keeps a lone file parseable and an editor able to
+recover from broken code, and it is why no package may introduce a grammar
+production.
+
+A kind's schema is everything every module in scope declares for it. What a
+plasmid _is_ comes from one package; what a method needs to build one comes
+from another, and a design built by that method imports it:
+
+```lab
+use std.bio.designs      // sequence, backbone, components
+use std.bio.golden_gate  // reaction_volume, assembly_cycles, digest_temperature
+```
+
+Every field a method contributes is optional, so its standard values stand
+behind a design that states nothing, and a design's own value wins where a
+protocol departs from the datasheet. A property no module in scope declares
+is a mistake rather than an extension, and the compiler says so by name.
+
+Roles are open the same way. Declaring `role Signal` publishes a
+classification; any package that imports it may declare its own types as
+members with `is`, and every generic circuit or workflow bounded by that role
+then accepts them.
 
 ## Project layout
 
-```markdown
+```text
 my-plasmid/
-lab.toml
-src/
-designs/
-policies/
-workflows/
-programs/
-tests/
-.lab/
-runs/ # generated, never hand-authored
+  lab.toml
+  targets/
+    opentrons-ot2.toml
+  src/
+    designs/
+    workflows/
+    programs/
+  .lab/
+    build/          generated, never hand-authored
 ```
 
 A module's fully qualified name is derived from its path. `src/workflows/
@@ -45,24 +95,35 @@ build-plasmid.lab` inside a package named `tet_reporter` becomes
 
 ## The manifest
 
-```markdown
+```toml
 [package]
 name = "tet-reporter"
 version = "0.1.0"
+edition = "2026"
 
 [build]
-entry = "programs/main.lab"
+entry = "src/programs/main.lab"
+target = "opentrons-ot2"
+
+[inventory]
+materials = ["B0034", "B0015", "DH5alpha", "chloramphenicol", "pSB1C3"]
+artifacts = []
 
 [dependencies]
-
 # path form
-
 some-lib = { path = "../some-lib" }
-
 # version form, parsed but not yet resolvable (see below)
-
 another-lib = "0.3"
 ```
+
+`target` names a file under `targets/`, and is what a plain `lab build`
+compiles for; `lab build --target <name>` picks another, and `lab build
+--no-target` stops at portable module IR. That profile's own `[target]
+backend` key selects which machine compiles the build, so one package can
+carry a profile per bench and produce a package for each.
+`[inventory]` is what this laboratory has on hand: a material listed there is
+available to a reaction, and an artifact listed there is already realized and
+need not be built again.
 
 `entry` is what makes a package a program rather than a library, so the
 module it names must declare `workflow main`. That is not a build-order

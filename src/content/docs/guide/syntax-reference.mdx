@@ -8,75 +8,142 @@ order: 60
 
 ## Layout
 
-Lab is indentation-sensitive, like Python. Tabs are rejected. `#` starts a
-line comment. Braces construct or destructure typed data, parentheses call or
-group, brackets build collections, and angle brackets carry type arguments,
-covered in [The two arrows](/docs/guide/the-two-arrows).
+Lab is indentation-sensitive, like Python. Tabs are rejected. Braces
+construct or destructure typed data, parentheses call or group, brackets
+build collections, and angle brackets carry type arguments, covered in
+[The two arrows](/docs/guide/the-two-arrows).
+
+## Comments and documentation
+
+`//` starts a line comment and runs to the end of the line. It is the only
+comment form: `#` is not a comment character, and `/*` opens documentation
+rather than a block comment.
+
+Documentation is a `/** … */` block standing immediately above the
+declaration it describes. Unlike a comment it is part of the declaration:
+the parser attaches it to the syntax tree, it travels in the module's
+checked interface, and editors show it on hover and in completions. A module
+documents itself with `/*! … */` at the top of its file, above the imports.
+
+```lab
+/*! Two composite transcription units, each a promoter driving a reporter. */
+
+use std.bio.designs
+
+/**
+ * Assemble the GFP reporter plasmid.
+ *
+ * Takes no material input, so the compiler places this build ahead of
+ * everything that consumes the plasmid.
+ */
+workflow assemble_composite_plasmid_1() -> Material<Plasmid>:
+  product <- realize composite_plasmid_1
+  return product
+```
+
+Following [PEP 257](https://peps.python.org/pep-0257/), a docstring opens
+with a one-line summary that stands on its own; anything further follows a
+blank line. Documentation always has a subject, so a `/** */` that precedes
+an import or precedes nothing is an error rather than a comment that
+silently goes nowhere. An aside inside a workflow body is a `//` comment.
 
 ## The whole vocabulary
 
-Laboratory verbs such as `synthesize`, `assemble`, and `dispose` are library
-operations, not keywords; see
-[Action contracts](/docs/guide/action-contracts) for the full list. The
-language itself is small enough to read in one pass:
+The keywords are orchestration mechanics only. The _vocabulary_, meaning
+`plasmid`, `strain`, and any word a package declares with `artifact`, is not
+in this table and is not in the parser. Laboratory verbs such as `realize`,
+`transform`, and `dispose` are library operations, not keywords; see
+[Action contracts](/docs/guide/action-contracts) for the full list.
 
-| Group                    | Keywords                                                            |
-| ------------------------ | ------------------------------------------------------------------- |
-| Modules                  | `use`                                                               |
-| Biological design        | `circuit`, `plasmid`                                                |
-| Laboratory data          | `record`, `material`, `observation`, `evidence`, `event`, `outcome` |
-| Orchestration            | `workflow`, `state`                                                 |
-| Signatures and contracts | `input`, `output`, `require`, `accept`                              |
-| Control flow             | `if`, `else`, `for`, `in`, `match`, `case`, `return`                |
-| Reactive control         | `when`, `every`, `after`, `emit`                                    |
-| Boolean operators        | `and`, `or`, `not`                                                  |
+| Group                 | Keywords                                             |
+| --------------------- | ---------------------------------------------------- |
+| Modules               | `use`                                                |
+| Declaration shapes    | `record`, `circuit`, `artifact`, `workflow`, `state` |
+| Classification        | `role`, `is`, `any`                                  |
+| Provenance            | `build`, `buy`                                       |
+| Schemas and contracts | `declares`, `require`, `accept`, `across`            |
+| Control flow          | `if`, `else`, `for`, `in`, `match`, `case`, `return` |
+| Reactive control      | `when`, `every`, `after`, `emit`                     |
+| Boolean operators     | `and`, `or`, `not`                                   |
 
-## Workflow signatures
+## Callable signatures
 
-A workflow signature always declares its parentheses, even with zero
-parameters, and always declares its result with `->`; there is no implicit
-return type.
+Circuits and workflows are both called, so both declare a callable signature
+in their header rather than inside their block. Parentheses are required
+even with zero parameters, and a result declaration after `->` is mandatory;
+there is no implicit return type.
 
 ```lab
-workflow provision_cells(host: Chassis) -> Material<Chassis>:
-  cells <- provision strain
-  return cells
+workflow preserve_sample(source: Material<Plasmid>) -> Material<Plasmid>:
+  return source
 ```
 
-A result can be a single type, as above, or a named field list, letting a
-workflow return several values together:
+Only a workflow may name its results, using a parenthesized typed field
+list, which lets it return several values together:
 
 ```lab
-workflow realize_p_gfp() -> (product: Material<Plasmid>, plate: Material<Plate>):
-  product <- realize p_gfp
+workflow build_reporter() -> (
+  strain: Material<Strain>,
+  plate: Material<Plate>,
+):
+  product <- realize reporter
+  dependencies = [product]
   cells <- provision DH5alpha
-  strain, culture <- transform reporter_host from plasmids into cells
+  strain, culture <- transform reporter_host from dependencies into cells
   culture <- recover culture for 1 h
-  culture <- dilute culture
   plate <- plate culture on chloramphenicol
-  return product, plate
+  return strain, plate
+```
+
+A circuit produces one value, and its block holds only what it is built
+from:
+
+```lab
+circuit regulated_expression(
+  promoter: Promoter<Trigger: Signal>,
+  coding: CDS<Product: Protein>,
+) -> Circuit<Trigger, Product>:
+  layout:
+    promoter
+    coding
 ```
 
 `-> None` and `return None` are valid for a workflow with no meaningful
 result. `-> ()` is not: an explicitly empty tuple type is rejected rather
 than treated as a synonym for `None`.
 
-## Typed inventory identities
+## Typed external identities
 
-External materials (parts, backbones, enzymes, strains, antibiotics) are
-named through typed constructors from `std.bio.inventory`, not through
-strings scattered through a design:
+An item a supplier lists enters through a `buy` declaration against an
+imported kind. There are no string identifiers scattered through a design:
 
 ```lab
-J23101 = part("J23101")
-pSB1C3 = backbone("pSB1C3")
-BsaI = restriction_enzyme("BsaI")
-DH5alpha = chassis("DH5alpha")
-chloramphenicol = antibiotic("chloramphenicol")
+use std.bio.designs
+
+buy part J23101
+buy backbone pSB1C3
+buy chassis DH5alpha
+buy antibiotic chloramphenicol
+
+buy restriction_enzyme BsaI:
+  digest_temperature = 37 C
 ```
 
-Each constructor only creates a typed _name_ for an external identity; it
-does not resolve availability, lot, or provenance. A design references these
-bound names in its properties (`backbone: pSB1C3`, `restriction_enzyme: BsaI`), and a
+A bought item's external identity, meaning what a supplier's order names,
+defaults to the declared name. It is written as an `identity` property only
+where the two differ, so renaming a source symbol and changing an external
+identifier stay distinct operations:
+
+```lab
+buy plasmid reference_gfp:
+  identity = "Addgene-#134516"
+  sequence = dna("GCTAGCGGATCCATGACCATGATTACGCCAAGCTTGAATTC")
+```
+
+A `buy` declaration creates a typed _name_; it does not resolve
+availability, lot, or provenance. A design references these names in its
+properties (`backbone = pSB1C3`, `restriction_enzyme = BsaI`), and a
 workflow references them in action phrases (`provision DH5alpha`, `plate
-culture on chloramphenicol`).
+culture on chloramphenicol`). Source symbols are values regardless of
+capitalization: `J23101`, `BsaI`, and `DH5alpha` do not become types because
+their names begin with capitals.

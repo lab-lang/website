@@ -1,5 +1,5 @@
 export type SourceLanguage =
-  'lab' | 'python' | 'ir' | 'markdown' | 'shell' | 'toml' | 'json'
+  'lab' | 'python' | 'ir' | 'markdown' | 'shell' | 'toml' | 'json' | 'text'
 
 /**
  * Six token colours, each carrying one meaning. The durable-effect arrow gets
@@ -16,24 +16,23 @@ const CLASS = {
   durable: 'text-[#93e03f]',
 } as const
 
+/*
+ * The compiler's own keyword list (crates/lab-ide/src/semantic.rs `KEYWORDS`).
+ * No artifact word is in it: `plasmid` and `strain` are vocabulary a package
+ * declares with `artifact`, not grammar, so they are coloured as the
+ * declaration openers they are rather than as keywords. `layout` is absent for
+ * the same reason: it is an ordinary property name inside a `circuit` block.
+ */
 const LAB_KEYWORDS =
-  'use|circuit|plasmid|record|material|observation|evidence|event|outcome|workflow|input|output|layout|state|require|accept|if|else|for|in|match|case|return|when|every|after|emit|and|or|not'
+  'use|role|build|buy|is|any|circuit|artifact|record|workflow|state|require|accept|across|declares|if|else|for|in|match|case|return|when|every|after|emit|and|or|not'
 
 const PYTHON_KEYWORDS =
   'import|from|def|class|return|for|in|if|else|elif|with|as|None|True|False|and|or|not'
 
-const QUANTITY = String.raw`\b\d+(?:\.\d+)?(?:\s*(?:ng\/uL|µL|uL|bp|kb|min|h|C))?\b`
+const QUANTITY = String.raw`\b\d+(?:\.\d+)?(?:\s*(?:ng\/uL|ug\/uL|mg\/mL|nM|uM|mM|µL|uL|mL|bp|kb|min|h|C))?\b`
 
-/*
- * Declaration keywords that double as field names. `material: plasmid` inside a
- * constructor is a field, not a declaration, so it is matched with its colon
- * and left unhighlighted. Block openers like `layout:` are deliberately absent.
- */
-const FIELD_NAMES = 'material|evidence|record|observation|event|outcome'
-
-/** Declaration keywords that introduce a named entity, per the editor grammar. */
-const LAB_DECLARATIONS =
-  'part|circuit|plasmid|record|material|observation|evidence|event|outcome|workflow|strain'
+/** Keywords that introduce a named declaration. */
+const LAB_DECLARATIONS = 'role|record|circuit|artifact|workflow|state'
 
 /*
  * Mirrors editors/vscode/syntaxes/lab.tmLanguage.json in the compiler
@@ -42,17 +41,32 @@ const LAB_DECLARATIONS =
  * LAB_SCOPES maps that name to one of the six colours above.
  */
 const LAB_RULES: [string, string][] = [
-  ['cmt', String.raw`#[^\n]*`],
+  // Documentation spans lines and is matched before `//` so that the `*` and
+  // `/` opening a `/** */` or `/*! */` block cannot be read as a line comment.
+  ['cmt', String.raw`/\*[*!][\s\S]*?\*/|//[^\n]*`],
   ['str', String.raw`"(?:[^"\\]|\\.)*"`],
   // The durable arrow, and the action it performs.
   ['eff', String.raw`<-`],
   ['act', String.raw`(?<=<- )[A-Za-z_][A-Za-z0-9_]*`],
-  ['op', String.raw`->|==|!=|<=|>=`],
+  ['op', String.raw`->|==|!=|<=|>=|\.\.`],
   ['qty', QUANTITY],
   // The module path in `use std.bio.parts`, and the name a declaration binds.
   ['ns', String.raw`(?<=\buse )[A-Za-z_][A-Za-z0-9_.]*`],
   ['decl', String.raw`(?<=^(?:${LAB_DECLARATIONS}) )[A-Za-z_][A-Za-z0-9_]*`],
-  ['fld', String.raw`\b(?:${FIELD_NAMES})\s*:`],
+  /*
+   * An artifact instance: an optional provenance verb, the kind's word, and
+   * the name it declares. The word belongs to a package rather than to the
+   * grammar, so it is matched by shape and coloured as the declared name it
+   * is, not from a list and not as a keyword.
+   */
+  [
+    'kind',
+    String.raw`(?<=^(?:build |buy )?)(?!(?:${LAB_KEYWORDS})\b)[a-z_][a-z0-9_]*(?= [A-Za-z_][A-Za-z0-9_]*:?$)`,
+  ],
+  [
+    'inst',
+    String.raw`(?<=^(?:build |buy )?[a-z_][a-z0-9_]* )[A-Za-z_][A-Za-z0-9_]*(?=:|$)`,
+  ],
   ['kw', String.raw`(?<!\.)\b(?:${LAB_KEYWORDS})\b`],
   ['konst', String.raw`\b(?:None|true|false)\b`],
   // Types, by position rather than by an initial capital. See the note on the
@@ -74,7 +88,8 @@ const LAB_SCOPES: Record<string, string> = {
   qty: CLASS.quantity,
   ns: CLASS.entity,
   decl: CLASS.entity,
-  fld: CLASS.base,
+  kind: CLASS.entity,
+  inst: CLASS.entity,
   kw: CLASS.keyword,
   konst: CLASS.keyword,
   gen: CLASS.entity,
@@ -97,7 +112,9 @@ const GRAMMARS: Record<SourceLanguage, Grammar> = {
   lab: {
     pattern: new RegExp(
       LAB_RULES.map(([name, rule]) => `(?<${name}>${rule})`).join('|'),
-      'g',
+      // `m` so that the declaration rules anchor to the start of each line,
+      // which is where a declaration sits and an indented property does not.
+      'gm',
     ),
     scopes: LAB_SCOPES,
   },
@@ -173,6 +190,12 @@ const GRAMMARS: Record<SourceLanguage, Grammar> = {
       return CLASS.quantity
     },
   },
+  // Plain text: a directory tree or a block of output, where colouring a word
+  // would claim a meaning it does not have.
+  text: {
+    pattern: /(?!)/g,
+    classify: () => CLASS.base,
+  },
 }
 
 /**
@@ -181,14 +204,14 @@ const GRAMMARS: Record<SourceLanguage, Grammar> = {
  * do this: it hands the classifier the gaps as well as the matches, with
  * nothing to tell them apart.
  */
-function scopedSpans(line: string, grammar: Grammar) {
-  const spans: { text: string; className: string }[] = []
+function scopedSpans(source: string, grammar: Grammar) {
+  const spans: Span[] = []
   let cursor = 0
 
-  for (const match of line.matchAll(grammar.pattern)) {
+  for (const match of source.matchAll(grammar.pattern)) {
     const start = match.index ?? 0
     if (start > cursor) {
-      spans.push({ text: line.slice(cursor, start), className: CLASS.base })
+      spans.push({ text: source.slice(cursor, start), className: CLASS.base })
     }
     const rule = Object.keys(match.groups ?? {}).find(
       (name) => match.groups?.[name] !== undefined,
@@ -200,23 +223,28 @@ function scopedSpans(line: string, grammar: Grammar) {
     cursor = start + match[0].length
   }
 
-  if (cursor < line.length) {
-    spans.push({ text: line.slice(cursor), className: CLASS.base })
+  if (cursor < source.length) {
+    spans.push({ text: source.slice(cursor), className: CLASS.base })
   }
 
   return spans
 }
 
-function HighlightedLine({
-  line,
-  grammar,
-}: {
-  line: string
-  grammar: Grammar
-}) {
+interface Span {
+  text: string
+  className: string
+}
+
+/**
+ * Tokenizes the whole source at once, then cuts the spans at newlines. A
+ * construct that spans lines, such as a `/** *␑/` documentation block or a
+ * Python docstring, is one token, so matching per line would colour its
+ * opening line and then read the prose inside it as code.
+ */
+function highlight(source: string, grammar: Grammar): Span[][] {
   const spans = grammar.scopes
-    ? scopedSpans(line, grammar)
-    : line
+    ? scopedSpans(source, grammar)
+    : source
         .split(grammar.pattern)
         .filter(Boolean)
         .map((token) => ({
@@ -224,15 +252,15 @@ function HighlightedLine({
           className: grammar.classify?.(token) ?? CLASS.base,
         }))
 
-  return (
-    <>
-      {spans.map((span, index) => (
-        <span className={span.className} key={index}>
-          {span.text}
-        </span>
-      ))}
-    </>
-  )
+  const lines: Span[][] = [[]]
+  for (const span of spans) {
+    const parts = span.text.split('\n')
+    parts.forEach((part, index) => {
+      if (index > 0) lines.push([])
+      if (part) lines[lines.length - 1].push({ ...span, text: part })
+    })
+  }
+  return lines
 }
 
 export function SourceCode({
@@ -254,7 +282,7 @@ export function SourceCode({
   // An MDX fence can name any language; an unknown one falls back rather than
   // taking the page down on an undefined grammar.
   const grammar = GRAMMARS[language] ?? GRAMMARS.lab
-  const lines = source.split('\n')
+  const lines = highlight(source, grammar)
   const gutterWidth = String(lines.length).length
 
   return (
@@ -276,7 +304,11 @@ export function SourceCode({
               </span>
             )}
             <span className="pr-8">
-              <HighlightedLine grammar={grammar} line={line} />
+              {line.map((span, spanIndex) => (
+                <span className={span.className} key={spanIndex}>
+                  {span.text}
+                </span>
+              ))}
               {cursor && index === lines.length - 1 && (
                 <span
                   aria-hidden="true"

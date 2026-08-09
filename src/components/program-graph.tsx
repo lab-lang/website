@@ -129,7 +129,7 @@ export function ProgramGraph() {
       </div>
 
       <p className="truncate pt-2 font-mono text-[11px] text-[#f6ece0]/45">
-        one design, one workflow, two outcomes
+        one design, one workflow, two cases
       </p>
     </div>
   )

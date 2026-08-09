@@ -12,7 +12,7 @@ const shipped = [
   'Action contracts and affine material flow',
   'LAIR dialects with a verified protocol boundary',
   'Editor support over LSP and WebAssembly',
-  'Experimental Opentrons OT-2 backend',
+  'Experimental Opentrons OT-2 and Flex backends',
 ]
 
 const pending = [
@@ -21,7 +21,7 @@ const pending = [
   'Scheduling and hardware specialization',
   'External package resolution and lockfiles',
   'Live inventory, lots, and provenance',
-  'Cloud labs and other robot families',
+  'Hamilton STAR, then cloud labs',
 ]
 
 /** Honesty about maturity, in the project's own terms. */

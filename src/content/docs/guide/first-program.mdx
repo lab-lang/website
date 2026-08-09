@@ -46,9 +46,10 @@ entry = "src/programs/main.lab"
 
 ```lab src/programs/main.lab
 use std.bio.build
+use std.bio.designs
 
 plasmid starter:
-  sequence: dna("ATGCGTACGTTAGCTA")
+  sequence = dna("ATGCGTACGTTAGCTA")
   require topology == circular
   accept sequence == design.sequence
 
@@ -57,11 +58,18 @@ workflow main() -> Material<Plasmid>:
   return product
 ```
 
+`plasmid` is not a keyword. `std.bio.designs` declares it with `artifact`,
+together with the schema every plasmid is checked against; the compiler knows
+only the shape, being a word, a name, and a block of properties, and nothing about
+biology. A package of your own can declare words the standard library never
+heard of, and a word no imported package declares is an error that lists the
+ones in scope.
+
 The plasmid is four lines, and three of them are distinct kinds of claim.
-`sequence:` is a **declarative property**: typed data attached to the
-design, not an assignment that runs. `require` is a constraint checked
-_before_ anything is built. `accept` is a claim about the finished material
-that only runtime evidence can settle.
+`sequence = …` is a **declarative property**: a deterministic expression
+evaluated once and attached to the design, never an effect. `require` is a
+constraint checked _before_ anything is built. `accept` is a claim about the
+finished material that only runtime evidence can settle.
 
 `main` is separate from all three. Naming a module as the manifest's `entry`
 is what makes this package a program rather than a library, and a program
@@ -94,35 +102,47 @@ and says how to realize it.
 
 ```lab src/programs/main.lab
 use std.bio.build
-use std.bio.inventory
-use std.lab.plasmid_actions
+use std.bio.designs
+use std.bio.golden_gate
+use std.lab.plasmid
 
-J23101 = part("J23101")
-B0034 = part("B0034")
-GFP = part("GFP")
-B0015 = part("B0015")
-pSB1C3 = backbone("pSB1C3")
-BsaI = restriction_enzyme("BsaI")
-DH5alpha = chassis("DH5alpha")
-chloramphenicol = antibiotic("chloramphenicol")
+buy part J23101
+buy part B0034
+buy part GFP
+buy part B0015
+buy backbone pSB1C3
+buy antibiotic chloramphenicol
 
+buy restriction_enzyme BsaI:
+  digest_temperature = 37 C
+
+buy chassis DH5alpha:
+  heat_shock_temperature = 42 C
+  recovery_duration = 60 min
+
+/** The GFP reporter under a strong constitutive promoter. */
 plasmid reporter:
-  sequence: dna("GCTAGCGGATCCATGACCATGATTACGCCAAGCTTGAATTC")
-  backbone: pSB1C3
-  components: [J23101, B0034, GFP, B0015]
-  restriction_enzyme: BsaI
-  assembly_replicates: 1
+  sequence = dna("GCTAGCGGATCCATGACCATGATTACGCCAAGCTTGAATTC")
+  backbone = pSB1C3
+  components = [J23101, B0034, GFP, B0015]
+  restriction_enzyme = BsaI
+  assembly_replicates = 1
 
   require topology == circular
-  accept sequence == design.sequence
 
+  across 3 biological replicates
+
+  accept sequence == design.sequence
+  accept concentration >= 100 ng/uL
+
+/** The reporter carried in a cloning strain. */
 strain reporter_host:
-  chassis: DH5alpha
-  plasmids: [reporter]
-  selection: chloramphenicol
-  transformation_replicates: 2
-  plating_replicates: 2
-  serial_dilutions: 2
+  chassis = DH5alpha
+  plasmids = [reporter]
+  selection = chloramphenicol
+  transformation_replicates = 2
+  plating_replicates = 2
+  serial_dilutions = 2
 
 workflow assemble_reporter() -> Material<Plasmid>:
   product <- realize reporter
@@ -151,35 +171,71 @@ workflow main() -> (
   return strain, plate
 ```
 
-### Names are typed, not strings
+### Where a thing came from is a fact about the thing
 
-`part("J23101")` is a pure constructor from `std.bio.inventory`. It returns
-a value of type `Part` carrying an external inventory identifier. The source
-symbol on the left and the string on the right have separate identities:
-renaming `J23101` in your file and changing which catalog item it points at
-are different edits, and only one of them is a rename.
+`buy part J23101` declares a value of type `Part` for something a supplier
+lists. Being bought is stated per thing rather than per kind, so `plasmid
+reporter:` and `buy plasmid reference_gfp:` declare the same kind of thing
+and differ only in where it came from. `require`, `accept`, and a place in
+the build order attach to what is built; an `identity` to order against
+attaches to what is bought, and claiming to build something bought is
+refused.
 
-So `components: [J23101, B0034, GFP, B0015]` is a `List<Part>` of checked
-symbols. Writing `components: ["J23101"]` is a type error, not a shortcut.
+An external identity defaults to the declared name, and is written out only
+where the two differ:
+
+```lab
+buy restriction_enzyme BsaI:
+  identity = "NEB-R0535"
+```
+
+So the source symbol and the catalog identifier keep separate identities:
+renaming `BsaI` in your file and changing which catalog item it points at are
+different edits, and only one of them is a rename.
+
+A bought item also carries its own datasheet. The temperature a digest runs
+at belongs to the enzyme, so no design has to repeat it, and a design that
+departs from the datasheet states its own value and wins.
+
+`components = [J23101, B0034, GFP, B0015]` is a `List<Part>` of checked
+symbols. Writing `components = ["J23101"]` is a type error, not a shortcut.
 
 <Callout kind="note">
-  A typed identity is not availability. `part("J23101")` says this design refers
-  to a catalog item. It says nothing about whether a suitable lot exists, how
-  much is left, where it is, or whether you should trust its provenance. Those
-  are inventory and runtime questions.
+  A typed identity is not availability. `buy part J23101` says this design
+  refers to a catalog item. It says nothing about whether a suitable lot exists,
+  how much is left, where it is, or whether you should trust its provenance.
+  Those are inventory and runtime questions.
 </Callout>
+
+### How much evidence a claim needs
+
+`across 3 biological replicates` says what every claim in the declaration is
+believed on. Three colonies picked from a plate are independent
+transformants; one culture measured three times is a single organism, so
+reporting the second as `n = 3` claims more than the experiment supports. A
+single claim may state its own standard instead, which replaces the
+declaration's rather than adding to it:
+
+```lab
+  accept volume >= 20 uL across 1 biological replicate
+```
+
+Which replicates are which is not a property of a sample; it is where the
+sample came from. Transformation establishes an organism and picking isolates
+independent transformants, while diluting, recovering, plating, and measuring
+carry on the lineage that went in.
 
 ### The two arrows
 
 The workflow body uses both of Lab's binding forms, and they are not
 interchangeable:
 
-- `plasmids = [construct]` is deterministic evaluation. Replay may run it
+- `dependencies = [reporter]` is deterministic evaluation. Replay may run it
   again, because nothing in the world changed.
-- `strain, culture <- transform reporter_host from plasmids into cells` is a durable effect. It
-  records a command, waits for the completion event, and binds the result
-  from that event. **Replay must never repeat it.** You cannot un-transform
-  a tube of cells.
+- `strain, culture <- transform reporter_host from dependencies into cells`
+  is a durable effect. It records a command, waits for the completion event,
+  and binds the result from that event. **Replay must never repeat it.** You
+  cannot un-transform a tube of cells.
 
 Once you have physically consumed something, no runtime can undo it, so Lab
 puts that fact in the syntax rather than hiding it behind a function call.
@@ -189,7 +245,7 @@ puts that fact in the syntax rather than hiding it behind a function call.
 `Material<Plasmid>` is affine: it has exactly one owning place. Each action
 declares what it does to what you hand it — `copy` for information, `borrow`
 to observe without consuming, `take` to consume. `transform` takes both its
-its plasmids and its cells, so neither name is usable afterward.
+dependency material and its cells, so neither name is usable afterward.
 
 Every terminating path must account for everything it owns. Try deleting
 `plate` from the return list:
@@ -205,7 +261,7 @@ it, transfer it, or dispose of it.
 ## Build
 
 ```shell
-lab build
+lab build --no-target
 ```
 
 ```
@@ -219,33 +275,77 @@ manifest. Portable module IR is the frontend's output boundary: imports
 resolved, types checked, action contracts resolved to stable operation
 identities, material ownership verified. No laboratory has been chosen yet.
 
-## Lower it to a target
+## Name a bench, and compile for it
 
-Target specialization is a compiler-development surface today, exposed
-through `labc` rather than `lab`. From a checkout of the Lab repository:
+A target profile describes the laboratory rather than the science: which
+modules are installed, which labware sits in which deck slot, which pipette
+is on which mount. It is a TOML file under `targets/`, and its filename is
+its name. Every field has a default matching the reference bench, so a
+profile states only what differs:
 
-```shell
-labc \
-  path/to/tet-reporter/src/programs/main.lab \
-  --emit automation-bundle \
-  --output-dir /tmp/reporter-build
+```toml targets/opentrons-ot2.toml
+[target]
+backend = "opentrons.ot2"
+api_level = "2.21"
+
+[instruments.small]
+model = "p20_single_gen2"
+mount = "left"
 ```
 
-Five files, all projected from a single validated execution plan:
+The manifest names which profile a plain `lab build` uses, and lists what
+this laboratory has on hand so the planner knows what it need not build:
 
-| File                         | What it is                                        |
-| ---------------------------- | ------------------------------------------------- |
-| `automation_manifest.json`   | the construct, well, and handoff plan             |
-| `manual_protocol.md`         | English instructions with reaction and plate maps |
-| `assembly_protocol.py`       | Golden Gate setup and thermocycling               |
-| `transformation_protocol.py` | cell transfer, heat shock, recovery               |
-| `plating_protocol.py`        | dilution and selective plating                    |
+```toml lab.toml
+[build]
+entry = "src/programs/main.lab"
+target = "opentrons-ot2"
+
+[inventory]
+materials = ["B0015", "B0034", "BsaI", "DH5alpha", "GFP", "J23101", "pSB1C3"]
+artifacts = []
+```
+
+```shell
+lab build
+```
+
+```
+Built tet-reporter 0.1.0 (1 modules)
+  Artifacts: .lab/build
+  Target opentrons-ot2: .lab/build/opentrons-ot2
+
+Robot protocols:
+  .lab/build/opentrons-ot2/wave-001/assembly_protocol.py
+  .lab/build/opentrons-ot2/wave-002/plating_protocol.py
+  .lab/build/opentrons-ot2/wave-002/transformation_protocol.py
+```
+
+`lab build --target <name>` compiles for a different profile, and
+`lab build --no-target` stops at portable module IR. The output is one
+directory per planning wave, all projected from a single validated execution
+plan:
+
+| Path                       | What it is                                          |
+| -------------------------- | --------------------------------------------------- |
+| `dependency_manifest.json` | the machine-readable graph, waves, and blockers     |
+| `dependency_report.md`     | a human dependency and blocker summary              |
+| `manual_protocol.md`       | English instructions with reaction and plate maps   |
+| `wave-001/`                | Golden Gate setup and thermocycling                 |
+| `wave-002/`                | transformation, then dilution and selective plating |
+
+Artifacts in the same wave have no ordering constraint between them, so a
+wave is a single robot run over a single deck. Wave 2 cannot start until
+wave 1's plasmid physically exists and has been accepted.
 
 Nothing in your source named Golden Gate, heat shock, a deck slot, or a
 pipette. The source said `realize`, `transform`, `recover`, `dilute`,
 `plate`; the [Opentrons OT-2 backend](/docs/backends/opentrons-ot2) chose
-the chemistry and the hardware. A different target may choose differently,
-or reject a design it cannot lower.
+the chemistry and the hardware. Point `--target` at a profile declaring
+`backend = "opentrons.flex"` and the same program compiles for an
+[Opentrons Flex](/docs/backends/opentrons-flex) instead, emitting JSON
+protocols rather than Python. A different target may choose differently, or
+reject a design it cannot lower.
 
 <Callout kind="note">
   **Generated protocols are not qualified protocols.** Before anyone runs this,

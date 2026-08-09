@@ -13,6 +13,10 @@ const references = [
     to: '/docs/backends/opentrons-ot2',
     label: 'How the OT-2 backend is built',
   },
+  {
+    to: '/docs/backends/opentrons-flex',
+    label: 'The same operations, emitted for a Flex',
+  },
 ]
 
 export function InstrumentsSection() {
@@ -22,7 +26,7 @@ export function InstrumentsSection() {
         <SectionIntro
           className="max-w-3xl"
           kicker="For whoever wires the instruments"
-          lede="Backends never see source. They consume verified protocol operations across a typed boundary, which means adding an instrument is implementing that boundary rather than reimplementing the language. Everything above it arrives intact: the type checking, the affine material-flow verifier, the acceptance coverage. The OT-2 backend is the one that exists, and what it emits is checked against the official Opentrons simulator."
+          lede="Backends never see source. They consume verified protocol operations across a typed boundary, which means adding an instrument is implementing that boundary rather than reimplementing the language. Everything above it arrives intact: the type checking, the affine material-flow verifier, the acceptance coverage. Two benches consume that boundary today. The OT-2 emits Python and the Flex emits JSON protocols, from one program and one plan, each checked against Opentrons' own analyzer. Hamilton STAR is next, and it is the one that leaves the Opentrons family."
           title="A new machine is a compiler target."
           tone="dark"
         />
