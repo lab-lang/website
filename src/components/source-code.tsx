@@ -57,15 +57,18 @@ const LAB_RULES: [string, string][] = [
    * An artifact instance: an optional provenance verb, the kind's word, and
    * the name it declares. The word belongs to a package rather than to the
    * grammar, so it is matched by shape and coloured as the declared name it
-   * is, not from a list and not as a keyword.
+   * is, not from a list and not as a keyword. Leading spaces are allowed
+   * because an instance also sits inside a `buy:`/`build:` provenance block;
+   * the keyword guard keeps `match growth:` and `state observations:` from
+   * reading as kind-and-name.
    */
   [
     'kind',
-    String.raw`(?<=^(?:build |buy )?)(?!(?:${LAB_KEYWORDS})\b)[a-z_][a-z0-9_]*(?= [A-Za-z_][A-Za-z0-9_]*:?$)`,
+    String.raw`(?<=^ *(?:build |buy )?)(?!(?:${LAB_KEYWORDS})\b)[a-z_][a-z0-9_]*(?= [A-Za-z_][A-Za-z0-9_]*:?$)`,
   ],
   [
     'inst',
-    String.raw`(?<=^(?:build |buy )?[a-z_][a-z0-9_]* )[A-Za-z_][A-Za-z0-9_]*(?=:|$)`,
+    String.raw`(?<=^ *(?:build |buy )?(?!(?:${LAB_KEYWORDS})\b)[a-z_][a-z0-9_]* )[A-Za-z_][A-Za-z0-9_]*(?=:|$)`,
   ],
   ['kw', String.raw`(?<!\.)\b(?:${LAB_KEYWORDS})\b`],
   ['konst', String.raw`\b(?:None|true|false)\b`],

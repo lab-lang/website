@@ -120,14 +120,20 @@ imported kind. There are no string identifiers scattered through a design:
 ```lab
 use std.bio.designs
 
-buy part J23101
-buy backbone pSB1C3
-buy chassis DH5alpha
-buy antibiotic chloramphenicol
+buy:
+  part J23101
+  backbone pSB1C3
+  chassis DH5alpha
+  antibiotic chloramphenicol
 
-buy restriction_enzyme BsaI:
-  digest_temperature = 37 C
+  restriction_enzyme BsaI:
+    digest_temperature = 37 C
 ```
+
+A provenance verb followed by `:` opens a block and states one origin over
+everything inside; each line is the instance form without a verb, and each
+is its own declaration. A single item stays one line — `buy backbone
+pSB1C3` — and `build:` groups the same way.
 
 A bought item's external identity, meaning what a supplier's order names,
 defaults to the declared name. It is written as an `identity` property only

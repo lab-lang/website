@@ -106,22 +106,23 @@ use std.bio.designs
 use std.bio.golden_gate
 use std.lab.plasmid
 
-buy part J23101
-buy part B0034
-buy part GFP
-buy part B0015
-buy backbone pSB1C3
-buy antibiotic chloramphenicol
+buy:
+  part J23101
+  part B0034
+  part GFP
+  part B0015
+  backbone pSB1C3
+  antibiotic chloramphenicol
 
-buy restriction_enzyme BsaI:
-  digest_temperature = 37 C
+  restriction_enzyme BsaI:
+    digest_temperature = 37 C
 
-buy chassis DH5alpha:
-  heat_shock_temperature = 42 C
-  recovery_duration = 60 min
+  chassis DH5alpha:
+    heat_shock_temperature = 42 C
+    recovery_duration = 60 min
 
 /** The GFP reporter under a strong constitutive promoter. */
-plasmid reporter:
+build plasmid reporter:
   sequence = dna("GCTAGCGGATCCATGACCATGATTACGCCAAGCTTGAATTC")
   backbone = pSB1C3
   components = [J23101, B0034, GFP, B0015]
@@ -136,7 +137,7 @@ plasmid reporter:
   accept concentration >= 100 ng/uL
 
 /** The reporter carried in a cloning strain. */
-strain reporter_host:
+build strain reporter_host:
   chassis = DH5alpha
   plasmids = [reporter]
   selection = chloramphenicol
@@ -173,13 +174,15 @@ workflow main() -> (
 
 ### Where a thing came from is a fact about the thing
 
-`buy part J23101` declares a value of type `Part` for something a supplier
-lists. Being bought is stated per thing rather than per kind, so `plasmid
-reporter:` and `buy plasmid reference_gfp:` declare the same kind of thing
-and differ only in where it came from. `require`, `accept`, and a place in
-the build order attach to what is built; an `identity` to order against
-attaches to what is bought, and claiming to build something bought is
-refused.
+`part J23101` under `buy:` declares a value of type `Part` for something a
+supplier lists — the block states one origin over everything inside it, and
+`buy part J23101` on its own line declares the same thing where there is
+only one. Being bought is stated per thing rather than per kind, so `build
+plasmid reporter:` and `buy plasmid reference_gfp:` declare the same kind of
+thing and differ only in where it came from. `require`, `accept`, and a
+place in the build order attach to what is built; an `identity` to order
+against attaches to what is bought, and claiming to build something bought
+is refused.
 
 An external identity defaults to the declared name, and is written out only
 where the two differ:

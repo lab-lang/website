@@ -25,16 +25,17 @@ tet_reporter = regulated_expression(pTet, sfGFP)`
 export const heroPlasmidExample = `use std.bio.designs
 use std.bio.golden_gate
 
-buy part J23101
-buy part B0034
-buy part GFP
-buy part B0015
-buy backbone pSB1C3
-buy restriction_enzyme BsaI:
-  digest_temperature = 37 C
+buy:
+  part J23101
+  part B0034
+  part GFP
+  part B0015
+  backbone pSB1C3
+  restriction_enzyme BsaI:
+    digest_temperature = 37 C
 
 /** The GFP reporter under a strong constitutive promoter. */
-plasmid reporter:
+build plasmid reporter:
   sequence = dna("ACGTACGT")
   backbone = pSB1C3
   components = [J23101, B0034, GFP, B0015]
@@ -55,14 +56,14 @@ use std.lab.plasmid
 
 use reporter.plasmid
 
-buy chassis DH5alpha:
-  heat_shock_temperature = 42 C
-  recovery_duration = 60 min
-
-buy antibiotic chloramphenicol
+buy:
+  chassis DH5alpha:
+    heat_shock_temperature = 42 C
+    recovery_duration = 60 min
+  antibiotic chloramphenicol
 
 /** The reporter carried in a cloning strain. */
-strain reporter_host:
+build strain reporter_host:
   chassis = DH5alpha
   plasmids = [reporter]
   selection = chloramphenicol
