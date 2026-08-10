@@ -1,5 +1,33 @@
 import type { SourceLanguage } from '@/components/source-code'
-import { generatedProtocol } from '@/data/generated-ot2'
+
+/** The build every file below expresses, as Lab expresses it. */
+export const labSource = `use std.bio.build
+use std.bio.designs
+use std.bio.golden_gate
+
+buy:
+  part J23101
+  part B0034
+  part GFP
+  part B0015
+  backbone pSB1C3
+  restriction_enzyme BsaI:
+    digest_temperature = 37 C
+
+/** The GFP reporter under a strong constitutive promoter. */
+build plasmid reporter:
+  sequence = dna("ACGTACGT")
+  backbone = pSB1C3
+  components = [J23101, B0034, GFP, B0015]
+  restriction_enzyme = BsaI
+  assembly_replicates = 1
+
+  require topology == circular
+  accept sequence == design.sequence
+
+workflow build_reporter() -> Material<Plasmid>:
+  product <- realize reporter
+  return product`
 
 /*
  * The same build, as each system asks you to express it. These are written by
@@ -286,14 +314,112 @@ for component, volume in (
 harness = ProtocolHarness(protocol=protocol, base_dir=".")
 harness.run()`
 
+const opentrons = `"""Golden Gate assembly of the GFP reporter, written against the Opentrons API.
+
+One 20 uL BsaI reaction, cycled between digestion and ligation and then
+heat-killed. Transformation, plating, and screening are separate protocols.
+"""
+
+from opentrons import protocol_api
+
+metadata = {
+    "protocolName": "Golden Gate assembly: GFP reporter",
+    "author": "Your laboratory",
+    "description": "J23101, B0034, GFP and B0015 into pSB1C3, cut with BsaI.",
+}
+
+requirements = {"robotType": "OT-2", "apiLevel": "2.21"}
+
+# Aluminium block on the temperature module, held at 4 C. Every address here
+# is a promise about where someone put a tube this morning.
+REAGENT_WELL = {
+    "nuclease_free_water": "A3",
+    "t4_ligase_buffer": "D2",
+    "t4_ligase": "C2",
+    "BsaI": "B2",
+    "pSB1C3": "A2",
+    "J23101": "D1",
+    "B0034": "B1",
+    "GFP": "C1",
+    "B0015": "A1",
+}
+
+# 20 uL total: the parts and the backbone at 2 uL each, the rest master mix.
+MASTER_MIX_UL = {
+    "nuclease_free_water": 2,
+    "t4_ligase_buffer": 2,
+    "t4_ligase": 4,
+    "BsaI": 2,
+}
+DNA_UL = 2
+DNA = ["pSB1C3", "J23101", "B0034", "GFP", "B0015"]
+
+REACTION_WELL = "A1"
+REACTION_UL = 20
+
+CYCLES = 75
+DIGEST_C = 37
+DIGEST_MINUTES = 2
+LIGATE_C = 16
+LIGATE_MINUTES = 5
+
+
+def run(protocol: protocol_api.ProtocolContext) -> None:
+    temperature_module = protocol.load_module("temperature module gen2", 1)
+    reagents = temperature_module.load_labware(
+        "opentrons_24_aluminumblock_nest_1.5ml_snapcap"
+    )
+
+    thermocycler = protocol.load_module("thermocycler module gen2")
+    reaction_plate = thermocycler.load_labware(
+        "nest_96_wellplate_100ul_pcr_full_skirt"
+    )
+
+    tips = protocol.load_labware("opentrons_96_tiprack_20ul", 2)
+    p20 = protocol.load_instrument("p20_single_gen2", "left", tip_racks=[tips])
+
+    temperature_module.set_temperature(4)
+    thermocycler.open_lid()
+
+    reaction = reaction_plate[REACTION_WELL]
+    additions = list(MASTER_MIX_UL.items()) + [(name, DNA_UL) for name in DNA]
+    for reagent, volume in additions:
+        p20.transfer(
+            volume, reagents[REAGENT_WELL[reagent]], reaction, new_tip="always"
+        )
+
+    p20.pick_up_tip()
+    p20.mix(3, 15, reaction)
+    p20.drop_tip()
+
+    thermocycler.close_lid()
+    thermocycler.set_lid_temperature(105)
+    thermocycler.execute_profile(
+        steps=[
+            {"temperature": DIGEST_C, "hold_time_minutes": DIGEST_MINUTES},
+            {"temperature": LIGATE_C, "hold_time_minutes": LIGATE_MINUTES},
+        ],
+        repetitions=CYCLES,
+        block_max_volume=REACTION_UL,
+    )
+
+    # Final ligation, then kill both enzymes before the plate comes off.
+    thermocycler.set_block_temperature(50, hold_time_minutes=5)
+    thermocycler.set_block_temperature(80, hold_time_minutes=10)
+    thermocycler.set_block_temperature(4)
+    thermocycler.deactivate_lid()
+    thermocycler.open_lid()
+
+    # Whether the construct that comes off this plate is the right one, and
+    # what measurement would settle it, are not things this file can say.
+    protocol.comment("Assembly complete. Hold at 4 C for transformation.")`
+
 export interface Implementation {
   id: string
   label: string
   filename: string
   language: SourceLanguage
   href: string
-  /** True for the one file here nobody types: the toolchain emits it. */
-  generated: boolean
   note: string
   body: string
 }
@@ -305,9 +431,8 @@ export const implementations: Implementation[] = [
     filename: 'assembly_protocol.py',
     language: 'python',
     href: 'https://docs.opentrons.com/',
-    generated: true,
-    note: 'Deck slots, labware load names, pipette mounts, transfer volumes: the shape of what you would otherwise write and maintain against the Opentrons Python API. Here it is the toolchain’s output rather than anyone’s source, replaced on every build and checked against the official Opentrons simulator.',
-    body: generatedProtocol,
+    note: 'Deck slots, labware load names, pipette mounts, transfer volumes: what you write and maintain against the Opentrons Python API, and what you rewrite when the bench changes underneath it. Every well address is a promise about where someone put a tube. The construct being assembled is a comment at best, and what would make it acceptable has nowhere to go.',
+    body: opentrons,
   },
   {
     id: 'pylabrobot',
@@ -315,7 +440,6 @@ export const implementations: Implementation[] = [
     filename: 'assembly.py',
     language: 'python',
     href: 'https://github.com/PyLabRobot/pylabrobot',
-    generated: false,
     note: 'One interface across vendors, driven interactively or from a script. It stops at liquid handling, which is why it is short: the thermocycling, the transformation, and every acceptance criterion are not expressible here.',
     body: pyLabRobot,
   },
@@ -325,7 +449,6 @@ export const implementations: Implementation[] = [
     filename: 'build_reporter.py',
     language: 'python',
     href: 'https://buildcompiler.readthedocs.io/en/latest/',
-    generated: false,
     note: 'The closest peer here, and a compiler in the same sense: it plans MoClo levels, checks a design against indexed inventory, and picks the route needing the least new build work. Lab does none of that. The difference is shape rather than length — the design is SBOL, so parts and their roles are constructed object by object, and what the construct must satisfy has nowhere in that document to go.',
     body: buildCompiler,
   },
@@ -335,7 +458,6 @@ export const implementations: Implementation[] = [
     filename: 'assembly.json',
     language: 'json',
     href: 'https://github.com/autoprotocol/autoprotocol-python',
-    generated: false,
     note: 'The reaction as a machine-readable instruction list. It travels between facilities, which the Python does not, and still says nothing about what the construct is for or what would make it acceptable.',
     body: autoprotocol,
   },
@@ -345,7 +467,6 @@ export const implementations: Implementation[] = [
     filename: 'assembly.py',
     language: 'python',
     href: 'https://github.com/Bioprotocols/labop',
-    generated: false,
     note: 'A community standard, built on SBOL, so one protocol renders either as machine steps or as text a person can follow. It describes the procedure; what the construct must satisfy lives in the SBOL design beside it rather than in one artifact a compiler checks across.',
     body: labop,
   },

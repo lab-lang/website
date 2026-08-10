@@ -4,8 +4,7 @@ import { Link } from 'react-router-dom'
 
 import { SectionBody, SectionIntro } from '@/components/section'
 import { SourcePanel } from '@/components/why/source-panel'
-import { implementations } from '@/data/comparison'
-import { labSource } from '@/data/generated-ot2'
+import { implementations, labSource } from '@/data/comparison'
 
 /** The argument, made by showing both files rather than describing them. */
 export function ComparisonSection() {
@@ -44,13 +43,7 @@ export function ComparisonSection() {
             <div className="mb-3 flex h-9 shrink-0 items-center">
               <span className="micro text-ink/40">What you write</span>
             </div>
-            <SourcePanel
-              body={labSource}
-              filename="build.lab"
-              language="lab"
-              role="written"
-              tone="written"
-            />
+            <SourcePanel body={labSource} filename="build.lab" language="lab" />
           </div>
 
           <div className="flex min-w-0 flex-col">
@@ -89,8 +82,6 @@ export function ComparisonSection() {
                   body={implementation.body}
                   filename={implementation.filename}
                   language={implementation.language}
-                  role={implementation.generated ? 'generated' : undefined}
-                  tone="generated"
                 />
               </div>
             </div>
@@ -115,13 +106,14 @@ export function ComparisonSection() {
         </p>
 
         <p className="prose-lab mt-5 max-w-3xl text-[13.5px] leading-[1.7] text-umber-soft">
-          Only the Opentrons file is generated:{' '}
+          Every file here is written by hand, from each project&rsquo;s own
+          documented usage, and scoped to the work that module covers. The
+          Opentrons protocol is the one you never have to write:{' '}
           <code className="font-mono text-[0.95em]">
             labc build.lab --emit opentrons-assembly
           </code>{' '}
-          produces it byte for byte from the module on the left. The rest are
-          written by hand, from each project&rsquo;s own documented usage, and
-          scoped to the work that module covers.{' '}
+          produces a runnable OT-2 protocol for this same build from the module
+          on the left.{' '}
           <Link className="rule-link text-ink" to="/docs/compiler/pipeline">
             Every stage in between has a name you can ask for
           </Link>

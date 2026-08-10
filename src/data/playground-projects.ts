@@ -53,38 +53,39 @@ const inventoryFile: PlaygroundFile = {
 
 use std.bio.designs
 
-// Constitutive promoters of differing strength, the shared ribosome binding
-// site and terminator, and the fluorescent reporters.
-buy part J23101
-buy part J23106
-buy part B0034
-buy part B0015
-buy part GFP
-buy part RFP
+buy:
+  // Constitutive promoters of differing strength, the shared ribosome binding
+  // site and terminator, and the fluorescent reporters.
+  part J23101
+  part J23106
+  part B0034
+  part B0015
+  part GFP
+  part RFP
 
-// Assembly backbone and the type IIS enzyme that opens it.
-buy backbone pSB1C3
+  // Assembly backbone and the type IIS enzyme that opens it.
+  backbone pSB1C3
 
-// BsaI cuts at 37 C; every plasmid it opens digests the same way.
-buy restriction_enzyme BsaI:
-  digest_temperature = 37 C
-  digest_duration = 2 min
+  // BsaI cuts at 37 C; every plasmid it opens digests the same way.
+  restriction_enzyme BsaI:
+    digest_temperature = 37 C
+    digest_duration = 2 min
 
-// Host organisms. DH5alpha is a cloning strain; BL21 is an expression strain.
-// Both are transformed the way competent cells are: chilled, shocked, recovered.
-buy chassis DH5alpha:
-  heat_shock_temperature = 42 C
-  cold_incubation = 30 min
-  recovery_temperature = 37 C
-  recovery_duration = 60 min
+  // Host organisms. DH5alpha is a cloning strain; BL21 is an expression strain.
+  // Both are transformed the way competent cells are: chilled, shocked, recovered.
+  chassis DH5alpha:
+    heat_shock_temperature = 42 C
+    cold_incubation = 30 min
+    recovery_temperature = 37 C
+    recovery_duration = 60 min
 
-buy chassis BL21:
-  heat_shock_temperature = 42 C
-  cold_incubation = 30 min
-  recovery_temperature = 37 C
-  recovery_duration = 60 min
+  chassis BL21:
+    heat_shock_temperature = 42 C
+    cold_incubation = 30 min
+    recovery_temperature = 37 C
+    recovery_duration = 60 min
 
-buy antibiotic chloramphenicol
+  antibiotic chloramphenicol
 `,
 }
 
@@ -111,7 +112,7 @@ use golden_gate.designs.inventory
  * J23101 drives GFP through the shared RBS and terminator, assembled by Golden
  * Gate with BsaI. Accepted only if the built sequence matches the design.
  */
-plasmid composite_plasmid_1:
+build plasmid composite_plasmid_1:
   sequence = dna("GCTAGCGGATCCATGACCATGATTACGCCAAGCTTGAATTC")
   backbone = pSB1C3
   components = [J23101, B0034, GFP, B0015]
@@ -137,7 +138,7 @@ plasmid composite_plasmid_1:
  * J23106 promoter, so the panel reports two promoter strengths against two
  * reporters.
  */
-plasmid composite_plasmid_2:
+build plasmid composite_plasmid_2:
   sequence = dna("GCTAGCGGATCCATGGCCTCCTCCGAGGACGTCATCAAGGAATTC")
   backbone = pSB1C3
   components = [J23106, B0034, RFP, B0015]
@@ -179,7 +180,7 @@ use golden_gate.designs.inventory
 use golden_gate.designs.plasmids
 
 /** The GFP reporter carried in the DH5alpha cloning strain. */
-strain composite_strain_1:
+build strain composite_strain_1:
   chassis = DH5alpha
   plasmids = [composite_plasmid_1]
   selection = chloramphenicol
@@ -196,7 +197,7 @@ strain composite_strain_1:
   colony_volume = 4 uL
 
 /** The RFP reporter carried in the DH5alpha cloning strain. */
-strain composite_strain_2:
+build strain composite_strain_2:
   chassis = DH5alpha
   plasmids = [composite_plasmid_2]
   selection = chloramphenicol
@@ -213,7 +214,7 @@ strain composite_strain_2:
   colony_volume = 4 uL
 
 /** The GFP reporter carried in the BL21 expression strain. */
-strain composite_strain_3:
+build strain composite_strain_3:
   chassis = BL21
   plasmids = [composite_plasmid_1]
   selection = chloramphenicol
@@ -230,7 +231,7 @@ strain composite_strain_3:
   colony_volume = 4 uL
 
 /** The RFP reporter carried in the BL21 expression strain. */
-strain composite_strain_4:
+build strain composite_strain_4:
   chassis = BL21
   plasmids = [composite_plasmid_2]
   selection = chloramphenicol
