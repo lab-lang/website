@@ -1,17 +1,36 @@
 ---
 title: LAIR dialects
 eyebrow: LAIR
-description: Design, Workflow, and Protocol, three Pliron-backed dialects, and the one pass that checks them.
+description: 'Three dialects, three questions: what should exist, what has to happen, and what a chosen target will do.'
 group: Toolchain
 order: 220
 ---
+
+LAIR is the Lab Automation Intermediate Representation: the form a Lab
+program takes inside the compiler, between the checked source module and
+whatever a backend finally generates. It preserves biological and physical
+meaning, sequences, materials, evidence, while the program is progressively
+lowered from artifact intent toward laboratory execution, and it is
+organized as three dialects, one per level of commitment.
+
+The three dialects are the compiler's core progression, design to workflow
+to protocol, made concrete in IR. Each dialect answers a more committed
+question than the one before it. **Design** answers _what should exist_: an
+artifact and the claims that must hold of it, straight from the Lab source.
+**Workflow** answers _what has to happen_: the materials that move through a
+build for that artifact to exist, with no decision yet about who or what
+performs any step. **Protocol** answers _what a chosen target will do_:
+methods selected, steps concrete enough to hand off. A backend reads
+Protocol operations and nothing earlier, and everything it emits, a typeset
+protocol for a person or a program for a robot, is a rendering of what this
+dialect holds.
 
 LAIR is built on [Pliron](https://github.com/pliron-org/pliron), an
 MLIR-style IR framework. Each stage of lowering introduces operations from a
 different dialect, and a module's declared stage determines which dialects
 may coexist in it.
 
-## Design: artifact intent
+## Design: what should exist
 
 The Design dialect holds artifact intent with no target chosen yet. Its
 central operation, `design.plasmid`, carries the artifact name, sequence,
@@ -22,7 +41,7 @@ uppercase, and unambiguous (`A`, `C`, `G`, or `T` only), and rejects any
 topology other than circular, since that's the only topology the toolchain
 currently models.
 
-## Workflow: target-neutral realization
+## Workflow: what has to happen
 
 The Workflow dialect describes materials moving through a build without
 choosing how any step is physically performed. Its material types,
@@ -35,7 +54,7 @@ material flow through a workflow is just dataflow through the IR. Every
 operation's own verifier checks that its attributes and operand types match
 what it claims to produce.
 
-## Protocol: target-selected
+## Protocol: what a chosen target will do
 
 The Protocol dialect is where a target's specifics enter the picture: an
 assembly method (`Gibson` or `GoldenGate`), a wider set of material types

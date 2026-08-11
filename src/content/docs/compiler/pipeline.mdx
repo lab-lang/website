@@ -1,22 +1,35 @@
 ---
 title: Compiler pipeline
 eyebrow: Compiler
-description: Progressive, inspectable lowering from source text to a generated protocol.
+description: A design becomes a workflow, a workflow becomes a protocol, and a protocol becomes instructions for a person or a robot.
 group: Toolchain
 order: 210
 ---
 
-Each stage has a name you can ask for on the command line, so specialization
-decisions stay visible rather than implied by a library default.
+The pipeline is one idea applied repeatedly: take a description of what
+should exist and make it progressively more concrete until something in the
+world can act on it. A `.lab` file describes a **design**: an artifact, the
+constraints it must satisfy, the evidence that would prove it worked.
+Lowering restates that design as a **workflow**: the materials that must
+move through a build for the artifact to exist, with no opinion yet about
+who or what performs any step. Selecting a target turns the workflow into a
+**protocol**: the same build committed to concrete methods on a specific
+instrument. A backend then turns the protocol into its runnable forms: a
+typeset document a person follows at the bench, a program a robot runs, or
+both from the same compilation.
+
+Each of those transitions is a stage with a name you can ask for on the
+command line, so specialization decisions stay visible rather than implied
+by a library default.
 
 | Stage   | Produces                   | What happens                                                                                                                                                                                    |
 | ------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Parse   | Spanned source AST         | Surface syntax becomes a tree with byte offsets attached, for diagnostics.                                                                                                                      |
 | Check   | `CheckedModule`            | Imports resolve, types check, action contracts resolve, and affine material flow is verified. This is the portable source-compilation boundary: the last point that knows source syntax at all. |
-| Lower   | `PortableLairProgram`      | The checked module becomes LAIR: a Design layer for artifact intent, a Workflow layer for target-neutral realization.                                                                           |
+| Lower   | `PortableLairProgram`      | The checked module becomes LAIR, the Lab Automation Intermediate Representation: a Design layer for artifact intent, a Workflow layer for target-neutral realization.                           |
 | Select  | `ProtocolLairProgram`      | Workflow operations are replaced by Protocol operations and fully eliminated. Material linearity is re-verified at this mandatory backend boundary.                                             |
 | Compile | A backend's `Program` type | A backend consumes verified Protocol operations and plans an execution: for either Opentrons bench, deck, well, and labware allocation.                                                         |
-| Emit    | `ArtifactBundle`           | The backend's plan becomes files: generated Python for a robot, or a manual protocol for a person.                                                                                              |
+| Emit    | `ArtifactBundle`           | The backend's plan becomes files: generated Python for a robot, and a typeset PDF protocol for a person, rendered through Typst from the same plan.                                             |
 
 ## Two boundaries worth knowing by name
 
