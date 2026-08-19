@@ -1,0 +1,120 @@
+---
+title: Inheco ODTC
+eyebrow: Backends
+description: A thermocycler station, not a compilation target. A workcell with one lifts thermal work off the operator and drops the prose.
+group: Backends
+order: 350
+---
+
+The Inheco ODTC (On-Deck Thermal Cycler) is not a value of `[target]
+backend`. It is a station kind, `inheco.odtc`, that a workcell profile
+(`backend = "workcell"`) declares beside its liquid handler: one bench of
+stations, with a human carrying labware between them. Declaring one
+changes what a build emits: every thermal step the
+[STAR backend](/docs/backends/hamilton-star) would hand to the operator as
+prose becomes a machine-executed program instead, with handoffs planned
+around it. A bench upgrade is a profile edit; no program changes.
+
+The driver speaks the device's SiLA 1.x SOAP protocol over plain HTTP,
+with no vendor library anywhere in the stack: control is HTTP and XML end
+to end. The station adapter lives in
+[`lab-instruments`](https://github.com/lab-lang/lab/tree/master/crates/lab-instruments),
+which models capabilities rather than device categories: a thermocycler is
+anything that runs a thermal profile, and the one synchronization primitive
+a compiled plan may rely on is awaiting profile completion.
+
+## Declaring it
+
+```toml targets/workcell-star.toml
+[[station]]
+name = "odtc-1"
+kind = "inheco.odtc"
+address = "169.254.10.40:8080"
+```
+
+The `address` is a bench property and nothing more: compiled artifacts
+never depend on it, and `lab run` reads only its own flag,
+`--station odtc-1=<ip:port>`. The device conventionally answers on port
+8080, often on a link-local 169.254/16 network, and the port is never
+appended for you. A workcell holds at most one cycler station.
+
+## The document is device-neutral
+
+What the build emits for the cycler is a `lab.thermocycle-run.v0` document,
+one per lifted thermal step, written under `stations/<name>/` in the wave
+directory. It names no vendor; the station's kind selects the executor. The
+document carries the plate that rides through, the thermal profile, an
+optional final hold temperature, and a fill volume:
+
+```json stations/odtc-1/transformation_heat_shock.odtc.json
+{
+  "format": "lab.thermocycle-run.v0",
+  "id": "transformation_heat_shock",
+  "title": "Cold hold and heat shock",
+  "plate": "reaction_plate",
+  "profile": {
+    "stages": [
+      {
+        "steps": [
+          { "celsius": 4.0, "hold_seconds": 1800.0 },
+          { "celsius": 42.0, "hold_seconds": 60.0 },
+          { "celsius": 4.0, "hold_seconds": 120.0 }
+        ],
+        "repeats": 1
+      }
+    ]
+  },
+  "final_hold_celsius": 4.0,
+  "fill_volume_ul": 22.0
+}
+```
+
+A profile is stages of repeated steps, and a step is one shape: a plateau,
+ramp to a temperature and hold it. Each step may state its own ramp rate
+and lid temperature; an unset field means the device's maximum ramp and
+default lid, and is omitted from the JSON entirely. A Golden Gate assembly
+document is the same schema at scale: seventy-five repeats of the 37 °C
+and 16 °C pair, then the inactivation stage.
+
+## Where the temperatures come from
+
+The chemistry is stated by the design, not the bench. Digest and ligation
+temperatures, durations, and cycle counts are properties on the `.lab`
+source, preserved verbatim through both LAIR dialects and interpreted only
+when a backend renders a procedure. The STAR planner turns them into a
+thermal requirement that shadows one operator step of the run: a workcell
+with a cycler executes the profile and drops the prose, and one without
+keeps the prose verbatim, which is exactly what a bare STAR build emits.
+
+## Running it
+
+`lab run` validates every thermal document against the cycler's envelope at
+load time, before any motion: block 4.0 to 99.0 °C, lid 30.0 to 115.0 °C,
+ramps up to 4.4 °C/s. An unrunnable profile fails with the offending stage
+and step named, the same eagerness STAR frames get.
+
+Handoffs at the cycler get door choreography. The runner opens the door
+before prompting the operator to carry the plate, and closes it after; when
+the plate leaves the cycler, the runner stops the device first, because
+nothing holds temperature for a plate that is out. After the profile
+completes, the runner drains any device warnings into the event stream and,
+if the document states a final hold, holds the block there.
+
+The device reports no run progress, so the runner does not pretend it does:
+completion is awaited, not watched. Under `lab simulate`, thermal durations
+are the one exact number in the model, computed from the profile's ramps
+and holds rather than estimated, which is how a wave's attended time (a few
+handoffs) separates honestly from its walkaway time (hours of cycling).
+
+## Current boundary
+
+Experimental, and a station rather than a backend, so the workcell's
+limits are its limits: one cycler per bench, human transport, a linear
+coordination plan. The compiler never emits per-step
+ramp rates or lid temperatures today, though the format and the device both
+support them. The document's fill volume does not yet reach the device: the
+driver classifies the vendor's fluid quantity from its own 20 µL default
+rather than the document's value. The station runs one profile at a time,
+and only the first assembly or strain in a design contributes the thermal
+requirement. Programs require laboratory review and qualification before
+physical execution.

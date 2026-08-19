@@ -1,0 +1,156 @@
+---
+title: Hamilton STAR
+eyebrow: Backends
+description: The third backend, and the first off the Opentrons family. The same verified operations, emitted as firmware frames that `lab run` replays verbatim.
+group: Backends
+order: 330
+---
+
+The STAR backend takes the same `ProtocolLairProgram` the
+[OT-2](/docs/backends/opentrons-ot2) and [Flex](/docs/backends/opentrons-flex)
+backends take, plans the same build, and emits something neither of them
+could: `lab.star-run.v0` documents, ordered ASCII firmware frames for a
+Hamilton STAR or STARlet. There is no vendor application in the loop. The
+emitted document is the review boundary, and `lab run` replays its frames
+verbatim, adding only command ids.
+
+## Selecting it
+
+A profile's `[target] backend` key selects both the profile schema and the
+backend, exactly as it does for the Opentrons pair:
+
+```toml targets/hamilton-star.toml
+[target]
+backend = "hamilton.star"
+
+[machine]
+variant = "starlet"
+channels = 8
+
+[deck.carriers.tips]
+catalog = "tip_carrier_480"
+rail = 1
+
+[deck.carriers.plates_a]
+catalog = "plate_carrier_l5"
+rail = 9
+
+[deck.reaction_plate]
+site = "plates_a/1"
+labware = "pcr_plate_96"
+capacity = 96
+```
+
+```shell
+lab build --target hamilton-star
+```
+
+Every field defaults to the reference bench, so the two-line profile that
+states only the backend is already valid. `variant` is `"starlet"` (32 rails)
+or `"star"` (56 rails), and `channels` accepts exactly `8`: the backend plans
+for the standard 8-channel arm and rejects anything else in the profile
+rather than partway through planning.
+
+## A deck of carriers and rails
+
+The two Opentrons benches disagree about slot names; the STAR does not have
+slots at all. A `[deck.carriers.<name>]` table places a catalog carrier on a
+1-based rail, and every labware address is the string `"<carrier>/<site>"`
+with a 1-based site number: `"plates_a/1"`, `"tips/3"`. Carriers and labware
+come from a vendored Hamilton catalog inside the backend, four carriers and
+six labware today, with dimensions derived from PyLabRobot's Hamilton
+resource definitions. The catalog carries volume-to-height models, which is
+what lets planning place liquid heights (below).
+
+Validation is as strict as the other profiles, with rules only this deck
+needs: a carrier whose rail span runs off the machine, two carriers sharing
+a rail, a site number the carrier does not have, two pieces of labware
+claiming one site, and a declared `capacity` that disagrees with the
+catalog's are each a profile error with a sentence, not a robot-side
+surprise. Unknown keys are rejected, because a misspelled site silently
+falling back to a default is how a protocol ends up aspirating from the
+wrong place.
+
+There is no `[deck.trash]` and there are no module tables. The tip waste
+position is computed from the deck geometry, and thermal hardware is exactly
+what this bench does not have, which is what pairing it with an
+[Inheco ODTC](/docs/backends/inheco-odtc) station fixes.
+
+## Firmware frames, not a protocol document
+
+Each wave directory holds one `<run_id>.star.json` per robot run
+(`assembly_run`, `transformation_mix_run`, `transformation_recovery_run`,
+`plating_run`), an `automation_manifest.json` carrying the serialized
+execution plan, and Typst operator documents typeset to PDF during the
+build. A run document lists its machine variant, channel count, and ordered
+steps, each step one firmware frame with the module, code, and a
+human-readable description beside it, followed by the `manual_after` steps
+the operator performs when the machine stops.
+
+The backend's tests pin emitted frames byte-for-byte, down to the
+liquid-class volume correction, and round-trip every frame through the
+driver's frame parser. Two commands exercise a generated package without
+hardware:
+
+```shell
+lab run .lab/build/hamilton-star/wave-001 --dry-run
+lab simulate
+```
+
+The dry run validates the package, parses every frame, and prints the full
+step table. The simulator walks the package on a virtual clock with
+per-frame duration estimates and writes a `sim-trace.json`.
+
+## Liquid heights are planned, not probed
+
+The planner tracks every well's volume across the run and computes each
+aspirate and dispense height from the catalog's height models, with named
+margins for immersion depth, bottom standoff, clearances, and per-vessel
+dead volumes. Where a model approximates, a cylinder standing in for a
+conical tube, the margins absorb the error and the aspirate floor clamps
+the result. Capacitive liquid-level detection is off by default and opt-in
+per bench with `lld = "gamma"`; it refines a planned height and is never a
+substitute for one. Transfers are choreographed for the 8-channel arm:
+column batching where the plate layout allows it, multi-dispense chunking
+where volumes do.
+
+The constraint rules match the Flex backend's, the science is the same,
+plus the vessel-volume checks a deck without modules needs: everything a
+well accumulates must fit the labware planning placed it in, because with
+no thermocycler lid to squeeze under, the well itself is the ceiling.
+
+## What is shared, and what is not
+
+The robot-neutral planning core is the same one the Opentrons backends sit
+on: provenance analysis over Protocol LAIR, build-graph projection and
+dependency waves, plate geometry and well allocation, the labware groupings
+every liquid-handler profile declares, and the report renderers. Backend
+identity enters that planning only as a parameter, so a capacity error
+names `hamilton.star`. Dependency-driven builds produce the same
+`wave-NNN` structure with the same wave semantics, one machine session per
+wave. Everything on the other side of the line is this machine's own:
+the carrier catalog, the liquid-state model, the choreography, the
+execution plan, and the frame emitters.
+
+## Thermal work leaves the deck
+
+A STAR deck has no thermocycler, so the thermal steps between liquid
+stages, cycling the assembly, the cold hold and heat shock, the recovery
+incubation, are emitted as operator instructions rather than machine
+commands. On a bench that owns a cycler, the workcell target closes that
+gap: the same build, with those steps lifted onto an
+[Inheco ODTC](/docs/backends/inheco-odtc) station and handoffs planned
+around them.
+
+## Current boundary
+
+Experimental, like every backend. The catalog covers four carriers and six
+labware; the arm is the 8-channel one only; on a firmware error the runner
+performs a Z-safety retract and aborts naming the failed step, with no
+automatic retry and no resume for a bare STAR package. This backend is
+reached through the `lab` CLI; `labc --backend` knows only the Opentrons
+pair. The shared limits also apply: no live inventory service, no inventory
+lot resolution, no SBOL ingestion, no overhang design, no source-concentration
+normalization, no DNA preparation between dependent waves, and no runtime
+evidence attached to acceptance decisions. Generated run documents require
+laboratory review and qualification before physical execution.
