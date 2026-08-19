@@ -119,10 +119,9 @@ export function ComparisonSection() {
           documented usage, and scoped to the work that module covers. The
           Opentrons protocol is the one you never have to write:{' '}
           <code className="font-mono text-[0.95em]">
-            labc {python ? 'build.py' : 'build.lab'} --emit opentrons-assembly
+            labc build.lab --emit opentrons-assembly
           </code>{' '}
-          produces a runnable OT-2 protocol for this same build from the module
-          on the left, and it is the same command either way in.{' '}
+          produces a runnable OT-2 protocol for this same build.{' '}
           <Link className="rule-link text-ink" to="/docs/compiler/pipeline">
             Every stage in between has a name you can ask for
           </Link>
