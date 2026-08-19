@@ -217,7 +217,6 @@ export function HeroSpecimen() {
 function Specimen({ onReplay }: { onReplay: () => void }) {
   const reducedMotion = usePrefersReducedMotion()
   const rootRef = useRef<HTMLDivElement | null>(null)
-  const paneRef = useRef<HTMLDivElement | null>(null)
   const started = useStarted(rootRef)
   const language = useCodeLanguage()
   const openingFile = files.find((f) => f.id === 'plasmid') ?? files[0]
@@ -290,17 +289,6 @@ function Specimen({ onReplay }: { onReplay: () => void }) {
       : complete
         ? opening
         : opening.slice(0, typed)
-
-  /*
-   * Follow the caret while the opening file is being written, and go back to
-   * the top once it is whole, so the file is read from its first line rather
-   * than left scrolled to its end.
-   */
-  useEffect(() => {
-    const pane = paneRef.current
-    if (!pane) return
-    pane.scrollTop = typing ? pane.scrollHeight : 0
-  }, [typing, visibleSource])
 
   /* A feature's arc draws once its identifier has been written. */
   const revealed = useMemo(
@@ -414,14 +402,9 @@ function Specimen({ onReplay }: { onReplay: () => void }) {
            * On a phone the pane cannot own vertical scroll: a fixed-height
            * inner scroller stacked in the page captures the swipe. A file
            * longer than the pane trails off behind the bottom fade, because
-           * the pane is an illustration, not a workbench; while the opening
-           * file is being typed the pane follows the caret instead, so the
-           * line being written is the line you can see.
+           * the pane is an illustration, not a workbench.
            */}
-          <div
-            className="scroll-fade-y h-[440px] overflow-hidden sm:h-[470px] sm:overflow-y-auto"
-            ref={paneRef}
-          >
+          <div className="scroll-fade-y h-[440px] overflow-hidden sm:h-[470px] sm:overflow-y-auto">
             <SourceCode
               cursor={typing}
               language={activeLanguage}
