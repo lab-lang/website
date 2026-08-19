@@ -11,7 +11,7 @@ export function CommunityPage() {
   usePageMeta({
     title: pageTitle('Community'),
     description:
-      'Where Lab is discussed and decided: issues, discussions, and a numbered log of every accepted tradeoff in the language.',
+      'Where Lab is discussed and decided: issues, discussions, and a numbered log of every accepted tradeoff in the compiler.',
     path: '/community',
   })
 

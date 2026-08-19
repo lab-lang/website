@@ -23,9 +23,10 @@ export function DecisionsSection() {
               code.&rdquo;
             </blockquote>
             <p className="prose-lab mt-6 text-[15px] leading-[1.72] text-[#f6ece0]/60">
-              Twenty-nine of these exist today. Nine are below, and the rest
-              live in the repository. Changing how the language works starts
-              with reading why it already works that way.
+              Thirty-nine of these exist today, covering the language, the
+              intermediate representation, and the compiler around them. Nine
+              are below, and the rest live in the repository. Changing how the
+              toolchain works starts with reading why it already works that way.
             </p>
             <p className="mt-6 font-mono text-[12px] text-[#f6ece0]/40">
               docs/README.md

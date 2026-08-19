@@ -1,5 +1,5 @@
 import type { SourceLanguage } from '@/components/source-code'
-import { reporterExample } from '@/data/examples'
+import { heroPlasmidExamplePython, reporterExample } from '@/data/examples'
 
 /**
  * The five artifacts below are what the toolchain actually produces for one
@@ -16,6 +16,18 @@ export interface Stage {
   description: string
   language: SourceLanguage
   body: string
+  /**
+   * Only the two stages that still know which frontend they came from carry
+   * these. Everything from LAIR onward is byte-identical either way, which is
+   * the argument the rail exists to make, so leaving them unset is the point
+   * rather than an omission.
+   */
+  python?: {
+    emit?: string
+    filename?: string
+    language?: SourceLanguage
+    body?: string
+  }
 }
 
 const checkSummary = `$ labc reporter.lab
@@ -162,6 +174,12 @@ export const stages: Stage[] = [
       'The program names parts, states the constraints that must hold before construction, and lists the evidence that would justify accepting the result. It says nothing about a facility, an assembly method, or a pipette.',
     language: 'lab',
     body: reporterExample,
+    python: {
+      emit: 'reporter.py',
+      filename: 'reporter.py',
+      language: 'python',
+      body: heroPlasmidExamplePython,
+    },
   },
   {
     id: 'check',
@@ -173,6 +191,7 @@ export const stages: Stage[] = [
       'Names resolve against the standard-library catalog, types check, action contracts resolve, and material ownership is verified. The compiler reports what it proved and reminds you that nothing has been selected or executed.',
     language: 'shell',
     body: checkSummary,
+    python: { body: checkSummary.replace('reporter.lab', 'reporter.py') },
   },
   {
     id: 'lair',
@@ -209,13 +228,19 @@ export const stages: Stage[] = [
   },
 ]
 
-/** Real diagnostics, captured from `labc` runs on deliberately broken programs. */
+/**
+ * Real diagnostics, captured from `labc` runs on deliberately broken programs.
+ * The message is the checker's, so it is the same sentence whichever frontend
+ * wrote the program; only the source it is reported against changes.
+ */
 export const diagnostics = [
   {
     id: 'double-spend',
     title: 'A material used twice',
     source: `strain, culture <- transform reporter_host from dependencies into cells
 second, other  <- transform reporter_host from dependencies into more_cells`,
+    pythonSource: `strain, culture = wf.perform(lab.transform(reporter_host, dna=dependencies, into=cells))
+second, other = wf.perform(lab.transform(reporter_host, dna=dependencies, into=more_cells))`,
     error:
       "affine material-flow error in workflow 'double_spend' at body.5:\n  physical value 'dependencies' is no longer available",
     explanation:
@@ -225,6 +250,8 @@ second, other  <- transform reporter_host from dependencies into more_cells`,
     id: 'unconsumed',
     title: 'A material left behind',
     source: `cells <- provision DH5alpha
+return product`,
+    pythonSource: `cells = wf.perform(lab.provision(DH5alpha))
 return product`,
     error:
       "affine material-flow error in workflow 'leak' at body.2:\n  terminating path still owns cells; return, store, transfer, or dispose it",

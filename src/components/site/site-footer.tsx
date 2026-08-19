@@ -14,8 +14,8 @@ export function SiteFooter() {
           <div className="max-w-sm">
             <Wordmark size={28} />
             <p className="prose-lab mt-4 text-[14px] leading-[1.7] text-umber">
-              Lab is a programming language and compiler toolchain for
-              describing biology and orchestrating work in the laboratory.
+              The Lab compiler turns experiments described in Lab or Python into
+              work a laboratory can run.
             </p>
           </div>
 

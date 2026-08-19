@@ -19,8 +19,8 @@ export function HeroSection() {
         <p className="type-deck mt-9 max-w-[33em] text-pretty text-[clamp(1.05rem,1.6vw,1.5rem)] text-ink/78">
           A protocol written for a robot is mostly deck geometry: labware names,
           pipette mounts, well addresses, volumes in microlitres. None of that
-          is your experiment. In Lab you describe the construct, what must be
-          true of it, and the evidence that would accept it. The
+          is your experiment. You describe the construct, what must be true of
+          it, and the evidence that would accept it, in Python or in Lab. The
           machine-specific part is generated, for whichever instrument you end
           up in front of.
         </p>

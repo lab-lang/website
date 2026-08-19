@@ -37,9 +37,9 @@ WORDMARK_SIZE = 44
 HEADLINE_SIZE = 64
 FOOTER_SIZE = 26
 
-HEADLINE = "A programming language for biology."
-SUBHEAD = "A compiler for the self-driving laboratory."
-FOOTER = "lab-lang.org"
+HEADLINE = "A compiler for the robotic laboratory."
+SUBHEAD = "Write the experiment once. Compile it for any lab."
+FOOTER = "lab-compiler.org"
 
 
 def fitted(static, shaper, text, size):
@@ -75,7 +75,7 @@ def card(static, shaper):
             f'<svg xmlns="http://www.w3.org/2000/svg" width="{WIDTH}"'
             f' height="{HEIGHT}" viewBox="0 0 {WIDTH} {HEIGHT}" role="img"'
             ' aria-labelledby="title">',
-            "  <title id=\"title\">Lab — a programming language for biology</title>",
+            '  <title id="title">Lab: a compiler for the robotic laboratory</title>',
             "  <defs>",
             '    <radialGradient id="emission" cx="82%" cy="8%" r="78%">',
             f'      <stop offset="0%" stop-color="{AMBER}" stop-opacity=".20"/>',

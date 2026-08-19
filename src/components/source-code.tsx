@@ -27,7 +27,7 @@ const LAB_KEYWORDS =
   'use|role|build|buy|is|any|circuit|artifact|record|workflow|state|require|accept|across|declares|if|else|for|in|match|case|return|when|every|after|emit|and|or|not'
 
 const PYTHON_KEYWORDS =
-  'import|from|def|class|return|for|in|if|else|elif|with|as|None|True|False|and|or|not'
+  'import|from|def|class|return|for|in|if|else|elif|with|as|match|case|lambda|None|True|False|and|or|not|is'
 
 const QUANTITY = String.raw`\b\d+(?:\.\d+)?(?:\s*(?:ng\/uL|ug\/uL|mg\/mL|nM|uM|mM|µL|uL|mL|bp|kb|min|h|C))?\b`
 
@@ -123,12 +123,13 @@ const GRAMMARS: Record<SourceLanguage, Grammar> = {
   },
   python: {
     pattern: new RegExp(
-      `("""[\\s\\S]*?"""|"(?:[^"\\\\]|\\\\.)*"|#[^\\n]*|\\b(?:${PYTHON_KEYWORDS})\\b|\\b\\d+(?:\\.\\d+)?\\b|\\b[A-Z][A-Za-z0-9_]*\\b)`,
+      `("""[\\s\\S]*?"""|"(?:[^"\\\\]|\\\\.)*"|'(?:[^'\\\\]|\\\\.)*'|#[^\\n]*|@[A-Za-z_][A-Za-z0-9_.]*|\\b(?:${PYTHON_KEYWORDS})\\b|\\b\\d+(?:\\.\\d+)?\\b|\\b[A-Z][A-Za-z0-9_]*\\b)`,
       'g',
     ),
     classify: (token) => {
       if (token.startsWith('#')) return CLASS.comment
-      if (token.startsWith('"')) return CLASS.string
+      if (token.startsWith('"') || token.startsWith("'")) return CLASS.string
+      if (token.startsWith('@')) return CLASS.entity
       if (/^\d/.test(token)) return CLASS.quantity
       if (new RegExp(`^(?:${PYTHON_KEYWORDS})$`).test(token))
         return CLASS.keyword

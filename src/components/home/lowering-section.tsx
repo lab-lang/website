@@ -1,6 +1,7 @@
 import { ArrowRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
+import { CodeLanguageToggle } from '@/components/code-language-toggle'
 import { LoweringRail } from '@/components/lowering-rail'
 import { SectionBody, SectionIntro } from '@/components/section'
 import { useInView } from '@/lib/use-in-view'
@@ -12,14 +13,21 @@ export function LoweringSection() {
   return (
     <section className="emission-wash bg-vessel" id="lowering">
       <SectionBody className="py-14 sm:py-20 lg:py-28">
-        <div className="reveal" data-shown={inView} ref={ref}>
+        <div
+          className="reveal flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between"
+          data-shown={inView}
+          ref={ref}
+        >
           <SectionIntro
             className="max-w-3xl"
             kicker="One program, many labs"
-            lede="Lab separates what the scientist means from where the work runs. Each artifact below is produced by the toolchain as it stands today, from the program at the top of this page."
+            lede="Here is the same build at every stage the compiler takes it through. Switch the frontend and watch where it stops mattering: the source and the check know which one you wrote, and from LAIR onward the artifacts are identical."
             title="Follow one program all the way down."
             tone="dark"
           />
+          <div className="shrink-0">
+            <CodeLanguageToggle />
+          </div>
         </div>
 
         <div className="mt-14">

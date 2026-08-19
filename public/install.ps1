@@ -1,7 +1,7 @@
 # Installs lab, labc, and lab-opt from the latest GitHub release of
 # lab-lang/lab.
 #
-#   irm https://lab-lang.org/install.ps1 | iex
+#   irm https://www.lab-compiler.org/install.ps1 | iex
 #
 # Environment overrides:
 #   LAB_VERSION        Install a specific tag (e.g. v0.2.0) instead of latest.

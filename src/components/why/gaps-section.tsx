@@ -6,7 +6,7 @@ import { REPO_URL } from '@/lib/site'
 
 const gaps = [
   'The durable workflow runtime does not exist yet, so nothing replays today.',
-  'One backend, and generated protocols are a compiler spike a laboratory must verify before running.',
+  'Two backends, both Opentrons, and generated protocols are a compiler spike a laboratory must verify before running.',
   'The language and its intermediate representations are still changing.',
   'Packages resolve by path only. There is no registry, and no lockfiles.',
 ]

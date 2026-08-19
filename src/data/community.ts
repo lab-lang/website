@@ -31,7 +31,7 @@ export const channels: Channel[] = [
     icon: ScrollText,
     title: 'Design decisions',
     detail:
-      'Every accepted tradeoff in the language is a numbered, dated document, not a chat log.',
+      'Every accepted tradeoff in the compiler is a numbered, dated document, not a chat log.',
     cta: 'Read the log',
     href: `${REPO_URL}/tree/master/docs/language/decisions`,
   },
@@ -61,7 +61,7 @@ export const steps = [
   {
     title: 'Read the decision log',
     detail:
-      'Understand why the language looks the way it does before proposing that it look different. Most open questions already have a document.',
+      'Understand why the toolchain works the way it does before proposing that it work differently. Most open questions already have a document.',
   },
   {
     title: 'Run something in the playground',

@@ -1,3 +1,4 @@
+import { CompilerInputsSection } from '@/components/home/compiler-inputs-section'
 import { DistinctionSection } from '@/components/home/distinction-section'
 import { HeroSection } from '@/components/home/hero-section'
 import { LoweringSection } from '@/components/home/lowering-section'
@@ -12,9 +13,11 @@ export function HomePage() {
   return (
     <>
       <HeroSection />
+      {/* The two ways in, then the one way down they share. */}
+      <CompilerInputsSection />
+      <LoweringSection />
       <DistinctionSection />
       <ReactiveSection />
-      <LoweringSection />
       <MaterialFlowSection />
       <StatusSection />
     </>

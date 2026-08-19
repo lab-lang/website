@@ -1,12 +1,21 @@
+import { CodeLanguageToggle } from '@/components/code-language-toggle'
 import { ReactiveTimeline } from '@/components/reactive-timeline'
 import { SectionBody, SectionIntro } from '@/components/section'
 import { SourceCode } from '@/components/source-code'
-import { reactiveExample, reactiveExampleMobile } from '@/data/examples'
+import {
+  heroObserveExamplePython,
+  reactiveExample,
+  reactiveExampleMobile,
+  reactiveExampleMobilePython,
+} from '@/data/examples'
+import { useCodeLanguage } from '@/lib/code-language'
 import { useInView } from '@/lib/use-in-view'
 
 /** The workflow waits on the world's schedule, not the program's. */
 export function ReactiveSection() {
   const { ref, inView } = useInView<HTMLDivElement>()
+  const language = useCodeLanguage()
+  const python = language === 'python'
 
   return (
     <section className="border-t border-ink/12" id="reactive">
@@ -19,16 +28,18 @@ export function ReactiveSection() {
               <>
                 A workflow is a deterministic state machine, not a script.{' '}
                 <code className="font-mono text-[0.88em] text-ink">
-                  when every
+                  {python ? '@wf.every' : 'when every'}
                 </code>{' '}
                 wakes it on a schedule and{' '}
                 <code className="font-mono text-[0.88em] text-ink">
-                  when after
+                  {python ? '@wf.after' : 'when after'}
                 </code>{' '}
                 sets a deadline. Each wake-up replays from the same durable
                 journal that protects{' '}
-                <code className="font-mono text-[0.88em] text-ink">&lt;-</code>.
-                Below, a workflow checks a plate every 30 minutes and gives up
+                <code className="font-mono text-[0.88em] text-ink">
+                  {python ? 'wf.perform' : '<-'}
+                </code>
+                . Below, a workflow checks a plate every 30 minutes and gives up
                 after 18 hours if nothing has grown: two reactive clauses, no
                 polling loop.
               </>
@@ -46,14 +57,25 @@ export function ReactiveSection() {
              * so the stacked layout shows the excerpt instead.
              */}
             <div className="flex min-w-0 flex-col border-b border-white/10 lg:h-[620px] lg:border-b-0 lg:border-r">
-              <div className="border-b border-white/10 px-5 py-3">
-                <span className="micro text-[#f6ece0]/45">observe.lab</span>
+              <div className="flex items-center justify-between gap-3 border-b border-white/10 px-5 py-2">
+                <span className="micro text-[#f6ece0]/45">
+                  observe{python ? '.py' : '.lab'}
+                </span>
+                <CodeLanguageToggle compact />
               </div>
               <div className="lg:hidden">
-                <SourceCode source={reactiveExampleMobile} />
+                <SourceCode
+                  language={language}
+                  source={
+                    python ? reactiveExampleMobilePython : reactiveExampleMobile
+                  }
+                />
               </div>
               <div className="hidden lg:block lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
-                <SourceCode source={reactiveExample} />
+                <SourceCode
+                  language={language}
+                  source={python ? heroObserveExamplePython : reactiveExample}
+                />
               </div>
             </div>
 

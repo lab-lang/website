@@ -29,6 +29,54 @@ workflow build_reporter() -> Material<Plasmid>:
   product <- realize reporter
   return product`
 
+/** The same build, through the Python frontend, whose designs are pySBOL3. */
+export const labSourcePython = `import sbol3
+
+import lab
+from lab import Material
+from lab.bio.designs import Backbone, RestrictionEnzyme
+from lab.bio.golden_gate import Plasmid
+from lab.units import C
+
+sbol3.set_namespace("https://synbiohub.org/user/marpaia/reporter")
+
+IGEM = "https://synbiohub.org/public/igem"
+J23101 = sbol3.SubComponent(f"{IGEM}/BBa_J23101/1")
+B0034 = sbol3.SubComponent(f"{IGEM}/BBa_B0034/1")
+GFP = sbol3.SubComponent(f"{IGEM}/BBa_E0040/1")
+B0015 = sbol3.SubComponent(f"{IGEM}/BBa_B0015/1")
+
+design = sbol3.Component(
+    "reporter",
+    [sbol3.SBO_DNA, sbol3.SO_CIRCULAR],
+    roles=[sbol3.SO_ENGINEERED_REGION],
+    sequences=[
+        sbol3.Sequence(
+            "reporter_seq",
+            elements="ACGTACGT",
+            encoding=sbol3.IUPAC_DNA_ENCODING,
+        )
+    ],
+    features=[J23101, B0034, GFP, B0015],
+    description="The GFP reporter under a strong constitutive promoter.",
+)
+
+pSB1C3 = Backbone.buy(identity=f"{IGEM}/pSB1C3/1")
+BsaI = RestrictionEnzyme.buy(identity="NEB-R0535", digest_temperature=37 * C)
+
+reporter = Plasmid.build(
+    design,
+    backbone=pSB1C3,
+    restriction_enzyme=BsaI,
+    assembly_replicates=1,
+    accept=[lambda built: built.sequence == built.design.sequence],
+)
+
+
+@lab.workflow
+def build_reporter(wf) -> Material[Plasmid]:
+    return wf.perform(lab.realize(reporter))`
+
 /*
  * The same build, as each system asks you to express it. These are written by
  * hand from each project's own documented usage, kept to the work the Lab
@@ -449,7 +497,7 @@ export const implementations: Implementation[] = [
     filename: 'build_reporter.py',
     language: 'python',
     href: 'https://buildcompiler.readthedocs.io/en/latest/',
-    note: 'The closest peer here, and a compiler in the same sense: it plans MoClo levels, checks a design against indexed inventory, and picks the route needing the least new build work. Lab does none of that. The difference is shape rather than length — the design is SBOL, so parts and their roles are constructed object by object, and what the construct must satisfy has nowhere in that document to go.',
+    note: 'The closest peer here, and a compiler in the same sense: it plans MoClo levels, checks a design against indexed inventory, and picks the route needing the least new build work. Lab does none of that. The difference is shape rather than length: the design is SBOL, so parts and their roles are constructed object by object, and what the construct must satisfy has nowhere in that document to go.',
     body: buildCompiler,
   },
   {

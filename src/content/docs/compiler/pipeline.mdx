@@ -44,6 +44,27 @@ every workflow operation has already been replaced by a protocol operation,
 and material linearity has already been checked twice: once when Workflow
 LAIR verifies, and again after Protocol selection.
 
+## One boundary, two frontends
+
+The frontend boundary is what makes the compiler's inputs plural.
+Everything downstream of `CheckedModule`, which is LAIR, its verification,
+target selection, and every backend, neither knows nor cares what syntax the
+module was written in. Any frontend that produces a `CheckedModule` inherits
+the whole pipeline.
+
+Two frontends target that boundary. Python is where most experiments are
+written, because it is the language a laboratory already has code in. Lab is
+the native language, and the one the checker's vocabulary is built around.
+Both produce the same `CheckedModule`, so neither is a wrapper over the
+other and nothing downstream can tell them apart.
+
+SBOL is not a third frontend. It is the vocabulary designs are exchanged in,
+and both frontends speak it: the type system grounds parts and roles in the
+ontologies SBOL names, and the Python frontend builds on the tools already
+written against SBOL, which are pySBOL3 for designs and LOICA for circuits.
+So a design can arrive from a registry and leave for one without SBOL being
+a separate way into the compiler.
+
 ## Stage names, concretely
 
 LAIR itself moves through three named stages, and mixing operations from two

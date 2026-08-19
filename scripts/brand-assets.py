@@ -49,7 +49,7 @@ TRACKING = -0.4
 TEXT_X = 82
 BASELINE = 44  # centers the cap height, 24.08 at this size, against the tile
 
-FULL_NAME = "The Lab Programming Language"
+FULL_NAME = "The Lab Compiler"
 
 
 def mark_svg(title, body, tile=None):

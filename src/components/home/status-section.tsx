@@ -3,25 +3,28 @@ import { Link } from 'react-router-dom'
 
 import { InstallCommand } from '@/components/home/install-command'
 import { ClosingNote, SectionBody, SectionIntro } from '@/components/section'
-import { REPO_URL } from '@/lib/site'
+import { REPO_URL, SHOW_INSTALL_COMMAND } from '@/lib/site'
 import { useInView } from '@/lib/use-in-view'
 
 const shipped = [
+  'Python and Lab frontends onto one checker',
   'Parsing, resolution, and type checking',
   'Typed portable module IR',
   'Action contracts and affine material flow',
   'LAIR dialects with a verified protocol boundary',
   'Editor support over LSP and WebAssembly',
-  'Experimental Opentrons OT-2 and Flex backends',
+  'Opentrons OT-2, Opentrons Flex, and Hamilton STAR backends',
+  'Workcell targets: a liquid handler, its instruments, and the handoffs between them',
+  'Typed drivers for the Byonoy Absorbance 96 and the Inheco ODTC',
 ]
 
 const pending = [
   'The durable workflow runtime',
   'Resource-aware workflow lowering',
-  'Scheduling and hardware specialization',
-  'External package resolution and lockfiles',
   'Live inventory, lots, and provenance',
-  'Hamilton STAR, then cloud labs',
+  'External package resolution and lockfiles',
+  'Instrument scheduling across a running workcell',
+  'Cloud labs',
 ]
 
 /** Honesty about maturity, in the project's own terms. */
@@ -97,12 +100,14 @@ export function StatusSection() {
          * for the bench, and the repo link wears primary weight — the one
          * conversion a phone reader completes in the moment.
          */}
-        <div className="mt-16 sm:hidden">
-          <p className="micro text-ink/55">Back at your bench</p>
-          <div className="mt-3">
-            <InstallCommand />
+        {SHOW_INSTALL_COMMAND && (
+          <div className="mt-16 sm:hidden">
+            <p className="micro text-ink/55">Back at your bench</p>
+            <div className="mt-3">
+              <InstallCommand />
+            </div>
           </div>
-        </div>
+        )}
 
         <ClosingNote
           className="mt-10 sm:mt-16"

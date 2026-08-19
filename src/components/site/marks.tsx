@@ -56,8 +56,8 @@ export function GithubMark({ size = 14 }: { size?: number }) {
 }
 
 /**
- * `full` spells out "The Lab Programming Language" where the row can afford
- * it (lg and up); narrower viewports keep the short "Lab" wordmark.
+ * `full` spells out "The Lab Compiler" where the row can afford it (lg and
+ * up); narrower viewports keep the short "Lab" wordmark.
  */
 export function Wordmark({
   full = false,
@@ -77,9 +77,7 @@ export function Wordmark({
         <span className="type-head text-[20px] tracking-[-0.012em]">
           {full && <span className="hidden lg:inline">The </span>}
           Lab
-          {full && (
-            <span className="hidden lg:inline"> Programming Language</span>
-          )}
+          {full && <span className="hidden lg:inline"> Compiler</span>}
         </span>
       </span>
     </Link>

@@ -2,12 +2,16 @@ import { ExternalLink } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
+import { CodeLanguageToggle } from '@/components/code-language-toggle'
 import { SectionBody, SectionIntro } from '@/components/section'
 import { SourcePanel } from '@/components/why/source-panel'
-import { implementations, labSource } from '@/data/comparison'
+import { implementations, labSource, labSourcePython } from '@/data/comparison'
+import { useCodeLanguage } from '@/lib/code-language'
 
 /** The argument, made by showing both files rather than describing them. */
 export function ComparisonSection() {
+  const language = useCodeLanguage()
+  const python = language === 'python'
   const [implementationId, setImplementationId] = useState(
     implementations[0].id,
   )
@@ -21,7 +25,7 @@ export function ComparisonSection() {
         <SectionIntro
           className="max-w-3xl"
           kicker="The same build"
-          lede="On the left is a whole Lab module: the parts, the backbone, the enzyme, what must be true of the construct, and the workflow that realizes it. On the right is the same build as each of these systems asks you to express it. Length is not the interesting part. What each file can and cannot say is."
+          lede="On the left is one whole module for the Lab compiler: the parts, the backbone, the enzyme, what must be true of the construct, and the workflow that realizes it. On the right is the same build as each of these systems asks you to express it. Length is not the interesting part. What each file can and cannot say is."
           title="Lab versus alternatives."
         />
 
@@ -40,10 +44,15 @@ export function ComparisonSection() {
           <div className="flex min-w-0 flex-col">
             {/* shrink-0, or the row's height comes out of this label instead
                 of the panel, and the two panels start three pixels apart. */}
-            <div className="mb-3 flex h-9 shrink-0 items-center">
+            <div className="mb-3 flex h-9 shrink-0 items-center justify-between gap-3">
               <span className="micro text-ink/40">What you write</span>
+              <CodeLanguageToggle compact tone="light" />
             </div>
-            <SourcePanel body={labSource} filename="build.lab" language="lab" />
+            <SourcePanel
+              body={python ? labSourcePython : labSource}
+              filename={python ? 'build.py' : 'build.lab'}
+              language={language}
+            />
           </div>
 
           <div className="flex min-w-0 flex-col">
@@ -110,10 +119,10 @@ export function ComparisonSection() {
           documented usage, and scoped to the work that module covers. The
           Opentrons protocol is the one you never have to write:{' '}
           <code className="font-mono text-[0.95em]">
-            labc build.lab --emit opentrons-assembly
+            labc {python ? 'build.py' : 'build.lab'} --emit opentrons-assembly
           </code>{' '}
           produces a runnable OT-2 protocol for this same build from the module
-          on the left.{' '}
+          on the left, and it is the same command either way in.{' '}
           <Link className="rule-link text-ink" to="/docs/compiler/pipeline">
             Every stage in between has a name you can ask for
           </Link>

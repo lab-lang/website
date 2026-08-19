@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { HeroSpecimen } from '@/components/hero'
 import { InstallCommand } from '@/components/home/install-command'
 import { SectionBody } from '@/components/section'
+import { SHOW_INSTALL_COMMAND } from '@/lib/site'
 import { useLatestRelease } from '@/lib/use-latest-release'
 
 export function HeroSection() {
@@ -20,13 +21,10 @@ export function HeroSection() {
         <div>
           <h1 className="type-display mt-6 text-[clamp(2.375rem,5.65vw,5.25rem)]">
             <span className="block text-pretty">
-              A programming language for biology.
+              A compiler for the robotic laboratory.
             </span>
-            {/* The compound never fractures across a line break. */}
             <span className="mt-[0.06em] block text-balance text-[0.82em] font-light text-amber-deep">
-              A compiler for the{' '}
-              <span className="whitespace-nowrap">self-driving</span>{' '}
-              laboratory.
+              Write the experiment once. Compile it for any lab.
             </span>
           </h1>
         </div>
@@ -41,9 +39,10 @@ export function HeroSection() {
             {/* The serif deck never sets below 18px: Crimson Pro's small
              * x-height needs it to hold optical parity with 16px Archivo. */}
             <p className="type-deck max-w-[33em] text-pretty text-[clamp(1.125rem,1.6vw,1.5rem)] text-ink/78">
-              Lab is a programming language and compiler toolchain for making
-              laboratory work portable, inspectable, and reliable across people,
-              instruments, and facilities.
+              The Lab compiler takes an experiment described in Python or the
+              Lab programming language, checks it, and lowers it through one
+              intermediate representation, LAIR, into work a person at a bench
+              or the instruments of a self-driving laboratory can carry out.
             </p>
           </div>
 
@@ -70,9 +69,11 @@ export function HeroSection() {
              * visitor meets the same command in the closing note instead,
              * once the page has made its case.
              */}
-            <div className="mt-3 hidden sm:block">
-              <InstallCommand />
-            </div>
+            {SHOW_INSTALL_COMMAND && (
+              <div className="mt-3 hidden sm:block">
+                <InstallCommand />
+              </div>
+            )}
           </div>
         </div>
 

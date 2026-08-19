@@ -11,7 +11,7 @@ export function WhyPage() {
   usePageMeta({
     title: pageTitle('Why Lab'),
     description:
-      'A protocol written for a robot is mostly deck geometry. Lab lets you describe the construct, the constraints, and the evidence, and generates the machine-specific part for whatever instrument you end up on.',
+      'A protocol written for a robot is mostly deck geometry. The Lab compiler lets you describe the construct, the constraints, and the evidence, in Python or in Lab, and generates the machine-specific part for whatever instrument you end up on.',
     path: '/why',
   })
 

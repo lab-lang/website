@@ -1,8 +1,10 @@
 import { Copy, Eye, LogOut } from 'lucide-react'
 
+import { CodeLanguageToggle } from '@/components/code-language-toggle'
 import { SectionBody, SectionIntro } from '@/components/section'
 import { SourceCode } from '@/components/source-code'
 import { diagnostics } from '@/data/artifacts'
+import { useCodeLanguage } from '@/lib/code-language'
 import { useInView } from '@/lib/use-in-view'
 
 const ownership = [
@@ -32,6 +34,8 @@ const ownership = [
 /** Material flow, evidenced with real compiler output. */
 export function MaterialFlowSection() {
   const { ref, inView } = useInView<HTMLDivElement>()
+  const language = useCodeLanguage()
+  const python = language === 'python'
 
   return (
     <section id="material-flow">
@@ -68,12 +72,19 @@ export function MaterialFlowSection() {
           ))}
         </div>
 
-        <div className="mt-14">
-          <h3 className="type-head text-xl">What that catches</h3>
-          <p className="prose-lab mt-3 max-w-2xl text-[15px] leading-[1.7] text-umber">
-            These are real diagnostics, produced by running the checker on
-            programs written to break it.
-          </p>
+        <div className="mt-14 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h3 className="type-head text-xl">What that catches</h3>
+            <p className="prose-lab mt-3 max-w-2xl text-[15px] leading-[1.7] text-umber">
+              These are real diagnostics, produced by running the checker on
+              programs written to break it. The message is the checker's, so it
+              is the same sentence either way in; only the line it is reported
+              against changes.
+            </p>
+          </div>
+          <div className="shrink-0">
+            <CodeLanguageToggle tone="light" />
+          </div>
         </div>
 
         <div className="mt-8 grid gap-5 lg:grid-cols-2">
@@ -87,9 +98,9 @@ export function MaterialFlowSection() {
               </div>
               <SourceCode
                 className="bg-vessel"
-                language="lab"
+                language={language}
                 showLineNumbers={false}
-                source={diagnostic.source}
+                source={python ? diagnostic.pythonSource : diagnostic.source}
               />
               {/*
                * The diagnostic is prose and wraps — it is the evidence this

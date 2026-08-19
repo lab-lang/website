@@ -17,8 +17,8 @@ export function HeroSection() {
 
         <div>
           <p className="type-deck mt-7 max-w-[42em] text-pretty text-[clamp(1.05rem,1.6vw,1.4rem)] text-ink/78">
-            Lab is a programming language and compiler toolchain for describing
-            biology and orchestrating work in the laboratory. Its mark is the
+            Lab is a compiler toolchain that turns experiments described in Lab
+            or Python into work a laboratory can run. Its mark is the
             language&rsquo;s own punctuation: an equals sign, and under it the
             arrow that commits a program to the physical world. Lab draws a hard
             line between work that may be re-run and work that may not, and

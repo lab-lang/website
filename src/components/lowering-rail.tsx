@@ -1,12 +1,29 @@
 import { useState } from 'react'
 
 import { SourceCode } from '@/components/source-code'
-import { stages } from '@/data/artifacts'
+import { stages, type Stage } from '@/data/artifacts'
+import { useCodeLanguage, type CodeLanguage } from '@/lib/code-language'
+
+/** A stage as the chosen frontend sees it, falling back to the shared form. */
+function resolve(stage: Stage, language: CodeLanguage) {
+  const python = language === 'python' ? stage.python : undefined
+  return {
+    ...stage,
+    emit: python?.emit ?? stage.emit,
+    filename: python?.filename ?? stage.filename,
+    language: python?.language ?? stage.language,
+    body: python?.body ?? stage.body,
+    /** Whether this stage still differs by frontend at all. */
+    shared: !stage.python,
+  }
+}
 
 export function LoweringRail() {
+  const codeLanguage = useCodeLanguage()
   const [activeId, setActiveId] = useState(stages[0].id)
-  const active = stages.find((stage) => stage.id === activeId) ?? stages[0]
-  const activeIndex = stages.indexOf(active)
+  const activeStage = stages.find((stage) => stage.id === activeId) ?? stages[0]
+  const active = resolve(activeStage, codeLanguage)
+  const activeIndex = stages.indexOf(activeStage)
 
   return (
     <div>
@@ -66,7 +83,7 @@ export function LoweringRail() {
                       selected ? 'text-[#f6ece0]/60' : 'text-[#f6ece0]/45'
                     }`}
                   >
-                    {stage.emit}
+                    {resolve(stage, codeLanguage).emit}
                   </span>
                 </button>
               </div>
@@ -91,6 +108,11 @@ export function LoweringRail() {
           <p className="mt-7 border-t border-[#f6ece0]/12 pt-4 font-mono text-[11px] text-[#f6ece0]/50">
             {active.filename}
           </p>
+          {active.shared && (
+            <p className="micro mt-3 text-gfp/70">
+              Identical from either frontend
+            </p>
+          )}
         </div>
 
         <div

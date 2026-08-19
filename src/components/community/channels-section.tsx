@@ -10,7 +10,7 @@ export function ChannelsSection() {
         <SectionIntro
           className="max-w-2xl"
           kicker="Where the conversation happens"
-          lede="Report a bug, ask a question, or read why a decision was made. At this size, one good issue can change how the language works."
+          lede="Report a bug, ask a question, or read why a decision was made. At this size, one good issue can change how the compiler works."
           title="Join the conversation."
         />
 

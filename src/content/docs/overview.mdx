@@ -7,18 +7,39 @@ order: 10
 ---
 
 import { Callout } from '@/components/docs/callout'
+import { CodeSwitch } from '@/components/docs/code-switch'
 
-Lab is a language for describing biology experiments precisely enough that a
-compiler can check them and a laboratory, whether that's a person at a bench
-or a liquid-handling robot, can carry them out. You write down what a
-plasmid should be, the constraints it must satisfy before construction even
-starts, and the evidence that would prove it worked. Lab checks that
-description for consistency, then, once a target is chosen, turns it into
-either a protocol a person can follow or a program a robot can run. A small
-project usually has a few files like these.
+Lab is a compiler toolchain for the laboratory. You describe an experiment
+precisely enough that the compiler can check it and a laboratory, whether
+that's a person at a bench or a liquid-handling robot, can carry it out. You
+write down what a plasmid should be, the constraints it must satisfy before
+construction even starts, and the evidence that would prove it worked. The
+compiler checks that description for consistency, lowers it into LAIR, its
+intermediate representation, then, once a target is chosen, turns it into
+either a protocol a person can follow or a program a robot can run.
+
+The compiler accepts that description in two forms. Python is where most
+work starts, and Lab is the native language the checker is built around.
+Both are frontends onto the same checker and the same pipeline, so neither
+is a wrapper over the other. Every example on this page reads both ways, and
+the toggle on any code block switches all of them at once, with the choice
+following you across the site.
+
+SBOL is not a third way in. It is the vocabulary a design is written and
+exchanged in, and both frontends speak it: Lab grounds parts and roles in
+the ontologies SBOL names, and the Python flavor writes its designs in
+[pySBOL3](https://pysbol3.readthedocs.io) directly, so a design is an
+ordinary `sbol3.Component` rather than a vocabulary of Lab's own. What the
+`lab` package adds is what SBOL has no vocabulary for: artifact
+declarations, provenance, the acceptance claims a build is judged on, and
+the durable workflows that carry it out.
+
+A small project usually has a few files like these.
 
 A **design**, such as a plasmid, says what should exist and which claims
 must be supported by evidence:
+
+<CodeSwitch>
 
 ```lab reporter.lab
 use std.bio.designs
@@ -50,6 +71,66 @@ build plasmid reporter:
   accept volume >= 20 uL across 1 biological replicate
 ```
 
+```python reporter.py
+import sbol3
+
+import lab
+from lab.units import C, ng, uL
+from lab.bio.designs import Backbone, RestrictionEnzyme
+from lab.bio.golden_gate import Plasmid
+
+# The design is plain pySBOL3: parts referenced at the identity the
+# registry already gave them, ordered by SBOL's own constraints.
+sbol3.set_namespace("https://synbiohub.org/user/marpaia/reporter")
+
+IGEM = "https://synbiohub.org/public/igem"
+J23101 = sbol3.SubComponent(f"{IGEM}/BBa_J23101/1")
+B0034 = sbol3.SubComponent(f"{IGEM}/BBa_B0034/1")
+GFP = sbol3.SubComponent(f"{IGEM}/BBa_E0040/1")
+B0015 = sbol3.SubComponent(f"{IGEM}/BBa_B0015/1")
+
+sequence = sbol3.Sequence(
+    "reporter_seq", elements="ACGTACGT", encoding=sbol3.IUPAC_DNA_ENCODING
+)
+
+design = sbol3.Component(
+    "reporter",
+    [sbol3.SBO_DNA, sbol3.SO_CIRCULAR],
+    roles=[sbol3.SO_ENGINEERED_REGION],
+    sequences=[sequence],
+    features=[J23101, B0034, GFP, B0015],
+    description="The GFP reporter under a strong constitutive promoter.",
+)
+# Lab's `require topology == circular` is SO_CIRCULAR above: where SBOL
+# can already state something, the compiler reads it rather than
+# asking you to say it twice.
+design.constraints = [
+    sbol3.Constraint(sbol3.SBOL_MEETS, J23101, B0034),
+    sbol3.Constraint(sbol3.SBOL_MEETS, B0034, GFP),
+    sbol3.Constraint(sbol3.SBOL_MEETS, GFP, B0015),
+]
+
+# What SBOL has no vocabulary for is lab's part: where a material comes
+# from, and the evidence a built artifact is accepted on.
+pSB1C3 = Backbone.buy(identity=f"{IGEM}/pSB1C3/1")
+BsaI = RestrictionEnzyme.buy(identity="NEB-R0535", digest_temperature=37 * C)
+
+reporter = Plasmid.build(
+    design,
+    backbone=pSB1C3,
+    restriction_enzyme=BsaI,
+    require=[lambda plasmid: plasmid.sites(BsaI) == 0],
+    across=3,
+    accept=[
+        lambda built: built.sequence == built.design.sequence,
+        lambda built: built.concentration >= 100 * ng / uL,
+        lab.Claim(lambda built: built.volume >= 20 * uL, across=1),
+    ],
+)
+```
+
+</CodeSwitch>
+
 `plasmid` is not a keyword. It is a word `std.bio.designs` declares with
 `artifact`, together with the schema every plasmid is checked against, and a
 package of your own can declare words the standard library never heard of.
@@ -59,6 +140,8 @@ not three readings of one culture.
 A **workflow** says how physical materials move through a build once a
 design exists. It can also react to the world instead of following a fixed
 script, waking on a timer and settling into a tagged result:
+
+<CodeSwitch>
 
 ```lab observe.lab
 workflow grow_colonies(plate: Material<Plate>) -> ColonyGrowth:
@@ -79,11 +162,95 @@ workflow grow_colonies(plate: Material<Plate>) -> ColonyGrowth:
     return TimedOut{plate: plate, observations: observations}
 ```
 
-A plasmid can also carry a reusable **circuit**: parts composed generically,
-independent of which promoter or coding sequence eventually fill it in. The
-type parameters are introduced where they are first needed, and naming one
-twice is what links its occurrences, so a circuit's result says which signal
-it answers to and which protein it expresses.
+```python observe.py
+"""Watch a plate until it has something worth picking from."""
+
+import lab
+from lab import ColonyMap, Duration, Evidential, Image, Material, Plate, detect_colonies
+from lab.units import h, minutes
+
+module = lab.Module("reporter.observe", doc=__doc__)
+
+
+@lab.record
+class PlateObservation(Evidential):
+    """One image, what was counted in it, and how long the plate had grown."""
+
+    image: Image
+    colonies: ColonyMap
+    elapsed: Duration
+
+
+@lab.record
+class ColonyGrowth:
+    """What watching a plate produced."""
+
+    plate: Material[Plate]
+    observations: list[PlateObservation]
+
+    @lab.case
+    class Ready:
+        colonies: ColonyMap
+
+    @lab.case
+    class TimedOut:
+        pass
+
+
+@lab.workflow
+def grow_colonies(wf, plate: Material[Plate]) -> ColonyGrowth:
+    """Image every half hour, and stop at the first plate worth picking from."""
+    observations = wf.state(list[PlateObservation], [])
+
+    # Assignment binds a computation and replays freely. A durable effect
+    # goes through wf.perform, and nothing else does.
+    @wf.every(30 * minutes)
+    def observe():
+        image = wf.perform(lab.capture_image(plate))
+        colonies = detect_colonies(image)
+        if colonies.isolated.count >= 8:
+            return ColonyGrowth.Ready(
+                plate=plate,
+                colonies=colonies,
+                observations=observations,
+            )
+
+    @wf.after(18 * h)
+    def give_up():
+        return ColonyGrowth.TimedOut(plate=plate, observations=observations)
+```
+
+</CodeSwitch>
+
+A plasmid can also carry a reusable **circuit**, which says which signal it
+answers to and which protein it expresses. In Lab a circuit composes parts
+generically, independent of which promoter or coding sequence eventually
+fill it in: the type parameters are introduced where they are first needed,
+and naming one twice is what links its occurrences.
+
+In Python a circuit is a [LOICA](https://github.com/RudgeLab/LOICA) genetic
+network, which is how the field already designs circuits against SBOL. A
+network is not one circuit. It is a set of transcription units, each an
+operator driving a gene product, wired to each other by the products they
+share, which is exactly what LOICA's own SBOL export emits. A `Circuit` is
+one of those units, so a network lowers to one per operator.
+
+The wiring is carried by the types rather than by a graph beside them. A
+regulator is expressed by one unit and induces another, so it plays both
+`Protein` and `Signal`, and the unit that answers to it must take a promoter
+for it. Wiring a cascade to the wrong regulator is a type error, not a
+failed run.
+
+The two forms are not the same shape, and the difference is worth naming. A
+Lab circuit is a template with no numbers in it, standing for whichever
+parts eventually fill it in. A LOICA network is made of particular units
+whose behavior has been measured, because `Receiver` takes its Hill
+parameters as arguments. Write the Lab form while a design is still
+abstract, and the LOICA form once the circuit is one you have characterized.
+Both lower to the same Design layer of LAIR; only the second arrives
+carrying numbers.
+
+<CodeSwitch>
 
 ```lab regulated-expression.lab
 use std.bio.designs
@@ -103,9 +270,69 @@ circuit regulated_expression(
 tet_reporter = regulated_expression(pTet, sfGFP)
 ```
 
+```python regulated_expression.py
+import loica
+import sbol3
+
+import lab
+from lab.bio.parts import B0015, B0034
+
+sbol3.set_namespace("https://synbiohub.org/user/marpaia/reporter")
+
+# Ordinary LOICA: an inducer, a reporter, and the characterized
+# operator that connects them.
+aTc = loica.Supplement(
+    name="aTc",
+    sbol_comp=sbol3.Component("aTc", sbol3.SBO_SIMPLE_CHEMICAL),
+)
+sfGFP = loica.Reporter(
+    name="sfGFP",
+    signal_id="green",
+    sbol_comp=sbol3.Component("sfGFP", sbol3.SBO_DNA, roles=[sbol3.SO_CDS]),
+)
+pTet = loica.Receiver(
+    input=aTc,
+    output=sfGFP,
+    alpha=[0, 100],
+    K=1,
+    n=2,
+    sbol_comp=sbol3.Component("pTet", sbol3.SBO_DNA, roles=[sbol3.SO_PROMOTER]),
+)
+
+
+@lab.circuit
+def regulated_expression() -> lab.Network:
+    """A promoter driving a coding sequence through a shared RBS and terminator."""
+    network = loica.GeneticNetwork()
+    network.add_operator(pTet)
+    network.add_reporter(sfGFP)
+    return lab.layout(network, rbs=B0034, terminator=B0015)
+
+
+# aTc is SBO:0000247, a simple chemical, so it is the Trigger; sfGFP is what
+# the operator expresses, so it is the Product. Circuit<ATc, SfGFP> is read
+# off the network rather than declared a second time. This network has one
+# unit, so `tet_reporter` is a list of one.
+tet_reporter = regulated_expression()
+```
+
+</CodeSwitch>
+
+Bigger networks are the same call. A cascade is two units, a repressilator
+is three in a ring, and both lower unit by unit; a promoter integrating
+several inducers answers to `Both<A, B>`, and a unit carrying two coding
+sequences expresses an `Operon<A, B>`. A promoter also records which way it
+answers: LOICA leaves that implicit in the Hill parameters, where a basal
+rate above the regulated rate means repression, so the compiler reads it and
+writes `regulation = repressed` rather than making you compare two numbers
+to learn whether a circuit inverts. A plasmid carries the whole network as
+its `cargo`.
+
 A **program** ties designs, policies, and workflows together into something
 runnable, and reacts to what happens. This is the entry point a project
 actually builds:
+
+<CodeSwitch>
 
 ```lab main.lab
 use std.lab.plasmid
@@ -131,6 +358,44 @@ workflow main() -> Material<Strain>:
   return strain
 ```
 
+```python main.py
+"""Build the reporter strain, and watch its plate until it has something to say."""
+
+import lab
+from lab import ColonyMap, Event, Material, Strain
+
+from .observe import ColonyGrowth, PlateObservation, grow_colonies
+from .workflow import build_reporter
+
+module = lab.Module("reporter.main", doc=__doc__)
+
+
+@lab.record
+class ColoniesReady(Event):
+    """A plate reached the point where there was something worth picking."""
+
+    colonies: ColonyMap
+
+
+@lab.workflow
+def main(wf) -> Material[Strain]:
+    """The compiler derives the build order from the material each call consumes."""
+    strain, plate = wf.perform(build_reporter())
+    growth = wf.perform(grow_colonies(plate))
+
+    match growth:
+        case ColonyGrowth.Ready():
+            wf.emit(ColoniesReady(colonies=growth.colonies))
+            wf.perform(lab.dispose(growth.plate))
+
+        case ColonyGrowth.TimedOut():
+            wf.perform(lab.dispose(growth.plate))
+
+    return strain
+```
+
+</CodeSwitch>
+
 You don't write instrument-specific steps anywhere in this. The compiler
 figures out the rest for whichever laboratory ends up running it.
 
@@ -145,13 +410,17 @@ figures out the rest for whichever laboratory ends up running it.
 ## How these docs are organized
 
 **Learn Lab**, starting with [Your first program](/docs/guide/first-program),
-is for writing Lab programs to describe designs and experiments. That's most
-of this site, and where to start if you're new here.
+covers designs, claims, material flow, and reactive workflows. That's most of
+this site, and where to start if you're new here. Its examples are written in
+Lab, because the language names these ideas in the fewest words, and each one
+has the Python form shown on this page: an `accept` claim is a predicate in
+`accept=[...]`, `<-` is `wf.perform`, and a design is a pySBOL3 component
+either way.
 
 Two smaller sections are for a different audience. **Toolchain** covers the
 compiler's internals, useful if you're contributing to it or want to
 understand how a design becomes a protocol. **Backends** covers adding
-support for a new instrument. Neither is required reading to write a Lab
+support for a new instrument. Neither is required reading to write a
 program.
 
 ## Where to start
@@ -169,9 +438,10 @@ evidence a claim is believed on; and includes an initial Opentrons OT-2
 backend, checked against the real Opentrons simulator. Most of the standard
 library is itself written in Lab. Editor support (an LSP server and a
 WebAssembly API) gives a `.lab` file diagnostics, documentation on hover, and
-completions like any other language. The durable workflow runtime, the part
-that would execute a program continuously against a real laboratory and
-react to what it observes, has not been built yet.
+completions like any other language. The type system grounds parts and roles
+in the same ontologies SBOL uses. The durable workflow runtime, the part that
+would execute a program continuously against a real laboratory and react to
+what it observes, has not been built yet.
 
 [Status](/docs/status) tracks exactly what's implemented, feature by
 feature.

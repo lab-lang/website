@@ -55,6 +55,28 @@ so a build graph spans both artifact kinds. See
 [Action contracts](/docs/guide/action-contracts) for the full table and
 [LAIR dialects](/docs/compiler/lair-dialects) for how that expansion works.
 
+## Frontends
+
+Every frontend targets `CheckedModule`, the portable boundary described in
+[Compiler pipeline](/docs/compiler/pipeline); everything downstream of it,
+LAIR, verification, target selection, and the backends, is shared.
+
+| Frontend | Input                                                    | Status                                                |
+| -------- | -------------------------------------------------------- | ----------------------------------------------------- |
+| Python   | Python workflows over pySBOL3 designs and LOICA circuits | Complete through `CheckedModule`                      |
+| Lab      | `.lab` source                                            | Complete through `CheckedModule`; the native language |
+
+SBOL is not a frontend of its own. It is the vocabulary designs are written
+and exchanged in, which both frontends speak: ontology grounding for parts
+and roles is implemented, and the Python frontend builds on the tools the
+field already writes against SBOL, which are pySBOL3 for designs and
+[LOICA](https://github.com/RudgeLab/LOICA) for circuits. A LOICA network is
+a set of transcription units wired by the products they share, so it lowers
+to one circuit per unit, and what induces each unit and what it expresses
+are derived from the network rather than restated. Because a regulator is
+both a protein and a signal, the compiler checks the wiring: a cascade
+joined to the wrong regulator does not compile.
+
 ## Compiler
 
 | Feature                                | Status                                                          |
@@ -63,7 +85,7 @@ so a build graph spans both artifact kinds. See
 | Workflow → Protocol dialect conversion | One conversion: the plasmid-build path                          |
 | Material linearity analysis            | Implemented, runs at two stages                                 |
 | LAIR pass pipeline                     | Infrastructure built; one registered pass                       |
-| Backends                               | Two: Opentrons OT-2 and Opentrons Flex                          |
+| Backends                               | Four: Opentrons OT-2, Opentrons Flex, Hamilton STAR, workcell   |
 | Backend selection                      | `[target] backend` in a profile, dispatched at the CLI boundary |
 
 ## Backends
@@ -76,12 +98,14 @@ unchanged, and an unknown backend is an error naming the ones this toolchain
 provides. Two profiles over the same program yield two packages with the same
 wave structure, manifest schema, and manual-protocol shape.
 
-| Backend        | Profile key      | Emits                    | Checked against                  |
-| -------------- | ---------------- | ------------------------ | -------------------------------- |
-| Opentrons OT-2 | `opentrons.ot2`  | Python, API level 2.21   | The official Opentrons simulator |
-| Opentrons Flex | `opentrons.flex` | JSON protocols, schema 8 | `opentrons analyze`              |
+| Backend        | Profile key      | Emits                             | Checked against                  |
+| -------------- | ---------------- | --------------------------------- | -------------------------------- |
+| Opentrons OT-2 | `opentrons.ot2`  | Python, API level 2.21            | The official Opentrons simulator |
+| Opentrons Flex | `opentrons.flex` | JSON protocols, schema 8          | `opentrons analyze`              |
+| Hamilton STAR  | `hamilton.star`  | `lab.star-run.v0` firmware frames | The vendored carrier catalog     |
+| Workcell       | `workcell`       | A coordination plan over stations | Each station's own backend       |
 
-Both are experimental. Deck layout, labware, instruments, and capacity come
+All are experimental. Deck layout, labware, instruments, and capacity come
 from a target profile rather than from constants, and allocation spills
 across every plate a profile declares. Each validates a design's reaction
 balance against its own stated volume, replicate and dilution bounds, plate
@@ -89,20 +113,35 @@ capacity, source-rack capacity, and tip capacity. Each keeps its own spelling
 of every profile field it interprets, so a Flex profile naming an OT-2
 pipette fails validation with a sentence rather than a robot-side rejection.
 
-Neither yet queries a live inventory service, resolves inventory lots, ingests
-SBOL, designs compatible overhangs, normalizes source concentrations, prepares
-DNA between dependent waves, or attaches runtime evidence to acceptance
-decisions. See [Opentrons OT-2](/docs/backends/opentrons-ot2) and
+The STAR backend emits firmware frames rather than an uploaded protocol
+document, which is what takes Lab off the Opentrons family. The emitted
+`lab.star-run.v0` documents are the review boundary: `lab run` replays their
+frames verbatim, adding only command ids.
+
+`workcell` is not a machine. It is one liquid handler, the instruments beside
+it, and a person carrying labware between them, so it owns every
+multi-station decision: which after-run work moves to an instrument station,
+where the handoffs fall, and the order a wave runs in. Machine planning stays
+in each station's own backend, which the workcell composes rather than
+replaces. Stations today are `hamilton.star`, `inheco.odtc`, and
+`byonoy.absorbance96`; [`lab-instruments`](https://github.com/lab-lang/lab/tree/master/crates/lab-instruments)
+holds the typed drivers for the latter two.
+
+None of them yet queries a live inventory service, resolves inventory lots,
+ingests SBOL, designs compatible overhangs, normalizes source concentrations,
+prepares DNA between dependent waves, or attaches runtime evidence to
+acceptance decisions. See [Opentrons OT-2](/docs/backends/opentrons-ot2) and
 [Opentrons Flex](/docs/backends/opentrons-flex).
 
 ### Backend roadmap
 
-**Hamilton STAR** is next: a typed firmware protocol and USB transport for the
-STAR and STARlet, which takes Lab off the Opentrons family and onto a bench
-that is driven by firmware commands rather than by an uploaded protocol
-document. Dispatch is a closed match over the concrete profile and backend
-pairs today rather than a registry, which is the shape that holds until a
-backend arrives that cannot be listed at compile time.
+Dispatch is a closed match over the concrete profile and backend pairs today
+rather than a registry, which is the shape that holds until a backend arrives
+that cannot be listed at compile time.
+
+What a workcell cannot do yet is schedule itself: a coordination plan orders
+a wave, but nothing reschedules around an instrument that is busy, slow, or
+offline while a run is in flight. Cloud labs are further out still.
 
 ## Editor tooling
 

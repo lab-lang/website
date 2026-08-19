@@ -23,9 +23,10 @@ export function HeroSection() {
 
         <div>
           <p className="type-deck mt-7 max-w-[38em] text-pretty text-[clamp(1.05rem,1.6vw,1.4rem)] text-ink/78">
-            Lab is a small programming language with big ambitions to help
-            change how we do science. If you&rsquo;re interested in making
-            laboratory science scalable and fun, consider joining us!
+            Lab is a small compiler toolchain with big ambitions to help change
+            how we do science. Write an experiment in Python or in Lab, and it
+            compiles to work a laboratory can run. If you&rsquo;re interested in
+            making laboratory science scalable and fun, consider joining us!
           </p>
         </div>
 
