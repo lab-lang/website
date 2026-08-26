@@ -26,11 +26,27 @@ export class LabWorkspace {
     setModuleDocument(source: string, version: bigint, text: string, module: string): void;
 }
 
+/**
+ * A complete reference profile for a backend, validated by this compiler.
+ */
+export function defaultTargetProfile(backend: string, name: string): any;
+
+/**
+ * The compiler-owned target catalog used by browser control planes.
+ */
+export function targetCapabilities(): any;
+
+/**
+ * Parse, semantically validate, canonicalize, and hash target TOML.
+ */
+export function validateTargetProfile(name: string, contents: string): any;
+
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
     readonly __wbg_labworkspace_free: (a: number, b: number) => void;
+    readonly defaultTargetProfile: (a: number, b: number, c: number, d: number) => [number, number, number];
     readonly labworkspace_completions: (a: number, b: number, c: number, d: number) => [number, number, number];
     readonly labworkspace_definition: (a: number, b: number, c: number, d: number) => [number, number, number];
     readonly labworkspace_diagnostics: (a: number, b: number, c: number) => [number, number, number];
@@ -44,11 +60,13 @@ export interface InitOutput {
     readonly labworkspace_semanticTokens: (a: number, b: number, c: number) => [number, number, number];
     readonly labworkspace_setDocument: (a: number, b: number, c: number, d: bigint, e: number, f: number) => void;
     readonly labworkspace_setModuleDocument: (a: number, b: number, c: number, d: bigint, e: number, f: number, g: number, h: number) => void;
-    readonly __wbindgen_malloc: (a: number, b: number) => number;
-    readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
+    readonly targetCapabilities: () => [number, number, number];
+    readonly validateTargetProfile: (a: number, b: number, c: number, d: number) => [number, number, number];
+    readonly __wbindgen_malloc_command_export: (a: number, b: number) => number;
+    readonly __wbindgen_realloc_command_export: (a: number, b: number, c: number, d: number) => number;
     readonly __wbindgen_externrefs: WebAssembly.Table;
-    readonly __externref_table_dealloc: (a: number) => void;
-    readonly __wbindgen_free: (a: number, b: number, c: number) => void;
+    readonly __externref_table_dealloc_command_export: (a: number) => void;
+    readonly __wbindgen_free_command_export: (a: number, b: number, c: number) => void;
     readonly __wbindgen_start: () => void;
 }
 

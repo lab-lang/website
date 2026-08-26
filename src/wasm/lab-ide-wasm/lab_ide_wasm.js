@@ -17,7 +17,7 @@ export class LabWorkspace {
      * @returns {any}
      */
     completions(source, offset) {
-        const ptr0 = passStringToWasm0(source, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const ptr0 = passStringToWasm0(source, wasm.__wbindgen_malloc_command_export, wasm.__wbindgen_realloc_command_export);
         const len0 = WASM_VECTOR_LEN;
         const ret = wasm.labworkspace_completions(this.__wbg_ptr, ptr0, len0, offset);
         if (ret[2]) {
@@ -31,7 +31,7 @@ export class LabWorkspace {
      * @returns {any}
      */
     definition(source, offset) {
-        const ptr0 = passStringToWasm0(source, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const ptr0 = passStringToWasm0(source, wasm.__wbindgen_malloc_command_export, wasm.__wbindgen_realloc_command_export);
         const len0 = WASM_VECTOR_LEN;
         const ret = wasm.labworkspace_definition(this.__wbg_ptr, ptr0, len0, offset);
         if (ret[2]) {
@@ -44,7 +44,7 @@ export class LabWorkspace {
      * @returns {any}
      */
     diagnostics(source) {
-        const ptr0 = passStringToWasm0(source, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const ptr0 = passStringToWasm0(source, wasm.__wbindgen_malloc_command_export, wasm.__wbindgen_realloc_command_export);
         const len0 = WASM_VECTOR_LEN;
         const ret = wasm.labworkspace_diagnostics(this.__wbg_ptr, ptr0, len0);
         if (ret[2]) {
@@ -57,7 +57,7 @@ export class LabWorkspace {
      * @returns {any}
      */
     documentSymbols(source) {
-        const ptr0 = passStringToWasm0(source, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const ptr0 = passStringToWasm0(source, wasm.__wbindgen_malloc_command_export, wasm.__wbindgen_realloc_command_export);
         const len0 = WASM_VECTOR_LEN;
         const ret = wasm.labworkspace_documentSymbols(this.__wbg_ptr, ptr0, len0);
         if (ret[2]) {
@@ -70,13 +70,13 @@ export class LabWorkspace {
      * @returns {string | undefined}
      */
     formatDocument(source) {
-        const ptr0 = passStringToWasm0(source, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const ptr0 = passStringToWasm0(source, wasm.__wbindgen_malloc_command_export, wasm.__wbindgen_realloc_command_export);
         const len0 = WASM_VECTOR_LEN;
         const ret = wasm.labworkspace_formatDocument(this.__wbg_ptr, ptr0, len0);
         let v2;
         if (ret[0] !== 0) {
             v2 = getStringFromWasm0(ret[0], ret[1]).slice();
-            wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
+            wasm.__wbindgen_free_command_export(ret[0], ret[1] * 1, 1);
         }
         return v2;
     }
@@ -86,7 +86,7 @@ export class LabWorkspace {
      * @returns {any}
      */
     hover(source, offset) {
-        const ptr0 = passStringToWasm0(source, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const ptr0 = passStringToWasm0(source, wasm.__wbindgen_malloc_command_export, wasm.__wbindgen_realloc_command_export);
         const len0 = WASM_VECTOR_LEN;
         const ret = wasm.labworkspace_hover(this.__wbg_ptr, ptr0, len0, offset);
         if (ret[2]) {
@@ -106,7 +106,7 @@ export class LabWorkspace {
      * @returns {any}
      */
     references(source, offset) {
-        const ptr0 = passStringToWasm0(source, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const ptr0 = passStringToWasm0(source, wasm.__wbindgen_malloc_command_export, wasm.__wbindgen_realloc_command_export);
         const len0 = WASM_VECTOR_LEN;
         const ret = wasm.labworkspace_references(this.__wbg_ptr, ptr0, len0, offset);
         if (ret[2]) {
@@ -118,7 +118,7 @@ export class LabWorkspace {
      * @param {string} source
      */
     removeDocument(source) {
-        const ptr0 = passStringToWasm0(source, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const ptr0 = passStringToWasm0(source, wasm.__wbindgen_malloc_command_export, wasm.__wbindgen_realloc_command_export);
         const len0 = WASM_VECTOR_LEN;
         wasm.labworkspace_removeDocument(this.__wbg_ptr, ptr0, len0);
     }
@@ -129,9 +129,9 @@ export class LabWorkspace {
      * @returns {any}
      */
     rename(source, offset, new_name) {
-        const ptr0 = passStringToWasm0(source, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const ptr0 = passStringToWasm0(source, wasm.__wbindgen_malloc_command_export, wasm.__wbindgen_realloc_command_export);
         const len0 = WASM_VECTOR_LEN;
-        const ptr1 = passStringToWasm0(new_name, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const ptr1 = passStringToWasm0(new_name, wasm.__wbindgen_malloc_command_export, wasm.__wbindgen_realloc_command_export);
         const len1 = WASM_VECTOR_LEN;
         const ret = wasm.labworkspace_rename(this.__wbg_ptr, ptr0, len0, offset, ptr1, len1);
         if (ret[2]) {
@@ -144,7 +144,7 @@ export class LabWorkspace {
      * @returns {any}
      */
     semanticTokens(source) {
-        const ptr0 = passStringToWasm0(source, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const ptr0 = passStringToWasm0(source, wasm.__wbindgen_malloc_command_export, wasm.__wbindgen_realloc_command_export);
         const len0 = WASM_VECTOR_LEN;
         const ret = wasm.labworkspace_semanticTokens(this.__wbg_ptr, ptr0, len0);
         if (ret[2]) {
@@ -158,9 +158,9 @@ export class LabWorkspace {
      * @param {string} text
      */
     setDocument(source, version, text) {
-        const ptr0 = passStringToWasm0(source, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const ptr0 = passStringToWasm0(source, wasm.__wbindgen_malloc_command_export, wasm.__wbindgen_realloc_command_export);
         const len0 = WASM_VECTOR_LEN;
-        const ptr1 = passStringToWasm0(text, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const ptr1 = passStringToWasm0(text, wasm.__wbindgen_malloc_command_export, wasm.__wbindgen_realloc_command_export);
         const len1 = WASM_VECTOR_LEN;
         wasm.labworkspace_setDocument(this.__wbg_ptr, ptr0, len0, version, ptr1, len1);
     }
@@ -176,16 +176,64 @@ export class LabWorkspace {
      * @param {string} module
      */
     setModuleDocument(source, version, text, module) {
-        const ptr0 = passStringToWasm0(source, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const ptr0 = passStringToWasm0(source, wasm.__wbindgen_malloc_command_export, wasm.__wbindgen_realloc_command_export);
         const len0 = WASM_VECTOR_LEN;
-        const ptr1 = passStringToWasm0(text, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const ptr1 = passStringToWasm0(text, wasm.__wbindgen_malloc_command_export, wasm.__wbindgen_realloc_command_export);
         const len1 = WASM_VECTOR_LEN;
-        const ptr2 = passStringToWasm0(module, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const ptr2 = passStringToWasm0(module, wasm.__wbindgen_malloc_command_export, wasm.__wbindgen_realloc_command_export);
         const len2 = WASM_VECTOR_LEN;
         wasm.labworkspace_setModuleDocument(this.__wbg_ptr, ptr0, len0, version, ptr1, len1, ptr2, len2);
     }
 }
 if (Symbol.dispose) LabWorkspace.prototype[Symbol.dispose] = LabWorkspace.prototype.free;
+
+/**
+ * A complete reference profile for a backend, validated by this compiler.
+ * @param {string} backend
+ * @param {string} name
+ * @returns {any}
+ */
+export function defaultTargetProfile(backend, name) {
+    const ptr0 = passStringToWasm0(backend, wasm.__wbindgen_malloc_command_export, wasm.__wbindgen_realloc_command_export);
+    const len0 = WASM_VECTOR_LEN;
+    const ptr1 = passStringToWasm0(name, wasm.__wbindgen_malloc_command_export, wasm.__wbindgen_realloc_command_export);
+    const len1 = WASM_VECTOR_LEN;
+    const ret = wasm.defaultTargetProfile(ptr0, len0, ptr1, len1);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * The compiler-owned target catalog used by browser control planes.
+ * @returns {any}
+ */
+export function targetCapabilities() {
+    const ret = wasm.targetCapabilities();
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Parse, semantically validate, canonicalize, and hash target TOML.
+ * @param {string} name
+ * @param {string} contents
+ * @returns {any}
+ */
+export function validateTargetProfile(name, contents) {
+    const ptr0 = passStringToWasm0(name, wasm.__wbindgen_malloc_command_export, wasm.__wbindgen_realloc_command_export);
+    const len0 = WASM_VECTOR_LEN;
+    const ptr1 = passStringToWasm0(contents, wasm.__wbindgen_malloc_command_export, wasm.__wbindgen_realloc_command_export);
+    const len1 = WASM_VECTOR_LEN;
+    const ret = wasm.validateTargetProfile(ptr0, len0, ptr1, len1);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
 function __wbg_get_imports() {
     const import0 = {
         __proto__: null,
@@ -195,10 +243,14 @@ function __wbg_get_imports() {
         },
         __wbg_String_8564e559799eccda: function(arg0, arg1) {
             const ret = String(arg1);
-            const ptr1 = passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+            const ptr1 = passStringToWasm0(ret, wasm.__wbindgen_malloc_command_export, wasm.__wbindgen_realloc_command_export);
             const len1 = WASM_VECTOR_LEN;
             getDataViewMemory0().setInt32(arg0 + 4 * 1, len1, true);
             getDataViewMemory0().setInt32(arg0 + 4 * 0, ptr1, true);
+        },
+        __wbg___wbindgen_is_string_ea5e6cc2e4141dfe: function(arg0) {
+            const ret = typeof(arg0) === 'string';
+            return ret;
         },
         __wbg___wbindgen_throw_344f42d3211c4765: function(arg0, arg1) {
             throw new Error(getStringFromWasm0(arg0, arg1));
@@ -207,8 +259,16 @@ function __wbg_get_imports() {
             const ret = new Array();
             return ret;
         },
+        __wbg_new_7796ffc7ed656783: function() {
+            const ret = new Map();
+            return ret;
+        },
         __wbg_new_da52cf8fe3429cb2: function() {
             const ret = new Object();
+            return ret;
+        },
+        __wbg_set_575dd786d51585f8: function(arg0, arg1, arg2) {
+            const ret = arg0.set(arg1, arg2);
             return ret;
         },
         __wbg_set_6be42768c690e380: function(arg0, arg1, arg2) {
@@ -222,12 +282,17 @@ function __wbg_get_imports() {
             const ret = arg0;
             return ret;
         },
-        __wbindgen_cast_0000000000000002: function(arg0, arg1) {
+        __wbindgen_cast_0000000000000002: function(arg0) {
+            // Cast intrinsic for `I64 -> Externref`.
+            const ret = arg0;
+            return ret;
+        },
+        __wbindgen_cast_0000000000000003: function(arg0, arg1) {
             // Cast intrinsic for `Ref(String) -> Externref`.
             const ret = getStringFromWasm0(arg0, arg1);
             return ret;
         },
-        __wbindgen_cast_0000000000000003: function(arg0) {
+        __wbindgen_cast_0000000000000004: function(arg0) {
             // Cast intrinsic for `U64 -> Externref`.
             const ret = BigInt.asUintN(64, arg0);
             return ret;
@@ -311,7 +376,7 @@ function passStringToWasm0(arg, malloc, realloc) {
 
 function takeFromExternrefTable0(idx) {
     const value = wasm.__wbindgen_externrefs.get(idx);
-    wasm.__externref_table_dealloc(idx);
+    wasm.__externref_table_dealloc_command_export(idx);
     return value;
 }
 

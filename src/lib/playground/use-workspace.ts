@@ -332,7 +332,7 @@ export function useWorkspace() {
         ? `${folder}/untitled-${index}.lab`
         : `untitled-${index}.lab`
     }
-    const contents = '# New file.\n'
+    const contents = '// New file.\n'
     setFilesByProject((prev) => ({
       ...prev,
       [activeProjectId]: { ...prev[activeProjectId], [path]: contents },

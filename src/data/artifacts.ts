@@ -1,5 +1,5 @@
 import type { SourceLanguage } from '@/components/source-code'
-import { heroPlasmidExamplePython, reporterExample } from '@/data/examples'
+import { reporterExample, reporterExamplePython } from '@/data/examples'
 
 /**
  * The five artifacts below are what the toolchain actually produces for one
@@ -39,9 +39,9 @@ Resolved imports
   - std.bio.golden_gate (builtin-standard-library)
 
 Verified declarations
-  - catalog J23101: Part ("J23101")
+  - catalog J23101: Promoter ("J23101")
   - catalog B0034: Part ("B0034")
-  - catalog GFP: Part ("GFP")
+  - catalog GFP: CDS ("GFP")
   - catalog B0015: Part ("B0015")
   - catalog pSB1C3: Backbone ("pSB1C3")
   - catalog BsaI: RestrictionEnzyme ("BsaI")
@@ -53,29 +53,34 @@ selected or executed.`
 const protocolIr = `builtin.module @reporter
 {
   ^block1v1():
-    design_v0 = design.plasmid () [] [
+    sequence_v0 = design.dna_sequence () [] [
+      sequence_name: builtin.string "reporter_sequence",
+      elements: builtin.string "ACGTACGT"]:
+      <() -> (design.dna_sequence)> !0;
+
+    design_v1 = design.plasmid (sequence_v0) [] [
       artifact_name: builtin.string "reporter",
       topology: design.topology Circular,
       exact_sequence_required: builtin.bool true,
       acceptance_minimum_concentration_ng_per_ul: <100: ui32>,
       acceptance_minimum_volume_ul: <20: ui32>]:
-      <() -> (design.artifact)> !0;
+      <(design.dna_sequence) -> (design.artifact)> !1;
 
-    cells_v1 = protocol.provision () [] [
+    cells_v2 = protocol.provision () [] [
       item: builtin.string "DH5alpha"]:
-      <() -> (protocol.material CompetentCells)> !1;
+      <() -> (protocol.material CompetentCells)> !2;
 
-    fragments_v2 = protocol.synthesize (design_v0) [] []:
-      <(design.artifact) -> (protocol.material LinearDna)> !2;
+    fragments_v3 = protocol.synthesize (design_v1) [] []:
+      <(design.artifact) -> (protocol.material LinearDna)> !3;
 
-    construct_v3 = protocol.assemble (fragments_v2) [] []:
+    construct_v4 = protocol.assemble (fragments_v3) [] []:
       <(protocol.material LinearDna)
-        -> (protocol.material CircularDna)> !3;
+        -> (protocol.material CircularDna)> !4;
 
-    culture_v4 = protocol.transform (construct_v3, cells_v1) [] []:
+    culture_v5 = protocol.transform (construct_v4, cells_v2) [] []:
       <(protocol.material CircularDna,
         protocol.material CompetentCells)
-        -> (protocol.material TransformedCulture)> !4
+        -> (protocol.material TransformedCulture)> !5
 }`
 
 const ot2Python = `def run(protocol: protocol_api.ProtocolContext) -> None:
@@ -178,7 +183,7 @@ export const stages: Stage[] = [
       emit: 'reporter.py',
       filename: 'reporter.py',
       language: 'python',
-      body: heroPlasmidExamplePython,
+      body: reporterExamplePython,
     },
   },
   {

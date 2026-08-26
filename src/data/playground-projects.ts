@@ -53,15 +53,34 @@ const inventoryFile: PlaygroundFile = {
 
 use std.bio.designs
 
+J23101_sequence: DNA = dna("TTGACAGCTAGCTCAGTCCTAGGTATTATGCTAGC")
+J23106_sequence: DNA = dna("TTTACGGCTAGCTCAGTCCTAGGTATAGTGCTAGC")
+B0034_sequence: DNA = dna("AAAGAGGAGAAA")
+B0015_sequence: DNA = dna("CCAGGCATCAAATAAAACGAAAGGCTCAGTCG")
+GFP_sequence: DNA = dna("ATGACCATGATTACGCCAAGCTTGGTACCGAGCTC")
+RFP_sequence: DNA = dna("ATGGCCTCCTCCGAGGACGTCATCAAGGAGTTCATG")
+
 buy:
-  // Constitutive promoters of differing strength, the shared ribosome binding
-  // site and terminator, and the fluorescent reporters.
-  part J23101
-  part J23106
-  part B0034
-  part B0015
-  part GFP
-  part RFP
+  // Constitutive promoters of differing strength. Each is a promoter rather
+  // than a bare part, so the compiler knows what it is without being told
+  // again wherever it is used.
+  promoter J23101:
+    sequence = J23101_sequence
+  promoter J23106:
+    sequence = J23106_sequence
+
+  // The shared ribosome binding site and terminator. Neither has a narrower
+  // kind here, so both are parts; a package that declares one may say more.
+  part B0034:
+    sequence = B0034_sequence
+  part B0015:
+    sequence = B0015_sequence
+
+  // The fluorescent reporters, each a coding sequence.
+  cds GFP:
+    sequence = GFP_sequence
+  cds RFP:
+    sequence = RFP_sequence
 
   // Assembly backbone and the type IIS enzyme that opens it.
   backbone pSB1C3
@@ -96,6 +115,10 @@ const plasmidsFile: PlaygroundFile = {
  * reporter through a shared RBS and terminator.
  *
  * Sequences are synthetic compiler fixtures, not qualified biological designs.
+ * Each composite sequence is exactly the concatenation of the parts listed
+ * under \`components\`, in that order, so the design stays true once the compiler
+ * computes an assembled sequence rather than taking one on trust.
+ *
  * The reaction chemistry in each design is scientific intent and travels with
  * the artifact; where the reaction physically happens is a target profile's
  * concern.
@@ -106,6 +129,9 @@ use std.bio.golden_gate
 
 use golden_gate.designs.inventory
 
+composite_plasmid_1_sequence: DNA = dna("TTGACAGCTAGCTCAGTCCTAGGTATTATGCTAGCAAAGAGGAGAAAATGACCATGATTACGCCAAGCTTGGTACCGAGCTCCCAGGCATCAAATAAAACGAAAGGCTCAGTCG")
+composite_plasmid_2_sequence: DNA = dna("TTTACGGCTAGCTCAGTCCTAGGTATAGTGCTAGCAAAGAGGAGAAAATGGCCTCCTCCGAGGACGTCATCAAGGAGTTCATGCCAGGCATCAAATAAAACGAAAGGCTCAGTCG")
+
 /**
  * A GFP transcription unit in the pSB1C3 backbone.
  *
@@ -113,7 +139,7 @@ use golden_gate.designs.inventory
  * Gate with BsaI. Accepted only if the built sequence matches the design.
  */
 build plasmid composite_plasmid_1:
-  sequence = dna("GCTAGCGGATCCATGACCATGATTACGCCAAGCTTGAATTC")
+  sequence = composite_plasmid_1_sequence
   backbone = pSB1C3
   components = [J23101, B0034, GFP, B0015]
   restriction_enzyme = BsaI
@@ -139,7 +165,7 @@ build plasmid composite_plasmid_1:
  * reporters.
  */
 build plasmid composite_plasmid_2:
-  sequence = dna("GCTAGCGGATCCATGGCCTCCTCCGAGGACGTCATCAAGGAATTC")
+  sequence = composite_plasmid_2_sequence
   backbone = pSB1C3
   components = [J23106, B0034, RFP, B0015]
   restriction_enzyme = BsaI

@@ -1,9 +1,7 @@
 /**
- * Every Lab program here compiles with the toolchain in this repository's
- * sibling `lab` checkout. Together they form one package: a reporter plasmid,
- * the circuit it carries, the workflow that builds it, the handler that
- * watches its plate, and the entry point that ties them together. Sequences
- * are synthetic compiler fixtures.
+ * Compact excerpts from one reporter package: its inventory, plasmid, circuit,
+ * build workflow, reactive handler, and entry point. Sequences are synthetic
+ * compiler fixtures.
  */
 
 export const heroCircuitExample = `use std.bio.designs
@@ -22,21 +20,24 @@ circuit regulated_expression(
 
 tet_reporter = regulated_expression(pTet, sfGFP)`
 
-export const heroPlasmidExample = `use std.bio.designs
-use std.bio.golden_gate
-
-buy:
+const reporterInventoryLab = `buy:
   promoter J23101
   part B0034
   cds GFP
   part B0015
   backbone pSB1C3
   restriction_enzyme BsaI:
-    digest_temperature = 37 C
+    digest_temperature = 37 C`
+
+export const heroInventoryExample = `use std.bio.designs
+
+${reporterInventoryLab}`
+
+const reporterDesignLab = `reporter_sequence: DNA = dna("ACGTACGT")
 
 /** The GFP reporter under a strong constitutive promoter. */
 build plasmid reporter:
-  sequence = dna("ACGTACGT")
+  sequence = reporter_sequence
   backbone = pSB1C3
   components = [J23101, B0034, GFP, B0015]
   restriction_enzyme = BsaI
@@ -49,6 +50,21 @@ build plasmid reporter:
   accept sequence == design.sequence
   accept concentration >= 100 ng/uL
   accept volume >= 20 uL across 1 biological replicate`
+
+export const heroPlasmidExample = `use std.bio.designs
+use std.bio.golden_gate
+
+use reporter.inventory
+
+${reporterDesignLab}`
+
+/** The self-contained Lab source used by the compiler-artifact rail. */
+export const reporterExample = `use std.bio.designs
+use std.bio.golden_gate
+
+${reporterInventoryLab}
+
+${reporterDesignLab}`
 
 export const heroWorkflowExample = `use std.bio.designs
 use std.bio.build
@@ -161,11 +177,58 @@ workflow main() -> Material<Strain>:
 
   return strain`
 
+export const heroInventoryExamplePython = `import lab
+from lab import sbol
+from lab.bio.designs import Backbone, CDS, Part, Promoter, RestrictionEnzyme
+from lab.units import C
+
+module = lab.Module("reporter.inventory")
+designs = sbol.Document(namespace="https://synbiohub.org/public/igem")
+
+J23101 = Promoter.buy(design=designs.promoter(identity="J23101"))
+B0034 = Part.buy(design=designs.rbs(identity="B0034"))
+GFP = CDS.buy(design=designs.cds(identity="GFP"))
+B0015 = Part.buy(design=designs.terminator(identity="B0015"))
+pSB1C3 = Backbone.buy()
+BsaI = RestrictionEnzyme.buy(digest_temperature=37 * C)`
+
 export const heroPlasmidExamplePython = `import lab
 from lab import sbol
-from lab.units import C, ng, uL
+from lab.bio.golden_gate import Plasmid
+from lab.units import ng, uL
+
+from .inventory import B0015, B0034, GFP, J23101, BsaI, pSB1C3
+
+module = lab.Module("reporter.plasmid")
+designs = sbol.Document(namespace="https://synbiohub.org/user/marpaia/reporter")
+reporter_sequence = designs.dna_sequence(
+    elements="ACGTACGT",
+)
+reporter_design = designs.plasmid(
+    components=[J23101, B0034, GFP, B0015],
+    sequence=reporter_sequence,
+    description="The GFP reporter under a strong constitutive promoter.",
+)
+
+reporter = Plasmid.build(
+    design=reporter_design,
+    backbone=pSB1C3,
+    restriction_enzyme=BsaI,
+    require=[lambda plasmid: plasmid.sites(BsaI) == 0],
+    across=3,
+    accept=[
+        lambda built: built.sequence == built.design.sequence,
+        lambda built: built.concentration >= 100 * ng / uL,
+        lab.Claim(lambda built: built.volume >= 20 * uL, across=1),
+    ],
+)`
+
+/** The self-contained Python source used by the compiler-artifact rail. */
+export const reporterExamplePython = `import lab
+from lab import sbol
 from lab.bio.designs import Backbone, CDS, Part, Promoter, RestrictionEnzyme
 from lab.bio.golden_gate import Plasmid
+from lab.units import C, ng, uL
 
 module = lab.Module("reporter.plasmid")
 designs = sbol.Document(namespace="https://synbiohub.org/user/marpaia/reporter")
@@ -175,9 +238,12 @@ B0034 = Part.buy(design=designs.rbs(identity=f"{IGEM}/BBa_B0034/1"))
 GFP = CDS.buy(design=designs.cds(identity=f"{IGEM}/BBa_E0040/1"))
 B0015 = Part.buy(design=designs.terminator(identity=f"{IGEM}/BBa_B0015/1"))
 
-design = designs.plasmid(
+reporter_sequence = designs.dna_sequence(
+    elements="ACGTACGT",
+)
+reporter_design = designs.plasmid(
     components=[J23101, B0034, GFP, B0015],
-    sequence="ACGTACGT",
+    sequence=reporter_sequence,
     description="The GFP reporter under a strong constitutive promoter.",
 )
 
@@ -187,7 +253,7 @@ pSB1C3 = Backbone.buy(
 BsaI = RestrictionEnzyme.buy(identity="NEB-R0535", digest_temperature=37 * C)
 
 reporter = Plasmid.build(
-    design=design,
+    design=reporter_design,
     backbone=pSB1C3,
     restriction_enzyme=BsaI,
     require=[lambda plasmid: plasmid.sites(BsaI) == 0],
@@ -417,9 +483,6 @@ def grow_colonies(wf, plate: Material[Plate]) -> ColonyGrowth:
     @wf.after(18 * h)
     def give_up():
         return ColonyGrowth.TimedOut(plate=plate, observations=observations)`
-
-/** The design on its own, as `labc` compiles a single file. */
-export const reporterExample = heroPlasmidExample
 
 /** The durable build workflow, shown apart from the package it belongs to. */
 export const workflowExample = heroWorkflowExample

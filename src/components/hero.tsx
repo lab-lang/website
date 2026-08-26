@@ -14,6 +14,8 @@ import { BUILD_STAGES, BUILD_STEP_MS } from '@/data/build-stages'
 import {
   heroCircuitExample,
   heroCircuitExamplePython,
+  heroInventoryExample,
+  heroInventoryExamplePython,
   heroMainExample,
   heroMainExamplePython,
   heroObserveExample,
@@ -40,7 +42,8 @@ const views: Array<{ id: View; label: string }> = [
   { id: 'execution', label: 'Build' },
 ]
 
-type FileId = 'workflow' | 'circuit' | 'plasmid' | 'observe' | 'main'
+type FileId =
+  'workflow' | 'circuit' | 'inventory' | 'plasmid' | 'observe' | 'main'
 
 const files: Array<{
   id: FileId
@@ -70,13 +73,23 @@ const files: Array<{
     },
   },
   {
+    id: 'inventory',
+    stem: 'inventory',
+    lab: heroInventoryExample,
+    python: heroInventoryExamplePython,
+    summary: {
+      lab: '6 purchased inputs · typed by role',
+      python: '6 purchased inputs · typed by role',
+    },
+  },
+  {
     id: 'plasmid',
     stem: 'plasmid',
     lab: heroPlasmidExample,
     python: heroPlasmidExamplePython,
     summary: {
       lab: '2 requirements, 3 acceptance claims',
-      python: '1 requirement, 3 acceptance claims',
+      python: '2 requirements, 3 acceptance claims',
     },
   },
   {
@@ -315,7 +328,7 @@ function Specimen({ onReplay }: { onReplay: () => void }) {
     >
       <div className="relative flex flex-col gap-2 border-b border-white/10 px-4 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-5">
         {/*
-         * Five filenames plus the view toggle do not fit a phone on one line,
+         * Six filenames plus the view toggle do not fit a phone on one line,
          * so on small screens the files take their own scrolling row.
          */}
         <div

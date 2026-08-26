@@ -14,9 +14,11 @@ buy:
   restriction_enzyme BsaI:
     digest_temperature = 37 C
 
+reporter_sequence: DNA = dna("ACGTACGT")
+
 /** The GFP reporter under a strong constitutive promoter. */
 build plasmid reporter:
-  sequence = dna("ACGTACGT")
+  sequence = reporter_sequence
   backbone = pSB1C3
   components = [J23101, B0034, GFP, B0015]
   restriction_enzyme = BsaI
@@ -43,9 +45,12 @@ B0034 = Part.buy(design=designs.rbs(identity=f"{IGEM}/BBa_B0034/1"))
 GFP = CDS.buy(design=designs.cds(identity=f"{IGEM}/BBa_E0040/1"))
 B0015 = Part.buy(design=designs.terminator(identity=f"{IGEM}/BBa_B0015/1"))
 
-design = designs.plasmid(
+reporter_sequence = designs.dna_sequence(
+    elements="ACGTACGT",
+)
+reporter_design = designs.plasmid(
     components=[J23101, B0034, GFP, B0015],
-    sequence="ACGTACGT",
+    sequence=reporter_sequence,
     description="The GFP reporter under a strong constitutive promoter.",
 )
 
@@ -55,7 +60,7 @@ pSB1C3 = Backbone.buy(
 BsaI = RestrictionEnzyme.buy(identity="NEB-R0535", digest_temperature=37 * C)
 
 reporter = Plasmid.build(
-    design=design,
+    design=reporter_design,
     backbone=pSB1C3,
     restriction_enzyme=BsaI,
     assembly_replicates=1,
