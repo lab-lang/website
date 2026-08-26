@@ -3,6 +3,7 @@ import { EditorView } from '@codemirror/view'
 import { tags as t } from '@lezer/highlight'
 
 import { durableEffectTag } from '@/lib/playground/language'
+import { SYNTAX_COLORS } from '@/lib/syntax-colors'
 
 /**
  * Colors match the dark code panel already established in index.css and
@@ -10,20 +11,25 @@ import { durableEffectTag } from '@/lib/playground/language'
  * visible seam.
  */
 const COLOR = {
-  base: '#f2e8db',
-  comment: '#8a7458',
-  keyword: '#eaa54a',
-  type: '#6fd0dd',
-  string: '#cbb98a',
-  number: '#f2708f',
-  durable: '#93e03f',
+  base: SYNTAX_COLORS.variable,
+  punctuation: SYNTAX_COLORS.punctuation,
+  comment: SYNTAX_COLORS.comment,
+  keyword: SYNTAX_COLORS.keyword,
+  type: SYNTAX_COLORS.type,
+  function: SYNTAX_COLORS.function,
+  string: SYNTAX_COLORS.string,
+  number: SYNTAX_COLORS.number,
+  durable: SYNTAX_COLORS.durable,
 }
 
 export const labHighlightStyle = HighlightStyle.define([
   { tag: t.comment, color: COLOR.comment, fontStyle: 'italic' },
   { tag: t.keyword, color: COLOR.keyword },
-  { tag: t.operator, color: COLOR.keyword },
+  { tag: t.operator, color: COLOR.punctuation },
+  { tag: t.punctuation, color: COLOR.punctuation },
   { tag: t.typeName, color: COLOR.type },
+  { tag: t.function(t.variableName), color: COLOR.function },
+  { tag: t.function(t.propertyName), color: COLOR.function },
   { tag: t.variableName, color: COLOR.base },
   { tag: t.string, color: COLOR.string },
   { tag: t.number, color: COLOR.number },

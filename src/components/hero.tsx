@@ -27,13 +27,6 @@ import { features } from '@/data/plasmid-features'
 import { useCodeLanguage, type CodeLanguage } from '@/lib/code-language'
 import { usePrefersReducedMotion } from '@/lib/use-prefers-reduced-motion'
 
-/*
- * The opening file takes about this long to type whatever it is, so the
- * hero keeps one rhythm across frontends: the same design states in 604
- * characters of Lab and 1683 of Python, and a fixed per-tick step would
- * make the Python view sit almost three times as long before the build
- * starts.
- */
 const TYPING_MS = 4200
 const TICK_MS = 40
 const HOLD_BEFORE_BUILD = 600
@@ -49,12 +42,6 @@ const views: Array<{ id: View; label: string }> = [
 
 type FileId = 'workflow' | 'circuit' | 'plasmid' | 'observe' | 'main'
 
-/**
- * Every file is written both ways. The summaries count what is in the file,
- * so a file counts differently between them: pySBOL3 states the reporter's
- * topology in the component's own types, which is one fewer requirement for
- * Lab to carry.
- */
 const files: Array<{
   id: FileId
   stem: string

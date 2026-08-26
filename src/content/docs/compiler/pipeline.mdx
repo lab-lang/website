@@ -60,10 +60,11 @@ other and nothing downstream can tell them apart.
 
 SBOL is not a third frontend. It is the vocabulary designs are exchanged in,
 and both frontends speak it: the type system grounds parts and roles in the
-ontologies SBOL names, and the Python frontend builds on the tools already
-written against SBOL, which are pySBOL3 for designs and LOICA for circuits.
-So a design can arrive from a registry and leave for one without SBOL being
-a separate way into the compiler.
+ontologies SBOL names, and the Python frontend provides typed design builders
+over pySBOL3 while reading LOICA circuits. The builders keep biological design
+separate from explicit `build` or `buy` provenance, then materialize and
+validate the document during module compilation. So a design can arrive from
+a registry and leave for one without SBOL being a separate way into the compiler.
 
 ## Stage names, concretely
 

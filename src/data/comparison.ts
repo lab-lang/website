@@ -6,9 +6,9 @@ use std.bio.designs
 use std.bio.golden_gate
 
 buy:
-  part J23101
+  promoter J23101
   part B0034
-  part GFP
+  cds GFP
   part B0015
   backbone pSB1C3
   restriction_enzyme BsaI:
@@ -29,43 +29,33 @@ workflow build_reporter() -> Material<Plasmid>:
   product <- realize reporter
   return product`
 
-/** The same build, through the Python frontend, whose designs are pySBOL3. */
-export const labSourcePython = `import sbol3
-
-import lab
-from lab import Material
-from lab.bio.designs import Backbone, RestrictionEnzyme
+export const labSourcePython = `import lab
+from lab import Material, sbol
+from lab.bio.designs import Backbone, CDS, Part, Promoter, RestrictionEnzyme
 from lab.bio.golden_gate import Plasmid
 from lab.units import C
 
-sbol3.set_namespace("https://synbiohub.org/user/marpaia/reporter")
-
+module = lab.Module("reporter")
+designs = sbol.Document(namespace="https://synbiohub.org/user/marpaia/reporter")
 IGEM = "https://synbiohub.org/public/igem"
-J23101 = sbol3.SubComponent(f"{IGEM}/BBa_J23101/1")
-B0034 = sbol3.SubComponent(f"{IGEM}/BBa_B0034/1")
-GFP = sbol3.SubComponent(f"{IGEM}/BBa_E0040/1")
-B0015 = sbol3.SubComponent(f"{IGEM}/BBa_B0015/1")
+J23101 = Promoter.buy(design=designs.promoter(identity=f"{IGEM}/BBa_J23101/1"))
+B0034 = Part.buy(design=designs.rbs(identity=f"{IGEM}/BBa_B0034/1"))
+GFP = CDS.buy(design=designs.cds(identity=f"{IGEM}/BBa_E0040/1"))
+B0015 = Part.buy(design=designs.terminator(identity=f"{IGEM}/BBa_B0015/1"))
 
-design = sbol3.Component(
-    "reporter",
-    [sbol3.SBO_DNA, sbol3.SO_CIRCULAR],
-    roles=[sbol3.SO_ENGINEERED_REGION],
-    sequences=[
-        sbol3.Sequence(
-            "reporter_seq",
-            elements="ACGTACGT",
-            encoding=sbol3.IUPAC_DNA_ENCODING,
-        )
-    ],
-    features=[J23101, B0034, GFP, B0015],
+design = designs.plasmid(
+    components=[J23101, B0034, GFP, B0015],
+    sequence="ACGTACGT",
     description="The GFP reporter under a strong constitutive promoter.",
 )
 
-pSB1C3 = Backbone.buy(identity=f"{IGEM}/pSB1C3/1")
+pSB1C3 = Backbone.buy(
+    design=designs.backbone(identity=f"{IGEM}/pSB1C3/1"),
+)
 BsaI = RestrictionEnzyme.buy(identity="NEB-R0535", digest_temperature=37 * C)
 
 reporter = Plasmid.build(
-    design,
+    design=design,
     backbone=pSB1C3,
     restriction_enzyme=BsaI,
     assembly_replicates=1,

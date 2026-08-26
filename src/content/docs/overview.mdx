@@ -27,12 +27,14 @@ following you across the site.
 
 SBOL is not a third way in. It is the vocabulary a design is written and
 exchanged in, and both frontends speak it: Lab grounds parts and roles in
-the ontologies SBOL names, and the Python flavor writes its designs in
-[pySBOL3](https://pysbol3.readthedocs.io) directly, so a design is an
-ordinary `sbol3.Component` rather than a vocabulary of Lab's own. What the
-`lab` package adds is what SBOL has no vocabulary for: artifact
-declarations, provenance, the acceptance claims a build is judged on, and
-the durable workflows that carry it out.
+the ontologies SBOL names, and the Python flavor exposes typed biological
+builders that materialize ordinary [pySBOL3](https://pysbol3.readthedocs.io)
+documents when the module compiles. The design says what the biology is;
+`build` and `buy` explicitly say how this laboratory obtains it. The full
+pySBOL3 object model remains available when a design needs it. What the `lab`
+package adds is what SBOL has no vocabulary for: artifact declarations,
+provenance, the acceptance claims a build is judged on, and the durable
+workflows that carry it out.
 
 A small project usually has a few files like these.
 
@@ -46,9 +48,9 @@ use std.bio.designs
 use std.bio.golden_gate
 
 buy:
-  part J23101
+  promoter J23101
   part B0034
-  part GFP
+  cds GFP
   part B0015
   backbone pSB1C3
   restriction_enzyme BsaI:
@@ -72,51 +74,33 @@ build plasmid reporter:
 ```
 
 ```python reporter.py
-import sbol3
-
 import lab
+from lab import sbol
 from lab.units import C, ng, uL
-from lab.bio.designs import Backbone, RestrictionEnzyme
+from lab.bio.designs import Backbone, CDS, Part, Promoter, RestrictionEnzyme
 from lab.bio.golden_gate import Plasmid
 
-# The design is plain pySBOL3: parts referenced at the identity the
-# registry already gave them, ordered by SBOL's own constraints.
-sbol3.set_namespace("https://synbiohub.org/user/marpaia/reporter")
-
+module = lab.Module("reporter.plasmid")
+designs = sbol.Document(namespace="https://synbiohub.org/user/marpaia/reporter")
 IGEM = "https://synbiohub.org/public/igem"
-J23101 = sbol3.SubComponent(f"{IGEM}/BBa_J23101/1")
-B0034 = sbol3.SubComponent(f"{IGEM}/BBa_B0034/1")
-GFP = sbol3.SubComponent(f"{IGEM}/BBa_E0040/1")
-B0015 = sbol3.SubComponent(f"{IGEM}/BBa_B0015/1")
+J23101 = Promoter.buy(design=designs.promoter(identity=f"{IGEM}/BBa_J23101/1"))
+B0034 = Part.buy(design=designs.rbs(identity=f"{IGEM}/BBa_B0034/1"))
+GFP = CDS.buy(design=designs.cds(identity=f"{IGEM}/BBa_E0040/1"))
+B0015 = Part.buy(design=designs.terminator(identity=f"{IGEM}/BBa_B0015/1"))
 
-sequence = sbol3.Sequence(
-    "reporter_seq", elements="ACGTACGT", encoding=sbol3.IUPAC_DNA_ENCODING
-)
-
-design = sbol3.Component(
-    "reporter",
-    [sbol3.SBO_DNA, sbol3.SO_CIRCULAR],
-    roles=[sbol3.SO_ENGINEERED_REGION],
-    sequences=[sequence],
-    features=[J23101, B0034, GFP, B0015],
+design = designs.plasmid(
+    components=[J23101, B0034, GFP, B0015],
+    sequence="ACGTACGT",
     description="The GFP reporter under a strong constitutive promoter.",
 )
-# Lab's `require topology == circular` is SO_CIRCULAR above: where SBOL
-# can already state something, the compiler reads it rather than
-# asking you to say it twice.
-design.constraints = [
-    sbol3.Constraint(sbol3.SBOL_MEETS, J23101, B0034),
-    sbol3.Constraint(sbol3.SBOL_MEETS, B0034, GFP),
-    sbol3.Constraint(sbol3.SBOL_MEETS, GFP, B0015),
-]
 
-# What SBOL has no vocabulary for is lab's part: where a material comes
-# from, and the evidence a built artifact is accepted on.
-pSB1C3 = Backbone.buy(identity=f"{IGEM}/pSB1C3/1")
+pSB1C3 = Backbone.buy(
+    design=designs.backbone(identity=f"{IGEM}/pSB1C3/1"),
+)
 BsaI = RestrictionEnzyme.buy(identity="NEB-R0535", digest_temperature=37 * C)
 
 reporter = Plasmid.build(
-    design,
+    design=design,
     backbone=pSB1C3,
     restriction_enzyme=BsaI,
     require=[lambda plasmid: plasmid.sites(BsaI) == 0],
@@ -414,8 +398,8 @@ covers designs, claims, material flow, and reactive workflows. That's most of
 this site, and where to start if you're new here. Its examples are written in
 Lab, because the language names these ideas in the fewest words, and each one
 has the Python form shown on this page: an `accept` claim is a predicate in
-`accept=[...]`, `<-` is `wf.perform`, and a design is a pySBOL3 component
-either way.
+`accept=[...]`, `<-` is `wf.perform`, and a typed SBOL design produces a
+validated pySBOL3 component underneath when its declaration is compiled.
 
 Two smaller sections are for a different audience. **Toolchain** covers the
 compiler's internals, useful if you're contributing to it or want to

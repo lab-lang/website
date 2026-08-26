@@ -2,6 +2,7 @@ import { StateEffect, StateField } from '@codemirror/state'
 import { Decoration, EditorView, type DecorationSet } from '@codemirror/view'
 
 import type { SemanticToken, SemanticTokenKind } from '@/lib/lab-engine/types'
+import { SYNTAX_COLORS } from '@/lib/syntax-colors'
 
 /**
  * Decorations sourced from the real compiler's semantic tokens, layered
@@ -30,16 +31,30 @@ const KIND_CLASS: Record<SemanticTokenKind, string> = {
 
 export const semanticTokenTheme = EditorView.baseTheme({
   '.cm-lab-semantic-comment': {
-    color: '#8a7458 !important',
+    color: `${SYNTAX_COLORS.comment} !important`,
     fontStyle: 'italic',
   },
-  '.cm-lab-semantic-keyword': { color: '#eaa54a !important' },
-  '.cm-lab-semantic-string': { color: '#cbb98a !important' },
-  '.cm-lab-semantic-number': { color: '#f2708f !important' },
-  '.cm-lab-semantic-type': { color: '#6fd0dd !important' },
-  '.cm-lab-semantic-function': { color: '#6fd0dd !important' },
-  '.cm-lab-semantic-variable': { color: '#f2e8db !important' },
-  '.cm-lab-semantic-operator': { color: '#eaa54a !important' },
+  '.cm-lab-semantic-keyword': {
+    color: `${SYNTAX_COLORS.keyword} !important`,
+  },
+  '.cm-lab-semantic-string': {
+    color: `${SYNTAX_COLORS.string} !important`,
+  },
+  '.cm-lab-semantic-number': {
+    color: `${SYNTAX_COLORS.number} !important`,
+  },
+  '.cm-lab-semantic-type': {
+    color: `${SYNTAX_COLORS.type} !important`,
+  },
+  '.cm-lab-semantic-function': {
+    color: `${SYNTAX_COLORS.function} !important`,
+  },
+  '.cm-lab-semantic-variable': {
+    color: `${SYNTAX_COLORS.variable} !important`,
+  },
+  '.cm-lab-semantic-operator': {
+    color: `${SYNTAX_COLORS.punctuation} !important`,
+  },
 })
 
 export const setSemanticTokens = StateEffect.define<SemanticToken[]>()

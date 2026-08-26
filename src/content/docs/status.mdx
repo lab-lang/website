@@ -63,14 +63,15 @@ LAIR, verification, target selection, and the backends, is shared.
 
 | Frontend | Input                                                    | Status                                                |
 | -------- | -------------------------------------------------------- | ----------------------------------------------------- |
-| Python   | Python workflows over pySBOL3 designs and LOICA circuits | Complete through `CheckedModule`                      |
+| Python   | Typed SBOL designs, LOICA circuits, and Python workflows | Complete through `CheckedModule`                      |
 | Lab      | `.lab` source                                            | Complete through `CheckedModule`; the native language |
 
 SBOL is not a frontend of its own. It is the vocabulary designs are written
 and exchanged in, which both frontends speak: ontology grounding for parts
 and roles is implemented, and the Python frontend builds on the tools the
-field already writes against SBOL, which are pySBOL3 for designs and
-[LOICA](https://github.com/RudgeLab/LOICA) for circuits. A LOICA network is
+field already writes against SBOL: typed design builders produce pySBOL3,
+with `build` and `buy` kept explicit and document validation run during module
+compilation, and [LOICA](https://github.com/RudgeLab/LOICA) supplies circuits. A LOICA network is
 a set of transcription units wired by the products they share, so it lowers
 to one circuit per unit, and what induces each unit and what it expresses
 are derived from the network rather than restated. Because a regulator is

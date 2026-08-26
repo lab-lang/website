@@ -17,7 +17,7 @@ const inputs: CompilerInput[] = [
     name: 'Python',
     file: 'reporter.py',
     note: 'Start here',
-    body: 'The language your lab already writes, over the tools it already uses: designs are pySBOL3 components and circuits are LOICA networks. Workflows and claims are Python, and everything enters the same checker, so an existing codebase reaches the pipeline without a rewrite.',
+    body: 'The language your lab already writes, with typed SBOL designs that keep build and buy explicit, validate through pySBOL3 during compilation, and compose with LOICA circuit networks. Workflows and claims are Python, and everything enters the same checker, so an existing codebase reaches the pipeline without a rewrite.',
   },
   {
     name: 'Lab',
@@ -69,8 +69,8 @@ export function CompilerInputsSection() {
           <p className="prose-lab mt-3 max-w-[62em] text-[14px] leading-[1.65] text-umber">
             Not a third way in, but the design interchange both frontends speak.
             Lab grounds parts and roles in the ontologies SBOL names, the Python
-            flavor builds on the tools already written against it, pySBOL3 and
-            LOICA, and a design can arrive from a registry and leave for one.
+            flavor provides typed builders over pySBOL3 and reads LOICA, and a
+            design can arrive from a registry and leave for one.
           </p>
         </div>
 
