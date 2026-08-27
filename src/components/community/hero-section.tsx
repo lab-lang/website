@@ -1,53 +1,97 @@
-import { ArrowRight } from 'lucide-react'
+import { ArrowUpRight, ExternalLink, GitBranch } from 'lucide-react'
 
 import { SectionBody } from '@/components/section'
-import { REPO_URL } from '@/lib/site'
+import { startHere } from '@/data/community'
+import { COMMUNITY_REPO_URL } from '@/lib/site'
 
 export function HeroSection() {
   return (
-    <section className="agar-wash relative overflow-hidden" id="intro">
-      <SectionBody className="pb-14 pt-6 sm:pb-20 sm:pt-10 lg:pb-28">
-        <div className="flex items-center gap-2.5">
-          <span className="size-1.5 rounded-full bg-gfp ring-3 ring-gfp/25" />
-          <span className="micro text-umber">
-            <span className="normal-case">v</span>0.1.0 · early prototype ·
-            community forming
-          </span>
-        </div>
+    <section className="agar-wash border-b border-ink/12" id="intro">
+      <SectionBody className="py-10 sm:py-14 lg:py-16">
+        <div className="mx-auto max-w-[1260px]">
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,1.08fr)_minmax(24rem,0.92fr)] lg:gap-16">
+            <div>
+              <p className="micro text-amber-deep">lab-lang/community</p>
+              <h1 className="type-display mt-4 text-[clamp(2.75rem,6vw,5rem)] leading-[0.96]">
+                Lab Community
+              </h1>
+              <p className="type-deck mt-6 max-w-[42rem] text-[clamp(1.05rem,1.55vw,1.28rem)] leading-[1.52] text-ink/80">
+                This is the durable strategy and lightweight community structure
+                for Lab. It explains why the project exists, how its Special
+                Interest Groups fit together, and how temporary Working Groups
+                coordinate work across them.
+              </p>
+              <p className="prose-lab mt-4 max-w-[44rem] text-[14px] leading-[1.65] text-umber">
+                Lab is a compiler for portable biological work. Scientists state
+                the result, constraints, and evidence they need in Python or the
+                Lab Language. The compiler specializes that intent for a
+                laboratory, its policies, and its instruments.
+              </p>
 
-        <div>
-          <h1 className="type-display mt-6 text-pretty text-[clamp(2.2rem,5vw,4.5rem)]">
-            Help build the future of lab automation.
-          </h1>
-        </div>
+              <div className="mt-7 flex flex-wrap gap-2.5">
+                <a
+                  className="press inline-flex items-center gap-2 rounded-lg bg-ink px-4 py-2.5 text-[13px] text-paper"
+                  href="#groups"
+                >
+                  Browse community groups
+                  <ArrowUpRight aria-hidden="true" size={14} />
+                </a>
+                <a
+                  className="press inline-flex items-center gap-2 rounded-lg border border-ink/18 px-4 py-2.5 text-[13px] text-ink hover:border-ink/38"
+                  href={COMMUNITY_REPO_URL}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  <GitBranch aria-hidden="true" size={14} />
+                  Open the repository
+                </a>
+              </div>
+            </div>
 
-        <div>
-          <p className="type-deck mt-7 max-w-[38em] text-pretty text-[clamp(1.05rem,1.6vw,1.4rem)] text-ink/78">
-            Lab is a small compiler toolchain with big ambitions to help change
-            how we do science. Write an experiment in Python or in Lab, and it
-            compiles to work a laboratory can run. If you&rsquo;re interested in
-            making laboratory science scalable and fun, consider joining us!
-          </p>
-        </div>
-
-        <div className="mt-8 flex flex-wrap gap-3">
-          <a
-            className="press inline-flex items-center gap-2 rounded-xl bg-ink px-5 py-3 text-[14px] text-paper shadow-[0_10px_24px_-8px_rgb(43_28_17_/_0.5)]"
-            href={REPO_URL}
-            rel="noreferrer"
-            target="_blank"
-          >
-            Read the source
-            <ArrowRight aria-hidden="true" size={16} />
-          </a>
-          <a
-            className="press inline-flex items-center gap-2 rounded-xl border border-ink/20 px-5 py-3 text-[14px] text-ink hover:border-ink/40"
-            href={`${REPO_URL}/issues`}
-            rel="noreferrer"
-            target="_blank"
-          >
-            Open an issue
-          </a>
+            <nav
+              aria-label="Start with the community repository"
+              className="h-fit self-start overflow-hidden rounded-xl border border-ink/16 bg-shell/72"
+            >
+              <div className="flex items-center justify-between border-b border-ink/12 px-4 py-3 sm:px-5">
+                <h2 className="type-head text-[15px]">Start here</h2>
+                <span className="font-mono text-[10px] text-umber-soft">
+                  {startHere.length} documents
+                </span>
+              </div>
+              <ol>
+                {startHere.map((document, index) => (
+                  <li
+                    className="border-b border-ink/10 last:border-b-0"
+                    key={document.label}
+                  >
+                    <a
+                      className="press group grid grid-cols-[1.5rem_minmax(0,1fr)_auto] items-start gap-3 px-4 py-3.5 sm:px-5"
+                      href={document.href}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      <span className="pt-0.5 font-mono text-[10px] text-amber-deep/65">
+                        {String(index + 1).padStart(2, '0')}
+                      </span>
+                      <span>
+                        <span className="type-head block text-[14px]">
+                          {document.label}
+                        </span>
+                        <span className="mt-0.5 block text-[12px] leading-[1.45] text-umber">
+                          {document.description}
+                        </span>
+                      </span>
+                      <ExternalLink
+                        aria-hidden="true"
+                        className="mt-1 text-umber-soft"
+                        size={12}
+                      />
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            </nav>
+          </div>
         </div>
       </SectionBody>
     </section>

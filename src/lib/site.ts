@@ -3,6 +3,9 @@ export const REPO_SLUG = 'lab-lang/lab'
 
 export const REPO_URL = `https://github.com/${REPO_SLUG}`
 
+/** Durable project strategy, governance, SIG charters, and WG charters. */
+export const COMMUNITY_REPO_URL = 'https://github.com/lab-lang/community'
+
 /**
  * Where the site is served. Canonical links and social card URLs have to be
  * absolute, so a crawler resolving them has nothing relative to fall back on.
