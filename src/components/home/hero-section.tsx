@@ -21,7 +21,7 @@ export function HeroSection() {
         <div>
           <h1 className="type-display mt-6 text-[clamp(2.375rem,5.65vw,5.25rem)]">
             <span className="block text-pretty">
-              A compiler for the robotic laboratory.
+              A compiler for biological engineering.
             </span>
             <span className="mt-[0.06em] block text-balance text-[0.82em] font-light text-amber-deep">
               Write the experiment once. Compile it for any lab.
