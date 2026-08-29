@@ -1,55 +1,57 @@
 ---
 title: Compiler pipeline
 eyebrow: Compiler
-description: Scientific intent becomes method alternatives, an allocated facility procedure, and reviewed work for people and instruments.
+description: Scientific intent becomes Method alternatives, an allocated facility Procedure, and reviewed work for people and instruments.
 group: Toolchain
 order: 210
 ---
 
-Lab is a multi-layer compiler. It does not translate an experiment directly into one robot script, and a device is not selected by a command-line target flag. The compiler preserves scientific meaning while it progressively commits to methods, physical resources, and implementation details.
+Lab is a multi-layer compiler. It does not translate an experiment directly into one robot script, and a device is not selected by a command-line target flag. The compiler preserves scientific meaning while progressively committing to Methods, physical resources, and implementation details.
 
 ```text
 Lab or Python source
     -> checked portable module IR
-    -> LAIR design and intent
-    -> method alternatives with procedure and capability requirements
-    -> graph-wide method and facility solving
-    -> allocated procedure LAIR
-    -> asset-bound adapter invocations
+    -> LAIR Design and Intent
+    -> Method alternatives with Procedure and Capability graphs
+    -> graph-wide Method and facility solving
+    -> Allocated Procedure LAIR
+    -> Asset-bound adapter invocations
     -> reviewed execution plan and device documents
     -> run ledger, material lineage, and evidence
 ```
 
-Much of this path is implemented, but it is not yet connected as one canonical pipeline. Both frontends reach one checked module model. `PortableLairProgram::refine_methods` now consumes a validated, facility-independent `lab-method` registry and produces verifier-valid `refined-alternatives` LAIR containing compatible Method candidates, Procedure dataflow, exact parameters, and first-class Capability requirements. Separately, the current package path validates SBOLInventory facility graphs, allocates its transitional reachable requirements to exact offerings and Assets, emits asset-specific bundles through compatible adapters, and validates a reviewed plan before simulation or supported live execution. Global problem extraction, joint method/facility solving, solution application, and CLI uptake are the missing bridge; until they land, `lab build` still selects the plasmid-build Protocol before allocation and emits the v2 checked-module requirement projection.
+This is one connected production path. Both frontends reach the same checked module model. The shared project service lowers all checked program modules into `design-intent`, refines them with a validated facility-independent Method registry, projects one global planning problem, solves Method and resource choices together, applies the complete solution to produce `allocated-procedure`, and projects immutable exact-task adapter invocations. `lab build`, `lab plan`, and Python facility planning all call that service.
+
+The former fixed Protocol dialect, pre-facility Golden Gate selector, checked-module requirement reconstruction, and whole-program device lowering path have been removed.
 
 ## The layers and their owners
 
-| Layer                      | Representation                                  | Owns                                                                                                                                      |
-| -------------------------- | ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| Source                     | Lab or Python                                   | The experiment as an author writes it                                                                                                     |
-| Portable frontend boundary | `CheckedModule`                                 | Resolved symbols, types, action contracts, biological identities, and affine material ownership                                           |
-| Transforming compiler IR   | LAIR on Pliron                                  | Design intent, typed material flow, method alternatives, procedures, capability requirements, and eventually exact allocation annotations |
-| Constraint problem         | Compiler-owned solver model                     | Joint choices over methods, offerings, Assets, adapters, MaterialLots, movement, capacity, and scheduling                                 |
-| Facility snapshot          | Validated SBOLInventory                         | Facilities, Zones, Assets, capability offerings, qualification, control modes, parameters, and MaterialLots                               |
-| Adapter invocation         | Versioned immutable record                      | The exact allocated Asset, implementation, checked profile, inputs, outputs, and device-level work to lower                               |
-| Runtime ABI                | Reviewed execution plan and child run documents | Frozen identities and digests approved for execution                                                                                      |
-| Operational record         | Ledger and output SBOLInventory document        | What ran, material changes, provenance, and evidence                                                                                      |
+| Layer                      | Representation                              | Owns                                                                                                                  |
+| -------------------------- | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Source                     | Lab or Python                               | The experiment as an author writes it                                                                                 |
+| Portable frontend boundary | `CheckedModule`                             | Resolved symbols, types, action contracts, biological identities, and affine material ownership                       |
+| Transforming compiler IR   | LAIR on Pliron                              | Design and Intent, Method alternatives, Procedure dataflow, Capability requirements, and exact allocation annotations |
+| Constraint problem         | `lab.planning-problem.v4`                   | Joint choices over Methods, offerings, Assets, adapters, MaterialLots, dependencies, and policy                       |
+| Facility snapshot          | Validated SBOLInventory                     | Facilities, Zones, Assets, capability offerings, qualification, control modes, parameters, and MaterialLots           |
+| Facility solution          | `lab.facility-planning-solution.v2`         | One complete selection keyed to the exact planning identities                                                         |
+| Allocated work             | `allocated-procedure` LAIR                  | The selected Method graph with exact requirement and material bindings                                                |
+| Adapter invocation         | `lab.adapter-invocations.v5`                | Exact selected tasks grouped by Asset and adapter, with all compiler and inventory digests                            |
+| Runtime ABI                | `lab.execution-plan.v5` and child documents | Frozen identities and digests approved for execution                                                                  |
+| Operational record         | Ledger and output SBOLInventory document    | What ran, material changes, provenance, and evidence                                                                  |
 
-SBOLInventory is the target-environment description, but it is not another LAIR dialect. The compiler queries an immutable validated snapshot and brings only selected identities and the inventory digest into the allocated program. Facility RDF never becomes compiler IR, and Lab does not maintain a parallel inventory TOML model.
+SBOLInventory is the target-environment description, but it is not another LAIR dialect. The compiler queries an immutable validated snapshot and carries only selected identities and the inventory digest into the allocated program. Facility RDF never becomes compiler IR, and Lab does not maintain a parallel inventory TOML model.
 
 ## Method selection and facility allocation are one decision
 
-A source action states scientific intent. It should not permanently own one instrument capability. A method refines that intent into a procedure: a primitive service may require one capability, while a composite method may require liquid handling, thermal cycling, transport, incubation, and measurement as several related tasks.
+A source action states scientific intent. It does not permanently own one instrument capability. A Method refines that intent into a Procedure: a primitive service may require one capability, while a composite Method may require liquid handling, thermal cycling, transport, incubation, and measurement as several related tasks.
 
-Method refinement is facility-independent: the compiler can enumerate scientifically valid candidates without knowing where the experiment will run. Selecting an unpinned method is facility-dependent. The solver must choose a method together with exact capability offerings, Assets, adapters, material lots, movement, and scheduling. If two complete solutions remain equally valid under the stated policy, planning reports the ambiguity instead of silently taking the first.
+Method refinement is facility-independent: the compiler can enumerate scientifically valid candidates without knowing where the experiment will run. Selecting an unpinned Method is facility-dependent. The solver chooses it together with exact capability offerings, Assets, adapters, material lots, and dependencies. If two complete solutions remain equally valid under the stated policy, planning reports the ambiguity instead of silently taking the first.
 
-This distinction prevents two common architecture mistakes: hard-coding Golden Gate or one robot into the source action, and choosing a method before discovering that another method is the only one the selected facility can actually realize.
+The built-in Golden Gate Method shows why this matters. Reaction setup requires liquid handling, thermal cycling is a separate Procedure task with its own requirement, and a typed material edge connects them. One facility may allocate both to one OT-2; another may allocate setup to a STAR and cycling to an ODTC. The source experiment is unchanged.
 
 ## LAIR and Pliron
 
-LAIR is the mutable, verifier-rich middle of the compiler. Pliron provides operations, SSA values, regions, analyses, rewrite infrastructure, textual IR, and pass pipelines. Pliron is deliberately internal: adapters and Python extensions exchange compiler-owned immutable records rather than Pliron contexts, pointers, or lifetimes.
-
-The intended executable LAIR stages are:
+LAIR is the mutable, verifier-rich middle of the compiler. Pliron supplies operations, SSA values, regions, analyses, rewrite infrastructure, textual IR, and pass pipelines. Pliron remains internal: adapters and Python extensions exchange compiler-owned immutable records rather than contexts, pointers, or lifetimes.
 
 ```text
 design-intent
@@ -57,20 +59,21 @@ design-intent
     -> allocated-procedure
 ```
 
-`design-intent` contains reachable design facts and method-neutral work. `refined-alternatives` contains candidate method regions with Procedure tasks and first-class Capability requirements. A read-only analysis extracts the global constraint problem. The allocation pass applies one complete solution back to the exact LAIR identities, removes unselected candidates, inserts explicit movement, and produces `allocated-procedure`. No adapter may consume unresolved alternatives.
+`design-intent` contains reachable design facts and method-neutral work. `refined-alternatives` contains candidate Method regions with Procedure tasks and first-class Capability requirements. A read-only analysis extracts the constraint problem. The allocation pass applies one complete solution back to the exact LAIR identities, removes unselected candidates, and produces `allocated-procedure`. No adapter can consume unresolved alternatives.
 
-The compiler now represents both `design-intent` and `refined-alternatives`. Design and Workflow operations form the current source-lowering boundary; Method, Procedure, and Capability operations represent every applicable candidate after refinement. The older Protocol dialect still powers current device backends through a fixed pre-facility conversion while solver extraction and `allocated-procedure` are built. That transitional Protocol path is being replaced rather than generalized.
-
-## Stable boundaries around the mutable IR
+## Stable boundaries around mutable IR
 
 The compiler can rewrite LAIR aggressively because its external boundaries are ordinary versioned data:
 
 - Frontends produce `CheckedModule`.
 - Facility ingestion produces an immutable validated inventory snapshot.
-- Solvers return decisions keyed by stable method, requirement, procedure-node, and material-input identities.
+- The solver returns decisions keyed by stable Method, Requirement, Procedure-task, and material-input identities.
+- Allocation must revalidate and apply the complete solution to the exact source problem.
 - Adapters consume immutable invocation records and emit reviewed child documents.
-- Runtime consumes `lab.execution-plan.v1`; it never runs compiler passes or reallocates resources.
+- Runtime consumes `lab.execution-plan.v5`; it never runs compiler passes or reallocates resources.
 
-That is why Lab remains a compiler rather than becoming a workflow engine built around device plugins. The compiler makes and verifies decisions; adapters realize already-allocated work; runtime executes exactly what was reviewed.
+Each built-in automation adapter receives only the tasks and requirements assigned to one exact Asset invocation. Shared Procedure views validate operation IRIs, parameters, canonical units, material roles, Capability kinds, and exact allocation ownership before device-specific planning begins. Unsupported semantics fail explicitly.
 
-See [Facility planning](/docs/compiler/facility-planning) for the package and CLI workflow, and [LAIR dialects](/docs/compiler/lair-dialects) for the implemented vertical slice and its migration path.
+That is why Lab remains a compiler rather than a workflow engine organized around device plugins. The compiler makes and verifies decisions; adapters realize already allocated work; runtime executes exactly what was reviewed.
+
+See [Facility planning](/docs/compiler/facility-planning) for package configuration and output, and [LAIR dialects](/docs/compiler/lair-dialects) for the stage and dialect contracts.

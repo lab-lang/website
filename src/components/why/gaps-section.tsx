@@ -5,7 +5,7 @@ import { ClosingNote, SectionBody, SectionIntro } from '@/components/section'
 import { REPO_URL } from '@/lib/site'
 
 const gaps = [
-  'Method alternatives, first-class Procedure and Capability LAIR, and joint method/facility solving are still being built.',
+  'The compiler architecture is connected, but the portable Method and Procedure library covers only a narrow biological slice.',
   'The working automated biology path is a bounded Golden Gate vertical slice, not a general laboratory method library.',
   'Only selected STAR and ODTC paths have live executors; every physical procedure still requires local review and qualification.',
   'Packages resolve by path only. There is no package registry or registry integrity resolution yet.',

@@ -11,21 +11,21 @@ const shipped = [
   'Parsing, resolution, and type checking',
   'Typed portable module IR',
   'Action contracts and affine material flow',
-  'LAIR dialects, analyses, and a verified vertical slice',
+  'Method, Procedure, Capability, and Allocation LAIR',
   'Validated SBOLInventory facilities and exact MaterialLot binding',
-  'Capability allocation to exact offerings and Assets',
-  'Asset-bound adapters and reviewed execution plans',
+  'Joint Method and facility allocation to exact offerings and Assets',
+  'Exact-task adapter invocations and reviewed execution plans',
   'Dry-run, simulation, durable ledgers, and run provenance',
   'Editor support over LSP and WebAssembly',
   'OT-2, Flex, STAR, ODTC, Byonoy, and semantic simulation adapters',
 ]
 
 const pending = [
-  'First-class Method, Procedure, and Capability LAIR',
-  'Joint method, resource, movement, and schedule solving',
-  'General adapter invocation contracts for Rust and Python',
+  'Broad portable Method and Procedure libraries',
+  'Complete movement, reservation, and schedule solving',
+  'Dynamically loaded external adapters',
   'Live inventory reservation and facility scheduling',
-  'External package resolution and lockfiles',
+  'External package registry and integrity resolution',
   'Cloud labs',
 ]
 
@@ -46,7 +46,7 @@ export function StatusSection() {
           <div className="reveal" data-shown={inView} ref={ref}>
             <SectionIntro
               kicker="Where this stands"
-              lede="The first facility-aware vertical slice now reaches reviewed plans, simulation, selected live adapters, and inventory provenance. The general Method, Procedure, and Capability compiler architecture is still being built, and every physical procedure still requires facility-specific review and qualification."
+              lede="The connected compiler path now reaches Method and facility solving, Allocated Procedure, exact-task adapters, reviewed plans, simulation, selected live executors, and inventory provenance. Its scientific and device-operation breadth remains narrow, and every physical procedure still requires facility-specific review and qualification."
               ledeClassName="mt-6 text-[15px] leading-[1.72]"
               title="Current state of the Lab."
               titleClassName="text-[clamp(1.65rem,3.6vw,2.9rem)]"

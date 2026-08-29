@@ -10,23 +10,23 @@ order: 230
 
 ## `lab`
 
-| Command                                               | Does                                                                                                                                 |
-| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `lab new <path> [--name <name>]`                      | Creates a package with `lab.toml` and `src/programs/main.lab`.                                                                       |
-| `lab check [<path>]`                                  | Checks a source file or package and validates configured inventory and adapter bindings.                                             |
-| `lab build [<path>] [--out-dir <dir>]`                | Writes portable compiler artifacts and, when configured, facility allocation, reviewed plans, and adapter bundles.                   |
-| `lab plan [<path>] [--out-dir <dir>]`                 | Writes only the facility plan and allocated adapter lowerings.                                                                       |
-| `lab adapters describe [--driver <id>]`               | Prints the adapter catalog or one descriptor, including semantic capabilities, control modes, formats, services, and profile schema. |
-| `lab adapters default <driver> [--name <name>]`       | Prints one adapter's complete canonical reference profile.                                                                           |
-| `lab adapters validate <driver> <profile>`            | Parses and semantically validates a profile against an explicit driver.                                                              |
-| `lab adapters render <driver> <profile>`              | Prints the canonical validated profile.                                                                                              |
-| `lab run <plan-dir> --dry-run`                        | Validates the reviewed plan and prints the complete execution without touching hardware.                                             |
-| `lab run <plan-dir> --simulate`                       | Executes through configured simulation adapters.                                                                                     |
-| `lab run <plan-dir> [--asset-endpoint <IRI=address>]` | Executes supported live adapters after full preflight and confirmation.                                                              |
-| `lab metadata [<path>]`                               | Prints the resolved manifest and module list.                                                                                        |
-| `lab update [--check]`                                | Checks for or installs a newer `lab`, `labc`, and `lab-opt` release.                                                                 |
+| Command                                               | Does                                                                                                                                                             |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `lab new <path> [--name <name>]`                      | Creates a package with `lab.toml` and `src/programs/main.lab`.                                                                                                   |
+| `lab check [<path>]`                                  | Checks a source file or package and validates configured inventory and adapter bindings.                                                                         |
+| `lab build [<path>] [--out-dir <dir>]`                | Writes portable compiler artifacts and, when configured, the facility solution, Allocated Procedure LAIR, adapter invocations, reviewed plan, and Asset bundles. |
+| `lab plan [<path>] [--out-dir <dir>]`                 | Writes only the complete facility-planning and adapter-lowering bundle.                                                                                          |
+| `lab adapters describe [--driver <id>]`               | Prints `lab.adapter-catalog.v3` or one descriptor, including capabilities, control modes, formats, services, and profile schema.                                 |
+| `lab adapters default <driver> [--name <name>]`       | Prints one adapter's complete canonical reference profile.                                                                                                       |
+| `lab adapters validate <driver> <profile>`            | Parses and semantically validates a profile through the explicit driver.                                                                                         |
+| `lab adapters render <driver> <profile>`              | Prints the canonical validated profile.                                                                                                                          |
+| `lab run <plan-dir> --dry-run`                        | Validates the reviewed plan and narrates the complete execution without touching hardware.                                                                       |
+| `lab run <plan-dir> --simulate`                       | Executes through configured simulation adapters.                                                                                                                 |
+| `lab run <plan-dir> [--asset-endpoint <IRI=address>]` | Executes supported live adapters after full preflight and confirmation.                                                                                          |
+| `lab metadata [<path>]`                               | Prints the resolved manifest and module list.                                                                                                                    |
+| `lab update [--check]`                                | Checks for or installs a newer `lab`, `labc`, and `lab-opt` release.                                                                                             |
 
-`lab build` defaults to `.lab/build`; `lab plan` defaults to `.lab/plan`. Relative `--out-dir` values are resolved from the project root. There is no `--target`, `--no-target`, or `[target]` table: the selected SBOLInventory Facility and its explicitly bound Assets determine eligible adapter lowerings.
+`lab build` defaults to `.lab/build`; `lab plan` defaults to `.lab/plan`. Relative `--out-dir` values are resolved from the project root. There is no `--target`, `--no-target`, or `[target]` table: the selected SBOLInventory Facility and its explicitly bound Assets determine eligible adapter invocations.
 
 The runtime options are:
 
@@ -45,7 +45,7 @@ lab build examples/golden-gate
 lab run examples/golden-gate/.lab/build --dry-run
 ```
 
-Use `lab plan` instead of `lab build` when only the reviewed facility bundle is needed:
+`lab build` reports every biological product and every compiler, facility, Asset, protocol, document, and reviewed-plan output path. Use `lab plan` when only the reviewed facility bundle is needed:
 
 ```shell
 lab plan examples/ebef/acceptance
@@ -55,31 +55,26 @@ lab run examples/ebef/acceptance/.lab/plan --simulate
 ## `labc`
 
 ```shell
-labc <source.lab> --emit <target> [--output-dir <dir>] [--inventory <file.json>]
+labc <source.lab> --emit <representation>
 ```
 
-`labc` remains a single-file compiler-inspection tool. Its `--inventory` option is the legacy symbolic JSON build inventory used by the direct OT-2 concept-spike emits; it is not the package SBOLInventory interface. Use `lab check`, `lab build`, and `lab plan` for current package and facility behavior.
+`labc` is a single-file compiler-inspection tool. It has no inventory, target, adapter, device, or filesystem bundle mode. Multi-module compilation, SBOLInventory ingestion, global allocation, adapter lowering, and reviewed-plan construction belong to `lab` through the shared project service.
 
-| `--emit` value             | Produces                                       |
-| -------------------------- | ---------------------------------------------- |
-| `human`                    | A readable summary of the checked module.      |
-| `source-ast`               | The spanned source AST as JSON.                |
-| `module-ir`                | The checked portable module as JSON.           |
-| `automation-json`          | The direct OT-2 execution-plan projection.     |
-| `manual-protocol`          | A Markdown protocol.                           |
-| `opentrons-assembly`       | Generated OT-2 assembly Python.                |
-| `opentrons-transformation` | Generated OT-2 transformation Python.          |
-| `opentrons-plating`        | Generated OT-2 plating Python.                 |
-| `automation-bundle`        | The direct OT-2 artifacts together.            |
-| `dependency-plan`          | The legacy symbolic-inventory dependency plan. |
-| `full-build-bundle`        | The legacy direct OT-2 build bundle.           |
+| `--emit` value       | Produces                                                                 |
+| -------------------- | ------------------------------------------------------------------------ |
+| `human`              | A readable summary of the checked module.                                |
+| `source-ast`         | The spanned source AST as JSON.                                          |
+| `module-ir`          | The checked portable module as JSON.                                     |
+| `design-intent-lair` | Verifier-valid facility-independent Design and Intent LAIR.              |
+| `refined-lair`       | Verifier-valid Method alternatives with Procedure and Capability graphs. |
+| `planning-problem`   | The facility-independent `lab.planning-problem.v4` projection.           |
 
 ## `lab-opt`
 
 ```shell
-lab-opt [<input>] --pass-pipeline "builtin.module(protocol-check-material-linearity)"
+lab-opt [<input>] --pass-pipeline "builtin.module(check-material-linearity)"
 ```
 
 `lab-opt` reads textual Pliron IR from a file or standard input and runs a module-anchored pass pipeline. `--input-stage` requires the input to satisfy a named `IrStage`; `--verify-each` verifies before and after every pass; `--print-before-all` and `--print-after-all` write snapshots to `--ir-printing-dir`; and `--list-passes` prints the registered passes.
 
-The textual tool exposes Design, Workflow, Method, Procedure, Capability, and Protocol operations and verifies the implemented `design-intent`, `refined-alternatives`, and transitional `method-selected-protocol` stage contracts described in [LAIR dialects](/docs/compiler/lair-dialects). Source-to-method refinement is currently a `lab-compiler` API rather than a registered `lab-opt` pass. Solver passes and the `allocated-procedure` stage are not yet implemented, and the package CLI still uses the transitional Protocol path.
+The textual tool exposes Design, Workflow, Method, Procedure, Capability, and Allocation operations and verifies `design-intent`, `refined-alternatives`, and `allocated-procedure`. Source-to-Method refinement, problem extraction, solving, and solution application are compiler APIs rather than dynamic `lab-opt` passes. The `check-material-linearity` pass validates affine material use in an Allocated Procedure module.

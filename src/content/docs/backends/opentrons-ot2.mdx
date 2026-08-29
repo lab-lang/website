@@ -1,12 +1,12 @@
 ---
 title: Opentrons OT-2
 eyebrow: Adapters
-description: An asset-bound liquid-handling and thermal-cycling adapter that emits reviewed Python protocol bundles.
+description: An Asset-bound liquid-handling and thermal-cycling adapter that lowers exact allocated Procedure tasks into reviewed Python protocols.
 group: Adapters
 order: 310
 ---
 
-The OT-2 integration is a Lab adapter, not a compiler target. An SBOLInventory graph describes the physical OT-2 Asset and its qualified capability offerings. `lab.toml` explicitly binds that exact Asset IRI to the `opentrons.ot2` implementation. Facility allocation decides whether an offering on that Asset satisfies a reachable requirement; only then may the adapter lower work.
+The OT-2 integration is a Lab adapter, not a compiler target. An SBOLInventory graph describes the physical OT-2 Asset and its qualified capability offerings. `lab.toml` explicitly binds that exact Asset IRI to the `opentrons.ot2` implementation. Global facility planning selects Methods and exact resources; only then may the adapter lower the tasks assigned to its invocation.
 
 ## Bind an installed Asset
 
@@ -20,13 +20,13 @@ driver = "opentrons.ot2"
 profile = "adapters/opentrons-ot2.toml"
 ```
 
-The adapter declares support for the exact SBOLInventory `LiquidHandling` and `ThermalCycling` capability IRIs under `ReviewedFile` control. It provides planning and whole-program lowering, and emits standalone Opentrons Python protocols. It does not claim a Lab-managed live runtime or built-in simulation service.
+The adapter declares exact support for SBOLInventory `LiquidHandling` and `ThermalCycling` under `ReviewedFile` control. It provides planning compatibility and exact-task lowering and emits standalone Opentrons Python protocols. It does not claim a Lab-managed live runtime or built-in simulation service.
 
-The binding does not make the Asset executable by itself. Its selected offering must independently carry sufficient qualification and a compatible control mode in the inventory graph. Conversely, product metadata in RDF never causes Lab to select this driver.
+The binding does not make the Asset executable by itself. Each selected offering must independently carry sufficient qualification and a compatible control mode in the inventory graph. Conversely, product metadata in RDF never causes Lab to select this driver.
 
 ## Checked implementation profile
 
-The adapter profile describes the residual machine configuration the lowerer needs: Protocol API level, pipette models and mounts, modules, deck positions, labware, and per-stage capacity. It cannot name an Asset or another driver. Unknown fields, invalid slots, module collisions, incompatible pipettes, and capacity contradictions fail during validation.
+The adapter profile describes residual machine configuration: Protocol API level, pipette models and mounts, modules, deck positions, labware, and task capacity. It cannot name an Asset or another driver. Unknown fields, invalid slots, module collisions, incompatible pipettes, and capacity contradictions fail during validation.
 
 ```toml
 [protocol]
@@ -46,30 +46,43 @@ labware = "nest_96_wellplate_100ul_pcr_full_skirt"
 capacity = 96
 ```
 
-`lab adapters validate opentrons.ot2 adapters/opentrons-ot2.toml` validates the profile directly. During package planning, Lab writes its canonical form and SHA-256 into the adapter binding snapshot and reviewed plan.
+`lab adapters validate opentrons.ot2 adapters/opentrons-ot2.toml` validates the profile directly. During planning, Lab stages its canonical form and freezes the SHA-256 in the adapter binding, invocation, and reviewed plan.
 
-## Planning and output
+## Exact Procedure lowering
 
-The implemented plasmid-build planner allocates reaction, DNA, transformation, dilution, and agar-plate wells; checks volumes and capacities; derives dependency waves from typed material flow; and projects every output from one execution plan. The maintained Python emitter is checked as ordinary Python and bundled deterministically rather than constructed as untyped string fragments.
+The OT-2 does not consume source IR, unresolved Method alternatives, or an entire experiment. `lab.adapter-invocations.v5` gives it only the Procedure tasks and requirements allocated to this exact Asset and profile.
 
-For an allocated Asset whose readable identity is `opentrons_ot2`, output appears under:
+The current vertical slice supports three semantic Procedure operations:
+
+- setup of a Golden Gate reaction under a `LiquidHandling` requirement;
+- thermal cycling of a Golden Gate reaction under a `ThermalCycling` requirement; and
+- serial dilution under a `LiquidHandling` requirement.
+
+Shared typed views validate the exact operation IRI, capability kind, parameter identity and type, canonical QUDT unit, material role, selected MaterialLot or upstream Method output, and allocation ownership. OT-2-specific code then assigns wells, validates deck and tip capacity, and renders the supported protocol. Unsupported operations or parameters fail explicitly.
+
+## Output
+
+For an allocated Asset whose readable identity is `opentrons_ot2`, each supported task gets its own review directory:
 
 ```text
 .lab/build/assets/opentrons_ot2/
-├── dependency_manifest.json
-├── dependency_report.pdf
-├── manual_protocol.pdf
-├── wave-001/
-│   ├── assembly_protocol.py
-│   └── manual_protocol.pdf
-└── wave-002/
-    ├── transformation_protocol.py
-    ├── plating_protocol.py
-    └── manual_protocol.pdf
+└── tasks/
+    ├── 001-setup-golden-gate-reaction/
+    │   ├── automation_protocol.py
+    │   ├── invocation_manifest.json
+    │   └── manual_protocol.pdf
+    ├── 002-thermal-cycle-golden-gate-reaction/
+    │   ├── automation_protocol.py
+    │   ├── invocation_manifest.json
+    │   └── manual_protocol.pdf
+    └── 005-serial-dilution/
+        ├── automation_protocol.py
+        ├── invocation_manifest.json
+        └── manual_protocol.pdf
 ```
 
-The facility-wide `plan.execution.json` references this bundle and freezes the exact offering, Asset, adapter profile, and document digests. The directory name is derived from the Asset IRI, with a short hash only when selected Assets would otherwise collide.
+The embedded `lab.opentrons-ot2-task.v1` plan freezes the Facility, Asset, adapter profile, exact Requirement and offering, observed qualification and control mode, Procedure operation, typed ports and parameters, material sources, deck, and resource allocation. `plan.execution.json` references each independently executable Python protocol by Requirement and digest.
 
 ## Current boundary
 
-The adapter is experimental. Its planner covers the current Golden Gate plasmid-build vertical slice, not general liquid handling. Method, Procedure, and Capability LAIR now exist upstream, but solver extraction, `allocated-procedure`, and the immutable adapter invocation ABI are not connected, so this adapter still consumes the transitional preselected Protocol path. Lab emits the reviewed Python files but does not upload or execute them on an OT-2. Use the appropriate Opentrons application and simulator for device-side analysis, and qualify every generated protocol for the actual facility before physical use.
+The adapter is experimental. It covers those three Golden Gate Procedure operations, not general liquid handling or arbitrary thermocycler programs. Lab emits reviewed Python files but does not upload or execute them on an OT-2. Use the appropriate Opentrons application and simulator for device-side analysis, and qualify every generated protocol for the actual facility before physical use.

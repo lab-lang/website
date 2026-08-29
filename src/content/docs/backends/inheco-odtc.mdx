@@ -17,7 +17,7 @@ driver = "inheco.odtc"
 profile = "adapters/inheco-odtc.toml"
 ```
 
-The adapter supports the exact `ThermalCycling` capability under the SBOLInventory `Sila2` control mode. It provides planning compatibility, simulation, and runtime execution. It does not provide a whole-program lowerer today; it consumes device-neutral `lab.thermocycle-run.v0` child documents produced by facility coordination.
+The adapter supports the exact `ThermalCycling` capability under the SBOLInventory `Sila2` control mode. It provides planning compatibility, simulation, and runtime execution. It does not currently lower Allocated Procedure tasks; it consumes device-neutral `lab.thermocycle-run.v0` child documents already frozen into a reviewed facility plan.
 
 Network addresses and credentials do not belong in the portable manifest or inventory graph. Runtime receives the exact Asset endpoint explicitly:
 

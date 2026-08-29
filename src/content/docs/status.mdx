@@ -1,67 +1,70 @@
 ---
 title: Status
 eyebrow: Reference
-description: What is implemented today, what is transitional, and what the next compiler architecture adds.
+description: What is implemented today and where semantic, adapter, simulation, runtime, and qualification claims stop.
 group: Reference
 order: 410
 ---
 
-Lab is an experimental compiler with a working end-to-end facility vertical slice. Parsing a model, planning against it, simulating it, and controlling physical hardware are different support claims; this page keeps those claims separate.
+Lab is an experimental compiler with a connected end-to-end facility vertical slice. Parsing a model, solving a Method graph, lowering an exact task, simulating it, controlling physical hardware, and qualifying a laboratory procedure are different support claims; this page keeps them separate.
 
 ## Implemented today
 
-| Area               | Current support                                                                                                                                                                                                                           |
-| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Frontends          | Lab and Python both produce the same checked portable module representation.                                                                                                                                                              |
-| Language           | Packages, modules, typed declarations, roles, quantities, workflows, action contracts, acceptance claims, and affine material ownership.                                                                                                  |
-| LAIR               | Design, Workflow, Method, Procedure, Capability, and Protocol dialects; verifier-valid `design-intent`, `refined-alternatives`, and transitional `method-selected-protocol` stages; textual IR; whole-module material-linearity analysis. |
-| Facility ingestion | Turtle, RDF/XML, JSON-LD, and N-Triples through SBOLInventory Profile 0.2 validation; optional exact Facility selector with single-Facility inference.                                                                                    |
-| Materials          | Exact design Component IRI to active MaterialLot `sbol:built` matching; no display-name matching; ambiguity fails closed.                                                                                                                 |
-| Requirements       | Typed reachable capability requirements with qualification, control mode, parameter, source, and call-site identity.                                                                                                                      |
-| Allocation         | Exact `Requirement -> CapabilityOffering -> Asset` bindings over one immutable inventory snapshot, with rejection explanations and adapter eligibility.                                                                                   |
-| Adapters           | Descriptor catalog, semantic capabilities separated from features, explicit Asset bindings, checked canonical profiles, and frozen profile hashes.                                                                                        |
-| Reviewed plans     | `lab.execution-plan.v1` with inventory, facility, lot, offering, Asset, adapter, DAG, movement, child-document, and digest bindings.                                                                                                      |
-| Runtime            | Whole-plan preflight, dry-run narration, simulation path, exact executor registry, confirmation gates, durable ledger, digest-bound resume, and supported STAR/ODTC live paths.                                                           |
-| Provenance         | A new conformant inventory result document with Activities, Usages, output MaterialLots, lineage, ExperimentalData, and evidence Attachments; source inventory remains unchanged.                                                         |
+| Area               | Current support                                                                                                                                                                                                          |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Frontends          | Lab and Python produce the same checked portable module representation.                                                                                                                                                  |
+| Language           | Packages, modules, typed declarations, roles, quantities, workflows, action contracts, acceptance claims, and affine material ownership.                                                                                 |
+| LAIR               | Design, Workflow, Method, Procedure, Capability, Allocation, and Meta dialects; verifier-valid `design-intent`, `refined-alternatives`, and `allocated-procedure`; textual IR; whole-module material-linearity analysis. |
+| Methods            | RDF-free serializable Method contract, validated built-in registry, real alternatives, typed Procedure values and materials, and Python authoring through the same Rust validator.                                       |
+| Facility ingestion | Turtle, RDF/XML, JSON-LD, and N-Triples through SBOLInventory Profile 0.2 validation; optional exact Facility selector with single-Facility inference.                                                                   |
+| Materials          | Exact design Component IRI to active MaterialLot `sbol:built` matching; no display-name matching; ambiguity fails closed.                                                                                                |
+| Requirements       | First-class requirements produced by Method refinement with exact Capability and property IRIs, qualification, control mode, typed constraints, Procedure ownership, and ancestry.                                       |
+| Allocation         | `lab.planning-problem.v4`, joint Method and facility solving, `lab.facility-planning-solution.v2`, solution application to Allocated Procedure LAIR, and explained rejection or ambiguity.                               |
+| Adapters           | `lab.adapter-catalog.v3`, semantic capabilities separated from features, explicit Asset bindings, checked canonical profiles, frozen hashes, and `lab.adapter-invocations.v5`.                                           |
+| Device lowering    | OT-2, Flex, and STAR consume only exact allocated Procedure tasks and emit one Requirement-attributed reviewed child document per supported task.                                                                        |
+| Reviewed plans     | `lab.execution-plan.v5` with compiler-evidence, inventory, Method, task, lot, offering, Asset, adapter, DAG, movement, child-document, and digest bindings.                                                              |
+| Runtime            | Whole-plan preflight, dry-run narration, simulation, exact executor registry, confirmation gates, durable ledger, digest-bound resume, and selected STAR/ODTC live paths.                                                |
+| Provenance         | A new conformant inventory result document with Activities, Usages, output MaterialLots, lineage, ExperimentalData, and evidence Attachments; source inventory remains unchanged.                                        |
 
 ## Device implementation matrix
 
-An adapter is an implementation bound to one exact Asset; it is not the Asset or the facility model. Service flags are intentionally independent.
+An adapter is an implementation bound to one exact Asset; it is not the Asset or facility model. Service flags are intentionally independent.
 
-| Adapter               | Semantic capabilities                               | Planning | Program lowering                                                        | Simulation          | Runtime     |
-| --------------------- | --------------------------------------------------- | -------- | ----------------------------------------------------------------------- | ------------------- | ----------- |
-| `opentrons.ot2`       | Liquid handling, thermal cycling                    | Yes      | Python protocol bundles                                                 | No built-in runtime | No          |
-| `opentrons.flex`      | Liquid handling, thermal cycling                    | Yes      | Protocol Designer JSON                                                  | No built-in runtime | No          |
-| `hamilton.star`       | Liquid handling                                     | Yes      | `lab.star-run.v0`                                                       | Yes                 | Yes         |
-| `inheco.odtc`         | Thermal cycling                                     | Yes      | Consumes device-neutral thermocycle documents; no whole-program lowerer | Yes                 | Yes         |
-| `byonoy.absorbance96` | Absorbance measurement                              | No       | No                                                                      | No                  | No          |
-| `lab.simulator`       | Liquid handling, incubation, absorbance measurement | Yes      | Consumes semantic simulation documents                                  | Yes                 | No hardware |
+| Adapter               | Semantic capabilities                                                | Planning | Exact-task lowering                                          | Simulation          | Runtime     |
+| --------------------- | -------------------------------------------------------------------- | -------- | ------------------------------------------------------------ | ------------------- | ----------- |
+| `opentrons.ot2`       | Liquid handling, thermal cycling                                     | Yes      | Python protocol per supported task                           | No built-in runtime | No          |
+| `opentrons.flex`      | Liquid handling, thermal cycling                                     | Yes      | Protocol Designer JSON per supported task                    | No built-in runtime | No          |
+| `hamilton.star`       | Liquid handling                                                      | Yes      | `lab.star-run.v0` per supported task                         | Yes                 | Yes         |
+| `inheco.odtc`         | Thermal cycling                                                      | Yes      | No compiler lowerer; consumes reviewed thermocycle documents | Yes                 | Yes         |
+| `byonoy.absorbance96` | Absorbance measurement                                               | No       | No                                                           | No                  | No          |
+| `lab.simulator`       | Liquid handling, thermal cycling, incubation, absorbance measurement | Yes      | Semantic simulation documents                                | Yes                 | No hardware |
 
-The Byonoy driver and capability trait exist, but no compiler path currently allocates and lowers a plate-read invocation to it. Opentrons outputs are generated and can be checked with vendor tooling, but Lab does not directly execute those protocols. Physical hardware operation always requires facility-specific review and qualification beyond what the repository can claim.
+The Byonoy driver and capability trait exist, but no compiler path currently allocates and lowers a plate-read invocation to it. Opentrons outputs are generated and can be checked with vendor tooling, but Lab does not directly execute them. Physical hardware operation always requires facility-specific review and qualification beyond what the repository can claim.
 
-## Transitional architecture
+## Canonical compiler architecture
 
-The current plasmid-build path selects Golden Gate during Workflow-to-Protocol conversion and derives facility requirements through a separate checked-module projection. This works for the vertical slice but is not the accepted general architecture.
-
-The replacement keeps Lab as a multi-layer IR compiler:
+The production package and Python planning path is now:
 
 ```text
 design-intent
-    -> refined method alternatives containing Procedure and Capability IR
-    -> joint method and facility solving
+    -> refined Method alternatives containing Procedure and Capability IR
+    -> joint Method and facility solving
     -> allocated-procedure
-    -> immutable adapter invocations
+    -> immutable exact-task adapter invocations
 ```
 
-The first replacement milestone is implemented: RDF-free `lab-capability` semantics, the portable `lab-method` contract and validated Rust registry, first-class Method/Procedure/Capability LAIR, and facility-independent source refinement now produce verifier-valid alternatives. The remaining bridge is a read-only authoritative requirement analysis over LAIR, a global constraint model, allocation applied back to exact IR identities, immutable adapter invocation schemas, package CLI adoption, and Python method authoring over the same serialized contract.
+The fixed Protocol dialect, pre-facility Golden Gate conversion, separate checked-module requirement projection, and whole-program automation backend path have been removed. `lab build`, `lab plan`, and Python planning use the same `lab-project` service.
+
+This architecture matters because it eliminates false breadth. A recognized Capability IRI, an installed device driver, an adapter descriptor, a validated profile, a generated document, a simulator, a live executor, and a qualified physical procedure are distinct milestones. The catalog and reviewed plan retain those distinctions rather than promoting one into another.
 
 ## Important current limits
 
-- The standard library declares more actions than the current LAIR lowering implements.
-- Method alternatives are represented and verified through the compiler API, but `lab build` does not consume them yet; its initial plasmid build still has one compiler-selected route, and joint method/facility selection is not implemented.
-- Allocation has no general reservation service, calendar, queue, consumable depletion, or dynamic rescheduling.
+- The built-in Method registry covers the current Golden Gate Intent slice, not the breadth of general laboratory work.
+- The standard library declares more actions than current source-to-Intent and Method lowering implements.
+- OT-2, Flex, and STAR support a small explicit set of Procedure operation IRIs rather than general capability languages.
+- Allocation has no general reservation service, calendar, queue, consumable depletion, dynamic rescheduling, or complete facility movement optimizer.
 - Inventory is a checked snapshot, not a live LIMS or booking system.
-- The built-in method registry covers the current plasmid-build Intent slice, but most EBEF capability kinds still have no Lab method definition, procedure lowering, adapter, simulator model, or evidence schema.
+- Most EBEF Capability kinds still have no Lab Method definition, Procedure lowering, adapter, simulator model, or evidence schema.
 - Package dependencies are local paths only; registry requirements are rejected rather than partially resolved.
 - Generated procedures are not automatically qualified laboratory protocols.
 
@@ -71,4 +74,4 @@ Caltech's Ecology and Biosphere Engineering Facility demonstrates the intended s
 
 The example deliberately does not infer adapters, control paths, or executable qualification from a public equipment page. Moving an EBEF Asset from `Described` to `Plannable`, `Simulatable`, `Executable`, or `Qualified` requires progressively stronger operational facts and evidence.
 
-The repository's [`docs/language/support.md`](https://github.com/lab-lang/lab/blob/master/docs/language/support.md) remains the feature-by-feature language matrix. [Compiler pipeline](/docs/compiler/pipeline) describes the accepted architecture, and [Facility planning](/docs/compiler/facility-planning) documents the implemented package workflow.
+The repository's [`docs/language/support.md`](https://github.com/lab-lang/lab/blob/master/docs/language/support.md) remains the feature-by-feature language matrix. [Compiler pipeline](/docs/compiler/pipeline) describes the connected architecture, and [Facility planning](/docs/compiler/facility-planning) documents the implemented package workflow.

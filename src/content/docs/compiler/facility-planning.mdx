@@ -1,14 +1,12 @@
 ---
 title: Facility planning
 eyebrow: Compiler
-description: One SBOLInventory facility graph determines which qualified Assets and explicit Lab adapters can realize an experiment.
+description: One SBOLInventory facility graph determines which Methods, materials, qualified Assets, and explicit Lab adapters can realize an experiment.
 group: Toolchain
 order: 225
 ---
 
-Lab does not have a separate target model. A package describes an experiment, points to an SBOLInventory document, and optionally binds exact Assets in that graph to installed Lab adapters. The selected facility is the compilation target in the meaningful sense: its Zones, Assets, capability offerings, MaterialLots, qualification, control modes, and parameters determine what can be planned and lowered.
-
-The domain model is intentionally compact:
+Lab does not have a separate target model. A package describes an experiment, points to an SBOLInventory document, and optionally binds exact Assets in that graph to installed Lab adapters. The selected facility is the compilation target in the meaningful sense: its Zones, Assets, capability offerings, MaterialLots, qualification, control modes, and parameters determine which complete Method graph can be planned and lowered.
 
 ```text
 a facility contains zones
@@ -31,7 +29,7 @@ document = "inventory/facility.ttl"
 
 Lab accepts Turtle, RDF/XML, JSON-LD, and N-Triples. It validates the document as SBOL 3 and SBOLInventory Profile 0.2 before planning. If `facility` is omitted, the document must contain exactly one Facility. If it contains several, the manifest must select one by absolute IRI.
 
-Every Zone, Asset, capability offering, PropertyValue, and MaterialLot remains in RDF. There is no `inventory.toml`, and manufacturer or model names never select compiler code.
+Every Zone, Asset, CapabilityOffering, PropertyValue, and MaterialLot remains in RDF. There is no `inventory.toml`, and manufacturer or model names never select compiler code.
 
 ## Operational adapter bindings
 
@@ -44,76 +42,87 @@ driver = "opentrons.ot2"
 profile = "adapters/opentrons-ot2.toml"
 ```
 
-The Asset IRI must resolve inside the selected facility. The driver must explicitly support the offering's exact capability-kind and control-mode IRIs. The profile contains checked implementation configuration such as deck layout and labware; it cannot select another Asset or driver and is hashed into the reviewed plan. Endpoints and credentials stay outside the portable package and are supplied only to runtime.
+The Asset IRI must resolve inside the selected Facility. The driver must explicitly support an offering's exact capability-kind and control-mode IRIs. The profile contains checked implementation configuration such as deck layout and labware; it cannot select another Asset or driver and is hashed into the reviewed plan. Endpoints and credentials stay outside the portable package and are supplied only to runtime.
 
-Catalog qualification and adapter implementation are separate facts. An executable offering without a compatible configured adapter is not executable through Lab. A capable adapter does not promote a merely described offering to executable.
+Catalog qualification and adapter implementation are separate facts. An Executable offering without a compatible configured adapter is not executable through Lab. A capable adapter does not promote a merely Described or Plannable offering.
 
-## Planning
+## One connected planning path
 
-`lab check` validates package code, the complete inventory graph, facility selection, and declared adapter bindings. Portable packages may compile without an inventory; facility planning requires one.
+`lab check` validates package code, the complete inventory graph, facility selection, and declared adapter profiles. Portable packages may compile without an inventory; facility planning requires one.
 
-`lab build` always writes portable compiler artifacts. For a runnable package with `inventory.document`, it also:
+For a runnable package with `inventory.document`, `lab build` and `lab plan` call the same project service:
 
-1. Instantiates capability requirements reachable from the entry workflow.
-2. Joins design identities to active MaterialLots by exact `sbol:built` Component IRI.
-3. Queries qualified offerings in the selected facility.
-4. Checks capability kind, qualification, control mode, typed parameters, and adapter service availability.
-5. Freezes exact requirement, offering, Asset, lot, adapter, and profile-hash bindings.
-6. Invokes only the adapters selected by that allocation.
-7. Writes one reviewed execution plan plus asset-specific bundles.
+1. Lower all checked program modules to verifier-valid Design and Intent LAIR.
+2. Refine reachable Intent operations through a validated Method registry into candidate Procedure and Capability graphs.
+3. Project `lab.planning-problem.v4` from that one authoritative LAIR graph.
+4. Join exact design Component identities to active MaterialLots through `sbol:built`.
+5. Resolve explicit adapter bindings against offerings owned by their exact Assets.
+6. Solve Method, material, CapabilityOffering, Asset, adapter, and dependency choices together under manifest policy.
+7. Apply and revalidate the complete solution as Allocated Procedure LAIR.
+8. Project `lab.adapter-invocations.v5` and lower only exact tasks assigned to selected adapters.
+9. Write one `lab.execution-plan.v5` plus independently reviewed child documents.
 
-Candidate ordering is never allocation. Zero candidates is an explained unsatisfied requirement. Several equally eligible candidates are an ambiguity unless an explicit policy or selection distinguishes them.
+Candidate ordering is never allocation. Zero complete solutions is an explained failure. Several equal complete solutions are an ambiguity unless an explicit Method pin or policy distinguishes them.
 
-`lab plan` runs the facility phase by itself under `.lab/plan/`. It is useful when the reviewed plan and adapter lowerings are wanted without rebuilding the portable package bundle.
+`lab plan` writes this facility phase under `.lab/plan/`. `lab build` writes the same facility evidence beside portable package artifacts under `.lab/build/`.
 
 ## Golden Gate example
 
-The checked-in Golden Gate package declares one Facility, an OT-2 Asset with qualified liquid-handling and thermal-cycling offerings, exact input MaterialLots, and one `opentrons.ot2` adapter binding. Build it with:
+The checked-in Golden Gate package declares one Facility, exact input MaterialLots, a manual workstation, an OT-2 Asset with Plannable liquid-handling and thermal-cycling offerings, and one `opentrons.ot2` binding. Build it with:
 
 ```shell
 lab build examples/golden-gate
 ```
 
-The human result names the biological products, exact selected facility, allocation artifacts, reviewed plan, asset bundle, automation protocols, and PDFs. The main paths are:
+The current build selects 22 Method instances, allocates 24 requirements, and lowers eight exact OT-2 Procedure tasks. The human result names the biological products, compiler evidence, selected Facility, Asset bundle, every automation protocol, every operator PDF, and the reviewed plan.
 
 ```text
 examples/golden-gate/.lab/build/
-├── capability_requirements.json
-├── capability_instances.json
+├── compiler/
+│   ├── refined.lair
+│   ├── planning-problem.json
+│   ├── facility-solution.json
+│   ├── allocated.lair
+│   └── adapter-invocations.json
 ├── adapter_bindings.json
-├── facility_allocation.json
 ├── facility_lowering.json
 ├── plan.execution.json
 └── assets/
     └── opentrons_ot2/
-        ├── dependency_report.pdf
-        ├── manual_protocol.pdf
-        ├── wave-001/
-        │   ├── assembly_protocol.py
-        │   └── manual_protocol.pdf
-        └── wave-002/
-            ├── transformation_protocol.py
-            ├── plating_protocol.py
-            └── manual_protocol.pdf
+        └── tasks/
+            ├── 001-setup-golden-gate-reaction/
+            │   ├── automation_protocol.py
+            │   ├── invocation_manifest.json
+            │   └── manual_protocol.pdf
+            ├── 002-thermal-cycle-golden-gate-reaction/
+            │   ├── automation_protocol.py
+            │   ├── invocation_manifest.json
+            │   └── manual_protocol.pdf
+            └── 005-serial-dilution/
+                ├── automation_protocol.py
+                ├── invocation_manifest.json
+                └── manual_protocol.pdf
 ```
+
+The task list continues for the second plasmid and remaining strain dilutions. Manual provisioning, transformation, recovery, and plating remain exact selected Procedure tasks in the facility plan without being presented as OT-2 automation.
 
 The readable `assets/opentrons_ot2` directory comes from the exact Asset identity. A short hash is appended only when two selected Assets would otherwise collide.
 
 ## Review and execution
 
-The reviewed `plan.execution.json` freezes the inventory hash and selected Facility IRI, capability and material bindings, adapter profile hashes, the dependency DAG, child-document paths, and child-document digests. Runtime validates the whole closure before any executor can touch hardware.
+The reviewed plan freezes the inventory hash and selected Facility IRI, planning-problem and Allocated Procedure digests, Method and material selections, offering and Asset bindings, adapter profile hashes, dependency DAG, child-document paths, and child-document digests. Runtime validates the complete closure before any executor can touch hardware.
 
 ```shell
 lab run examples/golden-gate/.lab/build --dry-run
 lab run examples/ebef/acceptance/.lab/plan --simulate
 ```
 
-Runtime never re-queries inventory or chooses a substitute Asset. A change to the plan, inventory, adapter profile, or child document invalidates resume. A physical substitution requires a newly reviewed plan.
+Runtime never re-queries inventory or chooses a substitute Asset. A change to the plan, inventory, compiler evidence, adapter profile, or child document invalidates resume. A physical substitution requires a newly reviewed plan.
 
-On completion, Lab writes a new conformant inventory result document containing run Activities, asset and input-lot Usages, output MaterialLots, lineage, ExperimentalData, and evidence Attachments. It never edits the source inventory in place.
+On completion, Lab writes a new conformant inventory result document containing run Activities, Asset and input-lot Usages, output MaterialLots, lineage, ExperimentalData, and evidence Attachments. It never edits the source inventory in place.
 
 ## EBEF as the architectural example
 
-The repository's EBEF package models public information about Caltech's Ecology and Biosphere Engineering Facility as one Facility with nested Zones, installed Assets, and capability offerings. It deliberately leaves public-only offerings at `Described` with `UnspecifiedControl`, because an equipment web page is not evidence of an operational control path. A separate synthetic extension exercises multi-Asset simulation without changing claims about EBEF hardware.
+The repository's EBEF package models public information about Caltech's Ecology and Biosphere Engineering Facility as one Facility with nested Zones, installed Assets, and capability offerings. It deliberately leaves public-only offerings at `Described` with `UnspecifiedControl`, because an equipment page is not evidence of an operational control path. A separate synthetic extension exercises multi-Asset simulation without changing claims about EBEF hardware.
 
-That example is how the architecture scales past a single liquid-handler bench: an incubator, reader, microscope, environmental chamber, freezer, manual station, and robot all enter planning through the same capability-offering model. Device categories do not become compiler targets or hard-coded workcell members.
+That example is how the architecture scales past a single liquid-handler bench: incubators, readers, microscopes, environmental chambers, freezers, manual stations, and robots all enter planning through the same capability-offering model. Device categories do not become compiler targets or hard-coded workcell members.

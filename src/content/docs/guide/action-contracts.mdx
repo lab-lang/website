@@ -20,7 +20,7 @@ strain, culture <- transform reporter_host from dependencies into cells
 The parser sees a phrase after `<-` and nothing more. Resolution matches
 that phrase against the action contracts brought into scope by the module's
 imports, and produces a checked operation carrying a stable identity, typed
-operands, ownership modes, result types, and a required capability.
+operands, ownership modes, result types, and compatibility capability metadata.
 
 This is why adding a laboratory operation adds no parser rules and no
 checker match arms. It is also why a package will eventually be able to
@@ -46,10 +46,7 @@ Five things are worth pulling out of that table.
 `std.bio.build.realize`, never on the source text `realize`. Renaming the
 surface phrase would not change what a backend sees.
 
-**The capability is the dispatch requirement.** `artifact_realization` names
-what a laboratory must be able to do to run this action. A runtime will use
-it to route commands to a provider; today it is recorded and checked but
-never dispatched.
+**The capability is compatibility metadata, not the final dispatch requirement.** `artifact_realization` records the source contract's broad semantic category. Method refinement may replace it with one primitive service requirement or a composite Procedure graph. The automated Golden Gate Method, for example, produces separate `LiquidHandling` and `ThermalCycling` requirements. Facility planning dispatches those first-class requirements, never the source contract's string.
 
 **Ownership is per-operand.** The design is copied, because a design is
 information and information is free to reuse. The dependency list is taken,
@@ -130,14 +127,9 @@ whether the operation reaches LAIR, or only type-checks.
 | `store` _material_ `at` _temp_                        | `cold_storage`            | take             | `material`                          | no     |
 | `dispose` _material_                                  | `waste_handling`          | take             | —                                   | no     |
 
-Six of eighteen lower. The other twelve parse, resolve, type-check, and pass
-material-flow verification, then stop at portable module IR. A program built
-from them is a valid Lab program that no backend can currently consume.
+Six of eighteen lower into Intent LAIR and have built-in Method definitions that can reach facility planning. The other twelve parse, resolve, type-check, and pass material-flow verification, then stop at portable module IR. A program built from them is a valid Lab program that no Method registry bundled with this compiler can currently refine.
 
-`synthesize` and `assemble` are a special case: no source-level lowering
-path reaches them, but the Workflow-to-Protocol conversion _generates_ both
-when it expands a `realize` operation. See
-[LAIR dialects](/docs/compiler/lair-dialects).
+`synthesize` and `assemble` are not hidden adapter operations. A future Method may refine those exact Intent identities, while the current automated Golden Gate Method uses explicit `SetupGoldenGateReaction` and `ThermalCycleGoldenGateReaction` Procedure operations. See [LAIR dialects](/docs/compiler/lair-dialects).
 
 ## Phrase shapes
 

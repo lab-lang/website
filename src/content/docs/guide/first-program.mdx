@@ -8,8 +8,7 @@ order: 20
 
 import { Callout } from '@/components/docs/callout'
 
-This walks through a real plasmid from an empty directory to generated
-protocols. Everything here runs against the toolchain as it stands today.
+This walks through a real plasmid from an empty directory to the facility-aware compiler boundary. The source and portable build commands run as written. The shortened RDF later in the guide illustrates the model; use the checked-in Golden Gate package for a complete inventory-backed build that emits protocols.
 
 ## Install
 
@@ -271,12 +270,12 @@ lab build
 Built tet-reporter 0.1.0 (1 modules)
 
 Build products:
-  plasmid tet_reporter
+  plasmid reporter
 
 Compiler output: .lab/build
 ```
 
-Every build writes verified portable module IR under `.lab/build/modules/`, a package index, capability requirement artifacts, and `lab.lock`. For a package with no `[inventory] document`, that is the end of the build: no facility has been selected and no adapter is invoked.
+Every build writes verified portable module IR under `.lab/build/modules/`, `compiler/refined.lair`, `compiler/planning-problem.json`, a package index, and `lab.lock`. For a package with no `[inventory] document`, that is the end of the build: Method alternatives are represented, but no facility resource has been selected and no adapter is invoked.
 
 ## Describe a facility, then bind its OT-2
 
@@ -293,14 +292,23 @@ ex:facility a sbol:TopLevel, fac:Facility .
 ex:opentrons_ot2
     a sbol:TopLevel, fac:Asset ;
     fac:locatedIn ex:automation_zone ;
-    fac:capability ex:opentrons_ot2_liquid_handling .
+    fac:capability ex:opentrons_ot2_liquid_handling,
+                   ex:opentrons_ot2_thermal_cycling .
 
 ex:opentrons_ot2_liquid_handling
     a sbol:Identified, fac:CapabilityOffering ;
     fac:capabilityKind cap:LiquidHandling ;
     fac:qualification fac:Executable ;
     fac:controlMode fac:ReviewedFile .
+
+ex:opentrons_ot2_thermal_cycling
+    a sbol:Identified, fac:CapabilityOffering ;
+    fac:capabilityKind cap:ThermalCycling ;
+    fac:qualification fac:Executable ;
+    fac:controlMode fac:ReviewedFile .
 ```
+
+This excerpt shows only the automated Asset. A complete runnable graph also declares the Facility's Zones, the manual offerings used for provisioning, transformation, recovery, and plating, and exact active MaterialLots for every physical input. The [Golden Gate example](/docs/compiler/facility-planning#golden-gate-example) contains that complete shape.
 
 The manifest points to that graph and explicitly associates the exact Asset with the installed compiler adapter:
 
@@ -317,55 +325,63 @@ driver = "opentrons.ot2"
 profile = "adapters/opentrons-ot2.toml"
 ```
 
-The adapter profile describes checked deck, pipette, module, and labware configuration. It does not repeat the Asset, capability, qualification, or facility facts, and it cannot select another driver.
+The adapter profile describes checked deck, pipette, module, and labware configuration. It does not repeat the Asset, capability, qualification, or facility facts, and it cannot select another driver. Once the source also gives every design an exact `sbol_identity` and the full RDF graph supplies the matching active lots and manual offerings, the complete package builds through the same path as the Golden Gate example.
 
 ```shell
 lab build
 ```
 
+A complete one-plasmid, one-strain package emits output with this shape:
+
 ```
 Built tet-reporter 0.1.0 (1 modules)
 
 Build products:
-  plasmid tet_reporter
+  plasmid reporter
+  strain reporter_host
 
 Compiler output: .lab/build
 
 Facility outputs:
   Facility: https://example.org/tet-reporter/facility
-  Requirements allocated: 5
-  Adapter lowerings: 1
+  Methods selected: 6
+  Requirements allocated: 7
+  Adapter invocations lowered: 1
+  Planning problem: .lab/build/compiler/planning-problem.json
+  Facility solution: .lab/build/compiler/facility-solution.json
+  Allocated LAIR: .lab/build/compiler/allocated.lair
+  Adapter invocations: .lab/build/compiler/adapter-invocations.json
+  Lowering manifest: .lab/build/facility_lowering.json
   Reviewed plan: .lab/build/plan.execution.json
 
 Asset bundles:
   .lab/build/assets/opentrons_ot2
 
 Automation protocols:
-  .lab/build/assets/opentrons_ot2/wave-001/assembly_protocol.py
-  .lab/build/assets/opentrons_ot2/wave-002/transformation_protocol.py
-  .lab/build/assets/opentrons_ot2/wave-002/plating_protocol.py
+  .lab/build/assets/opentrons_ot2/tasks/001-setup-golden-gate-reaction/automation_protocol.py
+  .lab/build/assets/opentrons_ot2/tasks/002-thermal-cycle-golden-gate-reaction/automation_protocol.py
+  .lab/build/assets/opentrons_ot2/tasks/003-serial-dilution/automation_protocol.py
 
 Documents:
-  .lab/build/assets/opentrons_ot2/dependency_report.pdf
-  .lab/build/assets/opentrons_ot2/manual_protocol.pdf
+  .lab/build/assets/opentrons_ot2/tasks/001-setup-golden-gate-reaction/manual_protocol.pdf
+  .lab/build/assets/opentrons_ot2/tasks/002-thermal-cycle-golden-gate-reaction/manual_protocol.pdf
+  .lab/build/assets/opentrons_ot2/tasks/003-serial-dilution/manual_protocol.pdf
 ```
 
-The compiler instantiates requirements reachable from `main`, queries the selected Facility, binds each requirement to an exact capability offering and Asset, freezes exact MaterialLot and adapter-profile identities, and invokes only the selected adapter. The output is one asset bundle with one directory per planning wave, all projected from a single reviewed execution plan:
+The exact counts depend on the complete inventory and Method policy, but the structure does not. The compiler refines reachable Intent into Method candidates, solves Methods and facility resources together, applies the solution to Allocated Procedure LAIR, and invokes only selected adapters. Each automated task is independently attributable to one Requirement:
 
-| Path                                            | What it is                                               |
-| ----------------------------------------------- | -------------------------------------------------------- |
-| `.lab/build/facility_allocation.json`           | Exact requirement, offering, Asset, and lot bindings     |
-| `.lab/build/facility_lowering.json`             | Routes from allocations to asset bundles                 |
-| `.lab/build/plan.execution.json`                | Reviewed facility-wide dependency DAG and frozen digests |
-| `assets/opentrons_ot2/dependency_manifest.json` | The adapter's build graph, waves, and blockers           |
-| `assets/opentrons_ot2/dependency_report.pdf`    | A typeset dependency and blocker summary                 |
-| `assets/opentrons_ot2/manual_protocol.pdf`      | Typeset instructions with reaction and plate maps        |
-| `assets/opentrons_ot2/wave-001/`                | Golden Gate setup and thermocycling                      |
-| `assets/opentrons_ot2/wave-002/`                | Transformation, dilution, and selective plating          |
+| Path                                           | What it is                                                      |
+| ---------------------------------------------- | --------------------------------------------------------------- |
+| `.lab/build/compiler/refined.lair`             | All applicable Method, Procedure, and Capability alternatives   |
+| `.lab/build/compiler/planning-problem.json`    | The facility-independent global constraint problem              |
+| `.lab/build/compiler/facility-solution.json`   | Exact Method, material, offering, Asset, and adapter selections |
+| `.lab/build/compiler/allocated.lair`           | Verifier-valid selected Procedure graph with exact bindings     |
+| `.lab/build/compiler/adapter-invocations.json` | Immutable exact tasks grouped by Asset and adapter              |
+| `.lab/build/facility_lowering.json`            | Requirement-to-artifact routes and digests                      |
+| `.lab/build/plan.execution.json`               | Reviewed facility-wide dependency DAG and frozen closure        |
+| `assets/opentrons_ot2/tasks/<task>/`           | One invocation manifest, automation protocol, and operator PDF  |
 
-Artifacts in the same wave have no ordering constraint between them, so a
-wave is a single robot run over a single deck. Wave 2 cannot start until
-wave 1's plasmid physically exists and has been accepted.
+Reaction setup and cycling are separate tasks joined by one typed physical-material edge. Transformation and plating are manual Method tasks in this example, so the OT-2 adapter does not fabricate protocols for them. The reviewed execution DAG preserves all automated and manual dependencies.
 
 Nothing in source names the OT-2, a deck slot, or a pipette. Those facts enter only after the Facility makes an eligible offering available and the manifest binds its exact Asset to the `opentrons.ot2` implementation. Adding a Flex means adding a Flex Asset and offering to the inventory plus an explicit `opentrons.flex` binding; allocation then decides which exact offering can satisfy each requirement. If multiple complete choices remain equally eligible, planning asks for disambiguation rather than silently choosing one.
 
@@ -387,4 +403,4 @@ lab run .lab/plan --dry-run
 
 ## Where to go next
 
-[Action contracts](/docs/guide/action-contracts) covers what `<-` resolves to and which operations lower today. [Facility planning](/docs/compiler/facility-planning) follows requirements into exact offerings, Assets, adapters, and reviewed documents. [LAIR dialects](/docs/compiler/lair-dialects) explains how implemented method alternatives and first-class capability requirements form the authoritative future planning input, and why the current package path remains transitional until solver integration lands.
+[Action contracts](/docs/guide/action-contracts) covers what `<-` resolves to and which operations lower today. [Facility planning](/docs/compiler/facility-planning) follows Methods and requirements into exact MaterialLots, offerings, Assets, adapters, and reviewed documents. [LAIR dialects](/docs/compiler/lair-dialects) explains the implemented Method, Procedure, Capability, and Allocation stages that provide the authoritative planning and device-lowering path.

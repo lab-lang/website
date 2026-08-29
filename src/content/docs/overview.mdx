@@ -389,7 +389,7 @@ figures out the rest for whichever laboratory ends up running it.
 
 {/* prettier-ignore */}
 <Callout kind="note">
-  **Early prototype.** Parsing, checking, LAIR, SBOLInventory facility validation, exact capability allocation, reviewed plans, simulation, run ledgers, provenance, and several experimental adapters exist today. The first Method, Procedure, and Capability refinement slice also exists, but joint method/facility solving and its uptake by `lab build` are still under construction. Generated protocols must be reviewed and qualified before anyone executes them.
+  **Early prototype.** Parsing, checking, Method refinement, Procedure and Capability LAIR, joint Method and facility solving, Allocated Procedure, exact-task adapter invocations, SBOLInventory validation, reviewed plans, simulation, run ledgers, provenance, and several experimental adapters exist today. The supported biological and device-operation vocabulary remains narrow. Generated protocols must be reviewed and qualified before anyone executes them.
 </Callout>
 
 ## How these docs are organized
@@ -413,7 +413,7 @@ install.
 
 ## What exists today
 
-The toolchain parses and checks artifact kinds, designs, generic circuits, and workflows; verifies action contracts, material ownership, and evidence claims; refines the current build Intent slice into portable Method alternatives with Procedure and Capability IR; validates SBOLInventory facilities; binds exact MaterialLots and capability offerings through the transitional package planner; emits reviewed multi-Asset execution plans; and supports dry-run, simulation, durable resume, selected live adapters, and post-run provenance. OT-2, Flex, STAR, ODTC, Byonoy, and semantic simulator implementations expose deliberately different service levels. Most of the standard library is itself written in Lab. Editor support through LSP and WebAssembly provides diagnostics, hover documentation, and completion. The type system grounds parts and roles in the same ontologies SBOL uses. Joint method/facility solving, facility-wide scheduling, reservation, CLI migration to the refined IR, and the broader EBEF capability surface remain under development.
+The toolchain parses and checks artifact kinds, designs, generic circuits, and workflows; verifies action contracts, material ownership, and evidence claims; refines the current build Intent slice into portable Method alternatives with Procedure and Capability IR; validates SBOLInventory facilities; solves Methods, exact MaterialLots, capability offerings, Assets, and adapters together; applies the solution as verifier-valid Allocated Procedure LAIR; emits exact-task adapter documents and reviewed multi-Asset execution plans; and supports dry-run, simulation, durable resume, selected live adapters, and post-run provenance. OT-2, Flex, STAR, ODTC, Byonoy, and semantic simulator implementations expose deliberately different service levels. Most of the standard library is itself written in Lab. Editor support through LSP and WebAssembly provides diagnostics, hover documentation, and completion. The type system grounds parts and roles in the same ontologies SBOL uses. Method-library breadth, facility-wide movement and scheduling, reservation, package distribution, and the broader EBEF capability surface remain under development.
 
 [Status](/docs/status) tracks exactly what's implemented, feature by
 feature.
