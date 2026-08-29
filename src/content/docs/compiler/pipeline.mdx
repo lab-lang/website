@@ -20,7 +20,7 @@ Lab or Python source
     -> run ledger, material lineage, and evidence
 ```
 
-The first and last parts of this path are implemented today: both frontends reach one checked module model; the current LAIR vertical slice verifies typed material dataflow; SBOLInventory facility graphs are validated; reachable capability requirements are allocated to exact offerings and Assets; compatible adapters emit asset-specific bundles; and `lab run` validates a reviewed plan before simulation or supported live execution. Method alternatives and joint method/facility selection are the next compiler layer. Until that lands, the current plasmid-build lowering selects its method before allocation.
+Much of this path is implemented, but it is not yet connected as one canonical pipeline. Both frontends reach one checked module model. `PortableLairProgram::refine_methods` now consumes a validated, facility-independent `lab-method` registry and produces verifier-valid `refined-alternatives` LAIR containing compatible Method candidates, Procedure dataflow, exact parameters, and first-class Capability requirements. Separately, the current package path validates SBOLInventory facility graphs, allocates its transitional reachable requirements to exact offerings and Assets, emits asset-specific bundles through compatible adapters, and validates a reviewed plan before simulation or supported live execution. Global problem extraction, joint method/facility solving, solution application, and CLI uptake are the missing bridge; until they land, `lab build` still selects the plasmid-build Protocol before allocation and emits the v2 checked-module requirement projection.
 
 ## The layers and their owners
 
@@ -59,7 +59,7 @@ design-intent
 
 `design-intent` contains reachable design facts and method-neutral work. `refined-alternatives` contains candidate method regions with Procedure tasks and first-class Capability requirements. A read-only analysis extracts the global constraint problem. The allocation pass applies one complete solution back to the exact LAIR identities, removes unselected candidates, inserts explicit movement, and produces `allocated-procedure`. No adapter may consume unresolved alternatives.
 
-The current implementation predates those names and contains Design, Workflow, and Protocol dialects. That vertical slice is useful implementation evidence, but its pre-facility `TargetSelectedProtocol` boundary is being replaced rather than generalized.
+The compiler now represents both `design-intent` and `refined-alternatives`. Design and Workflow operations form the current source-lowering boundary; Method, Procedure, and Capability operations represent every applicable candidate after refinement. The older Protocol dialect still powers current device backends through a fixed pre-facility conversion while solver extraction and `allocated-procedure` are built. That transitional Protocol path is being replaced rather than generalized.
 
 ## Stable boundaries around the mutable IR
 
@@ -69,7 +69,7 @@ The compiler can rewrite LAIR aggressively because its external boundaries are o
 - Facility ingestion produces an immutable validated inventory snapshot.
 - Solvers return decisions keyed by stable method, requirement, procedure-node, and material-input identities.
 - Adapters consume immutable invocation records and emit reviewed child documents.
-- Runtime consumes `lab.execution-plan.v0`; it never runs compiler passes or reallocates resources.
+- Runtime consumes `lab.execution-plan.v1`; it never runs compiler passes or reallocates resources.
 
 That is why Lab remains a compiler rather than becoming a workflow engine built around device plugins. The compiler makes and verifies decisions; adapters realize already-allocated work; runtime executes exactly what was reviewed.
 

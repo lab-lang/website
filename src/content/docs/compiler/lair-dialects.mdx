@@ -12,19 +12,22 @@ LAIR is not the serialized execution plan, the SBOLInventory graph, or the adapt
 
 ## What exists today
 
-The implemented vertical slice has three dialects:
+The implemented compiler slice has six semantic dialects:
 
 - Design represents declarative plasmid artifact intent.
 - Workflow represents target-neutral realization, provision, transformation, recovery, dilution, and plating with typed material use-def edges.
+- Method owns compatible candidate regions for one exact Intent operation.
+- Procedure represents open semantic task and material-state IRIs, typed SSA dataflow, and exact operation parameters.
+- Capability represents exact requirement and property-constraint IRIs, qualification floors, and accepted control modes.
 - Protocol represents one method-selected plasmid-building procedure and its richer material and evidence types.
 
-The current conversion expands `workflow.realize` into synthesis and Golden Gate assembly, converts the remaining supported workflow operations, rewrites uses to the new results, and eliminates the original Workflow operations. `MaterialLinearityAnalysis` then verifies whole-module affine material ownership. `lab-opt` can parse textual LAIR and run the registered `protocol-check-material-linearity` pass.
+The accepted refinement conversion consumes a validated `lab-method` registry, replaces every supported Workflow operation with a `method.choice`, retains every applicable candidate, preserves source parameters and units, and verifies compatible inputs and outputs across candidates. The bundled registry covers every Intent in the current build vertical slice and retains real alternatives for artifact realization and culture recovery. The resulting `refined-alternatives` stage round-trips through textual LAIR and fails closed on missing methods, signature mismatches, invalid cross-candidate values, duplicate stable identities, and Procedure tasks without requirements.
 
-This proves the mechanics Lab needs: typed operations, SSA material flow, operation verification, whole-module analysis, dialect conversion, textual round trips, and compiler-owned pass pipelines. It does not yet express the full architecture. In particular, selecting Golden Gate before looking at a facility and separately reconstructing capability requirements from checked actions are transitional shortcuts.
+The older Workflow-to-Protocol conversion remains in parallel because current device backends still depend on it. It expands `workflow.realize` into synthesis and Golden Gate assembly, converts the remaining supported Workflow operations, rewrites uses to the new results, and eliminates the original Workflow operations. `MaterialLinearityAnalysis` verifies whole-module affine material ownership, and `lab-opt` can run the registered `protocol-check-material-linearity` pass. Selecting Golden Gate before looking at a facility and separately reconstructing capability requirements from checked actions are transitional shortcuts, not the architecture new integrations should extend.
 
-## The accepted dialect organization
+## Dialect organization
 
-The next architecture separates the questions the compiler must answer:
+The architecture separates the questions the compiler must answer:
 
 | Concern           | Dialect or representation                       | Question                                                                                      |
 | ----------------- | ----------------------------------------------- | --------------------------------------------------------------------------------------------- |
@@ -53,7 +56,7 @@ There is one authoritative requirement graph. The planner must not independently
 
 ## Stage contracts
 
-The intended stages are verifier contracts, not labels inferred from whichever operation happens to appear:
+Stages are verifier contracts, not labels inferred from whichever operation happens to appear:
 
 ```text
 design-intent
@@ -63,7 +66,7 @@ allocated-procedure
 
 Operation verifiers establish local type and attribute invariants. Analyses establish graph-wide invariants such as affine material use, candidate contract equivalence, requirement completeness, and allocation consistency. Every transformation accepts one verified stage and returns another verified stage or an error.
 
-`allocated-procedure` contains no unresolved method choice. Every executable requirement records an exact `Requirement -> CapabilityOffering -> Asset` binding and, where execution is requested, an explicit compatible adapter binding. Exact MaterialLot inputs and explicit movement nodes are part of the same allocation result.
+`design-intent` and `refined-alternatives` are implemented stage contracts. `allocated-procedure` is the next contract: it will contain no unresolved method choice. Every executable requirement will record an exact `Requirement -> CapabilityOffering -> Asset` binding and, where execution is requested, an explicit compatible adapter binding. Exact MaterialLot inputs and explicit movement nodes are part of the same allocation result.
 
 ## Why Pliron stays internal
 

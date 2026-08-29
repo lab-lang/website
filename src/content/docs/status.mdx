@@ -10,19 +10,19 @@ Lab is an experimental compiler with a working end-to-end facility vertical slic
 
 ## Implemented today
 
-| Area               | Current support                                                                                                                                                                   |
-| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Frontends          | Lab and Python both produce the same checked portable module representation.                                                                                                      |
-| Language           | Packages, modules, typed declarations, roles, quantities, workflows, action contracts, acceptance claims, and affine material ownership.                                          |
-| LAIR               | Design, Workflow, and Protocol dialects; one plasmid-build conversion; textual IR; whole-module material-linearity analysis; one registered pass.                                 |
-| Facility ingestion | Turtle, RDF/XML, JSON-LD, and N-Triples through SBOLInventory Profile 0.2 validation; optional exact Facility selector with single-Facility inference.                            |
-| Materials          | Exact design Component IRI to active MaterialLot `sbol:built` matching; no display-name matching; ambiguity fails closed.                                                         |
-| Requirements       | Typed reachable capability requirements with qualification, control mode, parameter, source, and call-site identity.                                                              |
-| Allocation         | Exact `Requirement -> CapabilityOffering -> Asset` bindings over one immutable inventory snapshot, with rejection explanations and adapter eligibility.                           |
-| Adapters           | Descriptor catalog, semantic capabilities separated from features, explicit Asset bindings, checked canonical profiles, and frozen profile hashes.                                |
-| Reviewed plans     | `lab.execution-plan.v0` with inventory, facility, lot, offering, Asset, adapter, DAG, movement, child-document, and digest bindings.                                              |
-| Runtime            | Whole-plan preflight, dry-run narration, simulation path, exact executor registry, confirmation gates, durable ledger, digest-bound resume, and supported STAR/ODTC live paths.   |
-| Provenance         | A new conformant inventory result document with Activities, Usages, output MaterialLots, lineage, ExperimentalData, and evidence Attachments; source inventory remains unchanged. |
+| Area               | Current support                                                                                                                                                                                                                           |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Frontends          | Lab and Python both produce the same checked portable module representation.                                                                                                                                                              |
+| Language           | Packages, modules, typed declarations, roles, quantities, workflows, action contracts, acceptance claims, and affine material ownership.                                                                                                  |
+| LAIR               | Design, Workflow, Method, Procedure, Capability, and Protocol dialects; verifier-valid `design-intent`, `refined-alternatives`, and transitional `method-selected-protocol` stages; textual IR; whole-module material-linearity analysis. |
+| Facility ingestion | Turtle, RDF/XML, JSON-LD, and N-Triples through SBOLInventory Profile 0.2 validation; optional exact Facility selector with single-Facility inference.                                                                                    |
+| Materials          | Exact design Component IRI to active MaterialLot `sbol:built` matching; no display-name matching; ambiguity fails closed.                                                                                                                 |
+| Requirements       | Typed reachable capability requirements with qualification, control mode, parameter, source, and call-site identity.                                                                                                                      |
+| Allocation         | Exact `Requirement -> CapabilityOffering -> Asset` bindings over one immutable inventory snapshot, with rejection explanations and adapter eligibility.                                                                                   |
+| Adapters           | Descriptor catalog, semantic capabilities separated from features, explicit Asset bindings, checked canonical profiles, and frozen profile hashes.                                                                                        |
+| Reviewed plans     | `lab.execution-plan.v1` with inventory, facility, lot, offering, Asset, adapter, DAG, movement, child-document, and digest bindings.                                                                                                      |
+| Runtime            | Whole-plan preflight, dry-run narration, simulation path, exact executor registry, confirmation gates, durable ledger, digest-bound resume, and supported STAR/ODTC live paths.                                                           |
+| Provenance         | A new conformant inventory result document with Activities, Usages, output MaterialLots, lineage, ExperimentalData, and evidence Attachments; source inventory remains unchanged.                                                         |
 
 ## Device implementation matrix
 
@@ -53,15 +53,15 @@ design-intent
     -> immutable adapter invocations
 ```
 
-The required implementation work includes an RDF-free `lab-capability` semantic crate, first-class Method/Procedure/Capability LAIR, declarative method packages for Rust and Python, one authoritative requirement analysis over LAIR, a global constraint model, allocation applied back to exact IR identities, and adapter invocation schemas that do not expose Pliron.
+The first replacement milestone is implemented: RDF-free `lab-capability` semantics, the portable `lab-method` contract and validated Rust registry, first-class Method/Procedure/Capability LAIR, and facility-independent source refinement now produce verifier-valid alternatives. The remaining bridge is a read-only authoritative requirement analysis over LAIR, a global constraint model, allocation applied back to exact IR identities, immutable adapter invocation schemas, package CLI adoption, and Python method authoring over the same serialized contract.
 
 ## Important current limits
 
 - The standard library declares more actions than the current LAIR lowering implements.
-- Method alternatives and joint method/facility selection are not yet represented; the initial plasmid build has one compiler-selected route.
+- Method alternatives are represented and verified through the compiler API, but `lab build` does not consume them yet; its initial plasmid build still has one compiler-selected route, and joint method/facility selection is not implemented.
 - Allocation has no general reservation service, calendar, queue, consumable depletion, or dynamic rescheduling.
 - Inventory is a checked snapshot, not a live LIMS or booking system.
-- Most EBEF capability kinds have semantic catalog coverage but no Lab method library, procedure lowering, adapter, simulator model, or evidence schema yet.
+- The built-in method registry covers the current plasmid-build Intent slice, but most EBEF capability kinds still have no Lab method definition, procedure lowering, adapter, simulator model, or evidence schema.
 - Package dependencies are local paths only; registry requirements are rejected rather than partially resolved.
 - Generated procedures are not automatically qualified laboratory protocols.
 
