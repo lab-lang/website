@@ -205,7 +205,7 @@ export const stages: Stage[] = [
     filename: 'reporter.ir',
     headline: 'Meaning survives lowering',
     description:
-      'LAIR, the Lab Automation Intermediate Representation, is where meaning survives specialization: a design layer for artifact intent, a workflow layer for target-neutral realization, and a protocol layer for target-selected operations. Every material value is typed, and the verifier requires that each has at most one consumer. This is the textual form `lab-opt` parses, verifies, and runs passes over.',
+      'LAIR, the Lab Automation Intermediate Representation, is where meaning survives specialization. The current Design, Workflow, and Protocol vertical slice verifies typed material dataflow; Method, Procedure, and Capability layers will carry facility-independent alternatives into joint allocation. This is the textual form `lab-opt` parses, verifies, and runs passes over.',
     language: 'ir',
     body: protocolIr,
   },
@@ -216,7 +216,7 @@ export const stages: Stage[] = [
     filename: 'assembly_protocol.py',
     headline: 'Compiled to a liquid handler',
     description:
-      'The Opentrons backend consumes only verified protocol operations. It allocates deck wells, picks labware and pipettes, and emits Python at API level 2.21 that is checked against the official Opentrons simulator.',
+      'Facility allocation binds a semantic requirement to an exact qualified OT-2 offering and Asset. The explicitly bound Opentrons adapter allocates deck wells, applies the checked profile, and emits reviewed Python at API level 2.21.',
     language: 'python',
     body: ot2Python,
   },

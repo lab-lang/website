@@ -80,10 +80,11 @@ export function CompilerInputsSection() {
               <span className="micro text-gfp">LAIR</span>
               <p className="prose-lab mt-3 text-[15px] leading-[1.72] text-[#f6ece0]/70">
                 Every input arrives at LAIR, the Lab Automation Intermediate
-                Representation. From there one pipeline verifies material flow,
-                selects a target, and emits what the laboratory needs: a program
-                for a robot, a typeset protocol for a person, or both from the
-                same compilation.
+                Representation. From there the compiler verifies material flow,
+                refines method alternatives, and allocates requirements against
+                qualified offerings in an SBOLInventory facility. Asset-bound
+                adapters emit robot programs, reviewed run documents, and
+                typeset protocols from the selected procedure.
               </p>
             </div>
             <Link

@@ -264,50 +264,60 @@ it, transfer it, or dispose of it.
 ## Build
 
 ```shell
-lab build --no-target
+lab build
 ```
 
 ```
 Built tet-reporter 0.1.0 (1 modules)
-  Artifacts: .lab/build
+
+Build products:
+  plasmid tet_reporter
+
+Compiler output: .lab/build
 ```
 
-That writes verified portable module IR under `.lab/build/modules/`, a
-package index at `.lab/build/package.json`, and a `lab.lock` next to the
-manifest. Portable module IR is the frontend's output boundary: imports
-resolved, types checked, action contracts resolved to stable operation
-identities, material ownership verified. No laboratory has been chosen yet.
+Every build writes verified portable module IR under `.lab/build/modules/`, a package index, capability requirement artifacts, and `lab.lock`. For a package with no `[inventory] document`, that is the end of the build: no facility has been selected and no adapter is invoked.
 
-## Name a bench, and compile for it
+## Describe a facility, then bind its OT-2
 
-A target profile describes the laboratory rather than the science: which
-modules are installed, which labware sits in which deck slot, which pipette
-is on which mount. It is a TOML file under `targets/`, and its filename is
-its name. Every field has a default matching the reference bench, so a
-profile states only what differs:
+A laboratory is an SBOLInventory RDF graph, not a target profile. It contains the Facility, its Zones, installed Assets, exact capability offerings, and MaterialLots. An OT-2 Asset might look like this shortened Turtle:
 
-```toml targets/opentrons-ot2.toml
-[target]
-backend = "opentrons.ot2"
-api_level = "2.21"
+```turtle inventory/facility.ttl
+@prefix cap: <https://sbol.io/ns/capability#> .
+@prefix ex: <https://example.org/tet-reporter/> .
+@prefix fac: <https://sbol.io/ns/facility#> .
+@prefix sbol: <http://sbols.org/v3#> .
 
-[instruments.small]
-model = "p20_single_gen2"
-mount = "left"
+ex:facility a sbol:TopLevel, fac:Facility .
+
+ex:opentrons_ot2
+    a sbol:TopLevel, fac:Asset ;
+    fac:locatedIn ex:automation_zone ;
+    fac:capability ex:opentrons_ot2_liquid_handling .
+
+ex:opentrons_ot2_liquid_handling
+    a sbol:Identified, fac:CapabilityOffering ;
+    fac:capabilityKind cap:LiquidHandling ;
+    fac:qualification fac:Executable ;
+    fac:controlMode fac:ReviewedFile .
 ```
 
-The manifest names which profile a plain `lab build` uses, and lists what
-this laboratory has on hand so the planner knows what it need not build:
+The manifest points to that graph and explicitly associates the exact Asset with the installed compiler adapter:
 
 ```toml lab.toml
 [build]
 entry = "src/programs/main.lab"
-target = "opentrons-ot2"
 
 [inventory]
-materials = ["B0015", "B0034", "BsaI", "DH5alpha", "GFP", "J23101", "pSB1C3"]
-artifacts = []
+document = "inventory/facility.ttl"
+
+[[execution.adapters]]
+asset = "https://example.org/tet-reporter/opentrons_ot2"
+driver = "opentrons.ot2"
+profile = "adapters/opentrons-ot2.toml"
 ```
+
+The adapter profile describes checked deck, pipette, module, and labware configuration. It does not repeat the Asset, capability, qualification, or facility facts, and it cannot select another driver.
 
 ```shell
 lab build
@@ -315,40 +325,56 @@ lab build
 
 ```
 Built tet-reporter 0.1.0 (1 modules)
-  Artifacts: .lab/build
-  Target opentrons-ot2: .lab/build/opentrons-ot2
 
-Robot protocols:
-  .lab/build/opentrons-ot2/wave-001/assembly_protocol.py
-  .lab/build/opentrons-ot2/wave-002/plating_protocol.py
-  .lab/build/opentrons-ot2/wave-002/transformation_protocol.py
+Build products:
+  plasmid tet_reporter
+
+Compiler output: .lab/build
+
+Facility outputs:
+  Facility: https://example.org/tet-reporter/facility
+  Requirements allocated: 5
+  Adapter lowerings: 1
+  Reviewed plan: .lab/build/plan.execution.json
+
+Asset bundles:
+  .lab/build/assets/opentrons_ot2
+
+Automation protocols:
+  .lab/build/assets/opentrons_ot2/wave-001/assembly_protocol.py
+  .lab/build/assets/opentrons_ot2/wave-002/transformation_protocol.py
+  .lab/build/assets/opentrons_ot2/wave-002/plating_protocol.py
+
+Documents:
+  .lab/build/assets/opentrons_ot2/dependency_report.pdf
+  .lab/build/assets/opentrons_ot2/manual_protocol.pdf
 ```
 
-`lab build --target <name>` compiles for a different profile, and
-`lab build --no-target` stops at portable module IR. The output is one
-directory per planning wave, all projected from a single validated execution
-plan:
+The compiler instantiates requirements reachable from `main`, queries the selected Facility, binds each requirement to an exact capability offering and Asset, freezes exact MaterialLot and adapter-profile identities, and invokes only the selected adapter. The output is one asset bundle with one directory per planning wave, all projected from a single reviewed execution plan:
 
-| Path                       | What it is                                          |
-| -------------------------- | --------------------------------------------------- |
-| `dependency_manifest.json` | the machine-readable graph, waves, and blockers     |
-| `dependency_report.md`     | a human dependency and blocker summary              |
-| `manual_protocol.md`       | English instructions with reaction and plate maps   |
-| `wave-001/`                | Golden Gate setup and thermocycling                 |
-| `wave-002/`                | transformation, then dilution and selective plating |
+| Path                                            | What it is                                               |
+| ----------------------------------------------- | -------------------------------------------------------- |
+| `.lab/build/facility_allocation.json`           | Exact requirement, offering, Asset, and lot bindings     |
+| `.lab/build/facility_lowering.json`             | Routes from allocations to asset bundles                 |
+| `.lab/build/plan.execution.json`                | Reviewed facility-wide dependency DAG and frozen digests |
+| `assets/opentrons_ot2/dependency_manifest.json` | The adapter's build graph, waves, and blockers           |
+| `assets/opentrons_ot2/dependency_report.pdf`    | A typeset dependency and blocker summary                 |
+| `assets/opentrons_ot2/manual_protocol.pdf`      | Typeset instructions with reaction and plate maps        |
+| `assets/opentrons_ot2/wave-001/`                | Golden Gate setup and thermocycling                      |
+| `assets/opentrons_ot2/wave-002/`                | Transformation, dilution, and selective plating          |
 
 Artifacts in the same wave have no ordering constraint between them, so a
 wave is a single robot run over a single deck. Wave 2 cannot start until
 wave 1's plasmid physically exists and has been accepted.
 
-Nothing in your source named Golden Gate, heat shock, a deck slot, or a
-pipette. The source said `realize`, `transform`, `recover`, `dilute`,
-`plate`; the [Opentrons OT-2 backend](/docs/backends/opentrons-ot2) chose
-the chemistry and the hardware. Point `--target` at a profile declaring
-`backend = "opentrons.flex"` and the same program compiles for an
-[Opentrons Flex](/docs/backends/opentrons-flex) instead, emitting JSON
-protocols rather than Python. A different target may choose differently, or
-reject a design it cannot lower.
+Nothing in source names the OT-2, a deck slot, or a pipette. Those facts enter only after the Facility makes an eligible offering available and the manifest binds its exact Asset to the `opentrons.ot2` implementation. Adding a Flex means adding a Flex Asset and offering to the inventory plus an explicit `opentrons.flex` binding; allocation then decides which exact offering can satisfy each requirement. If multiple complete choices remain equally eligible, planning asks for disambiguation rather than silently choosing one.
+
+Use `lab plan` to write just the reviewed facility bundle under `.lab/plan`, and inspect it without hardware:
+
+```shell
+lab plan
+lab run .lab/plan --dry-run
+```
 
 <Callout kind="note">
   **Generated protocols are not qualified protocols.** Before anyone runs this,
@@ -361,8 +387,4 @@ reject a design it cannot lower.
 
 ## Where to go next
 
-[Action contracts](/docs/guide/action-contracts) covers what `<-` actually
-resolves to, and which operations reach a target today — the honest answer
-is that most of the standard library type-checks but does not yet lower.
-[LAIR dialects](/docs/compiler/lair-dialects) follows the same program down
-through the compiler's intermediate representations.
+[Action contracts](/docs/guide/action-contracts) covers what `<-` resolves to and which operations lower today. [Facility planning](/docs/compiler/facility-planning) follows requirements into exact offerings, Assets, adapters, and reviewed documents. [LAIR dialects](/docs/compiler/lair-dialects) explains how method alternatives and capability requirements will become one authoritative compiler representation.

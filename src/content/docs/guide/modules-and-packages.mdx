@@ -79,7 +79,9 @@ then accepts them.
 ```text
 my-plasmid/
   lab.toml
-  targets/
+  inventory/
+    facility.ttl
+  adapters/
     opentrons-ot2.toml
   src/
     designs/
@@ -103,11 +105,16 @@ edition = "2026"
 
 [build]
 entry = "src/programs/main.lab"
-target = "opentrons-ot2"
 
 [inventory]
-materials = ["B0034", "B0015", "DH5alpha", "chloramphenicol", "pSB1C3"]
-artifacts = []
+document = "inventory/facility.ttl"
+# Optional when the document contains exactly one Facility:
+# facility = "https://example.org/my-lab/facility"
+
+[[execution.adapters]]
+asset = "https://example.org/my-lab/opentrons_ot2"
+driver = "opentrons.ot2"
+profile = "adapters/opentrons-ot2.toml"
 
 [dependencies]
 # path form
@@ -116,20 +123,13 @@ some-lib = { path = "../some-lib" }
 another-lib = "0.3"
 ```
 
-`target` names a file under `targets/`, and is what a plain `lab build`
-compiles for; `lab build --target <name>` picks another, and `lab build
---no-target` stops at portable module IR. That profile's own `[target]
-backend` key selects which machine compiles the build, so one package can
-carry a profile per bench and produce a package for each.
-`[inventory]` is what this laboratory has on hand: a material listed there is
-available to a reaction, and an artifact listed there is already realized and
-need not be built again.
+`[inventory] document` names the package's SBOLInventory graph. Lab validates the complete graph and uses its Facility, Zones, Assets, capability offerings, and MaterialLots as the target environment. If `facility` is omitted, the document must contain exactly one Facility.
 
-`entry` is what makes a package a program rather than a library, so the
-module it names must declare `workflow main`. That is not a build-order
-directive — order comes from the material each call consumes — it is the
-program stating the work it runs. A package with no `entry` is a library and
-needs no `main`.
+Each `[[execution.adapters]]` record explicitly binds one exact Asset IRI to a Lab implementation and a checked, package-relative profile. The RDF graph remains authoritative for manufacturer, model, location, capabilities, qualification, and control modes; the adapter profile contains only implementation configuration. Lab never infers a driver from product metadata.
+
+Input material availability is also semantic. A source declaration's exact `sbol_identity` must match an active MaterialLot whose `sbol:built` points to that same SBOL Component. Display names, declaration names, supplier identifiers, and IRI prefixes are not substitutes. Zero lots leaves the requirement blocked; several eligible lots are an allocation ambiguity.
+
+`entry` is what makes a package a program rather than a library, so the module it names must declare `workflow main`. That is not a build-order directive: order comes from typed material dataflow. A package with no `entry` is a library and needs no `main` or facility plan.
 
 ## What's implemented today
 

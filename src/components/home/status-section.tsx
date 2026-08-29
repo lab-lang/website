@@ -11,19 +11,21 @@ const shipped = [
   'Parsing, resolution, and type checking',
   'Typed portable module IR',
   'Action contracts and affine material flow',
-  'LAIR dialects with a verified protocol boundary',
+  'LAIR dialects, analyses, and a verified vertical slice',
+  'Validated SBOLInventory facilities and exact MaterialLot binding',
+  'Capability allocation to exact offerings and Assets',
+  'Asset-bound adapters and reviewed execution plans',
+  'Dry-run, simulation, durable ledgers, and run provenance',
   'Editor support over LSP and WebAssembly',
-  'Opentrons OT-2, Opentrons Flex, and Hamilton STAR backends',
-  'Workcell targets: a liquid handler, its instruments, and the handoffs between them',
-  'Typed drivers for the Byonoy Absorbance 96 and the Inheco ODTC',
+  'OT-2, Flex, STAR, ODTC, Byonoy, and semantic simulation adapters',
 ]
 
 const pending = [
-  'The durable workflow runtime',
-  'Resource-aware workflow lowering',
-  'Live inventory, lots, and provenance',
+  'First-class Method, Procedure, and Capability LAIR',
+  'Joint method, resource, movement, and schedule solving',
+  'General adapter invocation contracts for Rust and Python',
+  'Live inventory reservation and facility scheduling',
   'External package resolution and lockfiles',
-  'Instrument scheduling across a running workcell',
   'Cloud labs',
 ]
 
@@ -44,7 +46,7 @@ export function StatusSection() {
           <div className="reveal" data-shown={inView} ref={ref}>
             <SectionIntro
               kicker="Where this stands"
-              lede="The language and its intermediate representations are still changing, and the durable workflow runtime has not been built. Generated protocols are a compiler concept spike: a laboratory must verify and qualify them before anything is executed."
+              lede="The first facility-aware vertical slice now reaches reviewed plans, simulation, selected live adapters, and inventory provenance. The general Method, Procedure, and Capability compiler architecture is still being built, and every physical procedure still requires facility-specific review and qualification."
               ledeClassName="mt-6 text-[15px] leading-[1.72]"
               title="Current state of the Lab."
               titleClassName="text-[clamp(1.65rem,3.6vw,2.9rem)]"

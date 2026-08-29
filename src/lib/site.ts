@@ -29,7 +29,7 @@ export const SOCIAL_IMAGE = '/og/lab.png'
 export const DEFAULT_TITLE = 'The Lab Compiler'
 
 export const DEFAULT_DESCRIPTION =
-  'The Lab compiler turns experiments described in Lab or Python into LAIR, one verified intermediate representation, and from LAIR into work a laboratory can run.'
+  'The Lab compiler turns experiments described in Lab or Python into verified LAIR, allocates them against an SBOLInventory facility, and emits reviewed work for people and instruments.'
 
 /** Every route but the homepage names itself ahead of the site. */
 export function pageTitle(page: string) {

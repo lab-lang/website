@@ -1,83 +1,30 @@
 ---
 title: Byonoy Absorbance 96
-eyebrow: Backends
-description: A plate reader station, declared today and waiting for work. The bench can state its hardware before the language can hand it a plate.
-group: Backends
+eyebrow: Adapters
+description: A typed absorbance-reader driver whose facility semantics are ready before its compiler allocation and evidence path.
+group: Adapters
 order: 360
 ---
 
-The Byonoy Absorbance 96 is a station kind, `byonoy.absorbance96`, that a
-workcell profile (`backend = "workcell"`) declares beside its liquid
-handler. It is the honest edge of the toolchain: the station parses and
-validates in a profile, renders in the 3D scene, and has a typed driver,
-but no plan assigns it work yet. `protocol.screen` screens a colony pool,
-not a plate, so wiring the contract to a reader station awaits the
-language-side story for where a plate read enters the material chain. The
-kind exists so a bench can be declared now and gain the work when that
-lands.
+The Byonoy Absorbance 96 demonstrates an important distinction in the facility architecture: Lab can describe an Asset, validate an explicit adapter binding, and provide a typed hardware driver before it can plan useful work for that device.
 
-## Declaring it
+An SBOLInventory Asset may expose an `AbsorbanceMeasurement` offering under `Api` control, and `lab.toml` may explicitly bind it to `byonoy.absorbance96`. The current adapter descriptor intentionally reports `planning = false`, `lowering = false`, `simulation = false`, and `runtime = false`. Facility allocation therefore cannot mistake a compiled driver library for an executable workflow path.
 
-```toml targets/workcell-star.toml
-[[station]]
-name = "reader-1"
-kind = "byonoy.absorbance96"
-```
+## The driver boundary
 
-A workcell holds at most one reader station. The profile accepts it, the
-build ignores it, and if a hand-written plan tried to hand it a node,
-`lab run` would refuse the wave: the runner states plainly that it has no
-executor for the kind.
+The Rust driver speaks the device's raw 64-byte USB HID protocol without a vendor library. It implements a capability-oriented `PlateReader` trait rather than exposing “Byonoy” as a scientific operation. Installed wavelengths are queried from the device; whole-plate reads return 96 optical-density values in row-major order; unsupported luminescence requests are typed errors rather than fabricated values.
 
-## The driver
+Those facts are implementation behavior. Facility facts remain in SBOLInventory: the exact physical Asset, location, activity, qualification, control mode, installed capability offering, and any stated wavelength parameters.
 
-The driver speaks the device's raw USB HID protocol, 64-byte little-endian
-reports with routing tags, implemented directly over the OS HID layer with
-no vendor library in the stack. It lives in
-[`lab-instruments`](https://github.com/lab-lang/lab/tree/master/crates/lab-instruments)
-behind the crate's one capability trait for readers, whose rules are worth
-stating because they shape everything above them:
+## What must land before allocation
 
-- **Reads are whole-plate.** Instruments that can mask wells still
-  integrate every sensor, so well selection is a reporting concern the
-  caller applies to the returned data.
-- **Plate access is physical.** The reader has no drawer motor the plan can
-  drive; whoever carries the plate is the loading mechanism, which is
-  exactly what a workcell handoff models.
-- **Capabilities are read, not assumed.** The instrument ships up to six
-  LEDs chosen at purchase, so the installed wavelengths are queried from
-  the unit at connect time rather than hardcoded, and a read at a
-  wavelength the unit lacks is an error naming the ones it has.
+General absorbance support needs more than adding this adapter to a registry:
 
-Connecting runs the device's mandatory 660 nm reference measurement before
-anything else. A full-plate read takes about 65 seconds and returns optical
-densities for all 96 wells in row-major order, A1 first; the instrument
-reports no temperature, and the driver says so with an absent field rather
-than a guess. The Absorbance 96 has no luminescence optics, so a
-luminescence read is a typed error, not a zero.
+1. A method definition must refine a scientific measurement intent into Procedure tasks with an `AbsorbanceMeasurement` requirement and typed material ports.
+2. Capability constraints must express wavelength, plate format, read mode, and other semantic parameters using stable PropertyKind IRIs and exact units.
+3. Allocated Procedure LAIR must bind that requirement to the exact offering and Asset and insert any required plate movement.
+4. The adapter invocation ABI must carry the frozen read request without exposing Pliron.
+5. A reviewed `lab.plate-read.v0` document and runtime executor must be completed and registered.
+6. Results must become typed ExperimentalData and evidence Attachments linked to the run Activity and material lineage.
 
-Two bench realities the driver documents rather than hides: HID access is
-exclusive per process on every operating system, so a crashed session can
-leave the device claimed until the USB cable is physically replugged; and
-the device-opening constructors sit behind a `hid` cargo feature that
-shipped builds do not enable, so today the driver compiles as adapter and
-codec only.
-
-## The document that would drive it
-
-`lab.plate-read.v0` is defined and device-neutral: a document names the
-plate and a mode, either absorbance at a wavelength or luminescence over an
-integration time, and the station's kind would select the executor. Nothing
-constructs one today. When `protocol.screen` lowers, the format is where
-its plate reads will land.
-
-## Current boundary
-
-A declared capability, not a working integration: no planner emits work for
-it, no runtime session executes it, and no measurement output format exists
-beyond the in-memory plate data the driver returns. The workcell's limits
-apply to the bench around it: one liquid handler, human transport, a
-linear coordination plan.
-When the reader does gain work, the same review boundary will hold:
-documents are what an operator approves, and a runner adds nothing but ids,
-timing, and confirmations.
+Until that complete path exists, the honest support claim is “typed driver and catalogued implementation,” not “plate-reader backend.” This fail-closed service model is how Lab can grow across the much larger EBEF capability space without presenting every recognized device as runnable.

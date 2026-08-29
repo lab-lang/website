@@ -1,13 +1,13 @@
 ---
 title: Building from source
 eyebrow: Toolchain
-description: Build the compiler workspace and use the lab CLI, for contributing to the toolchain or building a new backend.
+description: Build the compiler workspace and use the lab CLI, for contributing to the toolchain or implementing an asset adapter.
 group: Toolchain
 order: 240
 ---
 
 This page is for building and running the compiler itself: useful if you're
-contributing to the toolchain, writing a new backend, or want to inspect
+contributing to the toolchain, writing a new adapter, or want to inspect
 compiler internals directly. If you want to write Lab programs, the
 [playground](/playground) runs the compiler in your browser with nothing to
 install, and [Your first program](/docs/guide/first-program) is where the
@@ -46,8 +46,9 @@ my-plasmid/
 
 `lab.toml` declares the package name, version, edition, and build entry
 point. Source lives under `src/`, conventionally split into `designs/`,
-`workflows/`, and `programs/`, and a bench to compile for lives under
-`targets/`. `lab new` only scaffolds `src/programs/main.lab` to start.
+`workflows/`, and `programs/`. A facility-aware package adds an SBOLInventory
+document under `inventory/` and checked implementation profiles under
+`adapters/`. `lab new` only scaffolds `src/programs/main.lab` to start.
 [Modules and packages](/docs/guide/modules-and-packages) covers the full
 manifest shape and module naming convention.
 
@@ -62,8 +63,10 @@ lab metadata my-plasmid
 `lab check` resolves imports, type-checks, and verifies material flow for a
 single `.lab` file or a whole project. `lab build` does the same and then
 writes one `*.module.json` artifact per module plus a package index and a
-`lab.lock` file under `.lab/build/`, and compiles for the target the manifest
-names; pass `--no-target` to stop at portable module IR. `lab metadata`
+`lab.lock` file under `.lab/build/`. When the package declares an inventory,
+the same command allocates reachable requirements across its selected Facility
+and emits reviewed asset bundles. A package without an inventory stops at
+portable compiler artifacts. `lab metadata`
 prints the resolved manifest and module list without compiling anything,
 useful for confirming `lab.toml` resolved the way you expect before a build.
 

@@ -28,7 +28,7 @@ export interface DocGroup {
  * group names simply never surface in the sidebar, which is the signal to
  * add them here when a new section is introduced.
  */
-const GROUP_ORDER = ['Learn Lab', 'Toolchain', 'Backends', 'Reference']
+const GROUP_ORDER = ['Learn Lab', 'Toolchain', 'Adapters', 'Reference']
 
 const modules = import.meta.glob<{
   default: DocPage['Component']

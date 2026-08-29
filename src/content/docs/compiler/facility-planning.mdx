@@ -1,0 +1,119 @@
+---
+title: Facility planning
+eyebrow: Compiler
+description: One SBOLInventory facility graph determines which qualified Assets and explicit Lab adapters can realize an experiment.
+group: Toolchain
+order: 225
+---
+
+Lab does not have a separate target model. A package describes an experiment, points to an SBOLInventory document, and optionally binds exact Assets in that graph to installed Lab adapters. The selected facility is the compilation target in the meaningful sense: its Zones, Assets, capability offerings, MaterialLots, qualification, control modes, and parameters determine what can be planned and lowered.
+
+The domain model is intentionally compact:
+
+```text
+a facility contains zones
+zones locate assets and material lots
+assets expose capability offerings
+workflows require capabilities
+plans bind requirements to offerings and assets
+runs record material changes and evidence
+```
+
+## Package configuration
+
+The portable manifest points to an RDF document rather than restating the facility in TOML:
+
+```toml
+[inventory]
+document = "inventory/facility.ttl"
+# facility = "https://example.org/my-lab/facility"
+```
+
+Lab accepts Turtle, RDF/XML, JSON-LD, and N-Triples. It validates the document as SBOL 3 and SBOLInventory Profile 0.2 before planning. If `facility` is omitted, the document must contain exactly one Facility. If it contains several, the manifest must select one by absolute IRI.
+
+Every Zone, Asset, capability offering, PropertyValue, and MaterialLot remains in RDF. There is no `inventory.toml`, and manufacturer or model names never select compiler code.
+
+## Operational adapter bindings
+
+An Asset becomes directly lowerable only through an explicit local binding:
+
+```toml
+[[execution.adapters]]
+asset = "https://example.org/my-lab/opentrons_ot2"
+driver = "opentrons.ot2"
+profile = "adapters/opentrons-ot2.toml"
+```
+
+The Asset IRI must resolve inside the selected facility. The driver must explicitly support the offering's exact capability-kind and control-mode IRIs. The profile contains checked implementation configuration such as deck layout and labware; it cannot select another Asset or driver and is hashed into the reviewed plan. Endpoints and credentials stay outside the portable package and are supplied only to runtime.
+
+Catalog qualification and adapter implementation are separate facts. An executable offering without a compatible configured adapter is not executable through Lab. A capable adapter does not promote a merely described offering to executable.
+
+## Planning
+
+`lab check` validates package code, the complete inventory graph, facility selection, and declared adapter bindings. Portable packages may compile without an inventory; facility planning requires one.
+
+`lab build` always writes portable compiler artifacts. For a runnable package with `inventory.document`, it also:
+
+1. Instantiates capability requirements reachable from the entry workflow.
+2. Joins design identities to active MaterialLots by exact `sbol:built` Component IRI.
+3. Queries qualified offerings in the selected facility.
+4. Checks capability kind, qualification, control mode, typed parameters, and adapter service availability.
+5. Freezes exact requirement, offering, Asset, lot, adapter, and profile-hash bindings.
+6. Invokes only the adapters selected by that allocation.
+7. Writes one reviewed execution plan plus asset-specific bundles.
+
+Candidate ordering is never allocation. Zero candidates is an explained unsatisfied requirement. Several equally eligible candidates are an ambiguity unless an explicit policy or selection distinguishes them.
+
+`lab plan` runs the facility phase by itself under `.lab/plan/`. It is useful when the reviewed plan and adapter lowerings are wanted without rebuilding the portable package bundle.
+
+## Golden Gate example
+
+The checked-in Golden Gate package declares one Facility, an OT-2 Asset with qualified liquid-handling and thermal-cycling offerings, exact input MaterialLots, and one `opentrons.ot2` adapter binding. Build it with:
+
+```shell
+lab build examples/golden-gate
+```
+
+The human result names the biological products, exact selected facility, allocation artifacts, reviewed plan, asset bundle, automation protocols, and PDFs. The main paths are:
+
+```text
+examples/golden-gate/.lab/build/
+├── capability_requirements.json
+├── capability_instances.json
+├── adapter_bindings.json
+├── facility_allocation.json
+├── facility_lowering.json
+├── plan.execution.json
+└── assets/
+    └── opentrons_ot2/
+        ├── dependency_report.pdf
+        ├── manual_protocol.pdf
+        ├── wave-001/
+        │   ├── assembly_protocol.py
+        │   └── manual_protocol.pdf
+        └── wave-002/
+            ├── transformation_protocol.py
+            ├── plating_protocol.py
+            └── manual_protocol.pdf
+```
+
+The readable `assets/opentrons_ot2` directory comes from the exact Asset identity. A short hash is appended only when two selected Assets would otherwise collide.
+
+## Review and execution
+
+The reviewed `plan.execution.json` freezes the inventory hash and selected Facility IRI, capability and material bindings, adapter profile hashes, the dependency DAG, child-document paths, and child-document digests. Runtime validates the whole closure before any executor can touch hardware.
+
+```shell
+lab run examples/golden-gate/.lab/build --dry-run
+lab run examples/ebef/acceptance/.lab/plan --simulate
+```
+
+Runtime never re-queries inventory or chooses a substitute Asset. A change to the plan, inventory, adapter profile, or child document invalidates resume. A physical substitution requires a newly reviewed plan.
+
+On completion, Lab writes a new conformant inventory result document containing run Activities, asset and input-lot Usages, output MaterialLots, lineage, ExperimentalData, and evidence Attachments. It never edits the source inventory in place.
+
+## EBEF as the architectural example
+
+The repository's EBEF package models public information about Caltech's Ecology and Biosphere Engineering Facility as one Facility with nested Zones, installed Assets, and capability offerings. It deliberately leaves public-only offerings at `Described` with `UnspecifiedControl`, because an equipment web page is not evidence of an operational control path. A separate synthetic extension exercises multi-Asset simulation without changing claims about EBEF hardware.
+
+That example is how the architecture scales past a single liquid-handler bench: an incubator, reader, microscope, environmental chamber, freezer, manual station, and robot all enter planning through the same capability-offering model. Device categories do not become compiler targets or hard-coded workcell members.

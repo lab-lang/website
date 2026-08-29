@@ -85,9 +85,9 @@ export const sigs: SpecialInterestGroup[] = [
     icon: FlaskConical,
     summary:
       'Support for laboratory robots and instruments through explicit, testable execution boundaries.',
-    owns: ['Instrument profiles', 'Target backends', 'Workcells and recovery'],
+    owns: ['Asset adapters', 'Run-document formats', 'Execution and recovery'],
     contribute:
-      'Instrument integrations, vendor protocols, workcells, safety, and hardware qualification.',
+      'Instrument integrations, vendor protocols, facility execution, safety, and hardware qualification.',
     repositories: [
       { label: 'lab-lang/lab', href: REPO_URL },
       {

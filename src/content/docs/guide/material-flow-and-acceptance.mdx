@@ -64,8 +64,4 @@ to different beginnings and technical replicates when they trace to the same
 one, so the compiler can tell three transformants from three readings of one
 culture without being told which is which.
 
-Portable checking (judgments 1 and 2) never selects a robot, a deck, a
-chemistry, or a schedule; that's target specialization's job, covered in
-[Compiler pipeline](/docs/compiler/pipeline). A backend that can't satisfy
-some required property or capability must fail explicitly rather than
-silently drop it.
+Portable checking (judgments 1 and 2) never selects a robot, deck, chemistry, or schedule. Method refinement and facility allocation make those later decisions, as described in [Compiler pipeline](/docs/compiler/pipeline). A selected facility and adapter that cannot satisfy a required property or capability must fail explicitly rather than silently drop it.

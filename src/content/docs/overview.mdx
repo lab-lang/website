@@ -12,11 +12,7 @@ import { CodeSwitch } from '@/components/docs/code-switch'
 Lab is a compiler toolchain for the laboratory. You describe an experiment
 precisely enough that the compiler can check it and a laboratory, whether
 that's a person at a bench or a liquid-handling robot, can carry it out. You
-write down what a plasmid should be, the constraints it must satisfy before
-construction even starts, and the evidence that would prove it worked. The
-compiler checks that description for consistency, lowers it into LAIR, its
-intermediate representation, then, once a target is chosen, turns it into
-either a protocol a person can follow or a program a robot can run.
+write down what a plasmid should be, the constraints it must satisfy before construction even starts, and the evidence that would prove it worked. The compiler checks that description for consistency and lowers it into LAIR, its intermediate representation. Facility planning then binds semantic requirements to qualified offerings and exact Assets in an SBOLInventory graph, and explicit asset adapters turn the allocated procedure into either a protocol a person can follow or a program an instrument can run.
 
 The compiler accepts that description in two forms. Python is where most
 work starts, and Lab is the native language the checker is built around.
@@ -392,11 +388,12 @@ You don't write instrument-specific steps anywhere in this. The compiler
 figures out the rest for whichever laboratory ends up running it.
 
 <Callout kind="note">
-  **Early prototype.** Parsing, checking, and an experimental Opentrons OT-2
-  backend exist today. The durable workflow runtime, the part that would
-  actually run a program against a real laboratory over time, does not.
-  Generated protocols must be reviewed and qualified before anyone executes
-  them.
+  **Early prototype.** Parsing, checking, LAIR, SBOLInventory facility
+  validation, exact capability allocation, reviewed plans, simulation, run
+  ledgers, provenance, and several experimental adapters exist today. The
+  general Method, Procedure, and Capability compiler layers are still under
+  construction. Generated protocols must be reviewed and qualified before anyone
+  executes them.
 </Callout>
 
 ## How these docs are organized
@@ -409,11 +406,7 @@ has the Python form shown on this page: an `accept` claim is a predicate in
 `accept=[...]`, `<-` is `wf.perform`, and a typed SBOL design produces a
 validated pySBOL3 component underneath when its declaration is compiled.
 
-Two smaller sections are for a different audience. **Toolchain** covers the
-compiler's internals, useful if you're contributing to it or want to
-understand how a design becomes a protocol. **Backends** covers adding
-support for a new instrument. Neither is required reading to write a
-program.
+Two smaller sections are for a different audience. **Toolchain** covers the compiler's internals, facility planning, and reviewed runtime boundaries. **Adapters** covers the implementations that realize allocated work on particular instrument Assets. Neither is required reading to write a program.
 
 ## Where to start
 
@@ -424,16 +417,7 @@ install.
 
 ## What exists today
 
-The toolchain parses and checks artifact kinds, designs, generic circuits,
-and workflows; verifies action contracts, material ownership, and the
-evidence a claim is believed on; and includes an initial Opentrons OT-2
-backend, checked against the real Opentrons simulator. Most of the standard
-library is itself written in Lab. Editor support (an LSP server and a
-WebAssembly API) gives a `.lab` file diagnostics, documentation on hover, and
-completions like any other language. The type system grounds parts and roles
-in the same ontologies SBOL uses. The durable workflow runtime, the part that
-would execute a program continuously against a real laboratory and react to
-what it observes, has not been built yet.
+The toolchain parses and checks artifact kinds, designs, generic circuits, and workflows; verifies action contracts, material ownership, and evidence claims; validates SBOLInventory facilities; binds exact MaterialLots and capability offerings; emits reviewed multi-Asset execution plans; and supports dry-run, simulation, durable resume, selected live adapters, and post-run provenance. OT-2, Flex, STAR, ODTC, Byonoy, and semantic simulator implementations expose deliberately different service levels. Most of the standard library is itself written in Lab. Editor support through LSP and WebAssembly provides diagnostics, hover documentation, and completion. The type system grounds parts and roles in the same ontologies SBOL uses. General method refinement, facility-wide scheduling, reservation, and the broader EBEF capability surface remain under development.
 
 [Status](/docs/status) tracks exactly what's implemented, feature by
 feature.

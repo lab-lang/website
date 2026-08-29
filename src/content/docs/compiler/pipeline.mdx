@@ -1,91 +1,76 @@
 ---
 title: Compiler pipeline
 eyebrow: Compiler
-description: A design becomes a workflow, a workflow becomes a protocol, and a protocol becomes instructions for a person or a robot.
+description: Scientific intent becomes method alternatives, an allocated facility procedure, and reviewed work for people and instruments.
 group: Toolchain
 order: 210
 ---
 
-The pipeline is one idea applied repeatedly: take a description of what
-should exist and make it progressively more concrete until something in the
-world can act on it. A `.lab` file describes a **design**: an artifact, the
-constraints it must satisfy, the evidence that would prove it worked.
-Lowering restates that design as a **workflow**: the materials that must
-move through a build for the artifact to exist, with no opinion yet about
-who or what performs any step. Selecting a target turns the workflow into a
-**protocol**: the same build committed to concrete methods on a specific
-instrument. A backend then turns the protocol into its runnable forms: a
-typeset document a person follows at the bench, a program a robot runs, or
-both from the same compilation.
+Lab is a multi-layer compiler. It does not translate an experiment directly into one robot script, and a device is not selected by a command-line target flag. The compiler preserves scientific meaning while it progressively commits to methods, physical resources, and implementation details.
 
-Each of those transitions is a stage with a name you can ask for on the
-command line, so specialization decisions stay visible rather than implied
-by a library default.
-
-| Stage   | Produces                   | What happens                                                                                                                                                                                    |
-| ------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Parse   | Spanned source AST         | Surface syntax becomes a tree with byte offsets attached, for diagnostics.                                                                                                                      |
-| Check   | `CheckedModule`            | Imports resolve, types check, action contracts resolve, and affine material flow is verified. This is the portable source-compilation boundary: the last point that knows source syntax at all. |
-| Lower   | `PortableLairProgram`      | The checked module becomes LAIR, the Lab Automation Intermediate Representation: a Design layer for artifact intent, a Workflow layer for target-neutral realization.                           |
-| Select  | `ProtocolLairProgram`      | Workflow operations are replaced by Protocol operations and fully eliminated. Material linearity is re-verified at this mandatory backend boundary.                                             |
-| Compile | A backend's `Program` type | A backend consumes verified Protocol operations and plans an execution: for either Opentrons bench, deck, well, and labware allocation.                                                         |
-| Emit    | `ArtifactBundle`           | The backend's plan becomes files: generated Python for a robot, and a typeset PDF protocol for a person, rendered through Typst from the same plan.                                             |
-
-## Two boundaries worth knowing by name
-
-`CheckedModule` is the portable frontend boundary. Everything before it knows
-source syntax; nothing after it does. `lab-compiler` never re-parses source
-outside one file, `source_lowering.rs`, whose entire job is reading
-`CheckedModule` and nothing else.
-
-`ProtocolLairProgram` is the mandatory backend boundary. No backend receives
-anything less specialized than this: by the time a backend sees a program,
-every workflow operation has already been replaced by a protocol operation,
-and material linearity has already been checked twice: once when Workflow
-LAIR verifies, and again after Protocol selection.
-
-## One boundary, two frontends
-
-The frontend boundary is what makes the compiler's inputs plural.
-Everything downstream of `CheckedModule`, which is LAIR, its verification,
-target selection, and every backend, neither knows nor cares what syntax the
-module was written in. Any frontend that produces a `CheckedModule` inherits
-the whole pipeline.
-
-Two frontends target that boundary. Python is where most experiments are
-written, because it is the language a laboratory already has code in. Lab is
-the native language, and the one the checker's vocabulary is built around.
-Both produce the same `CheckedModule`, so neither is a wrapper over the
-other and nothing downstream can tell them apart.
-
-SBOL is not a third frontend. It is the vocabulary designs are exchanged in,
-and both frontends speak it: the type system grounds parts and roles in the
-ontologies SBOL names, and the Python frontend provides typed design builders
-over pySBOL3 while reading LOICA circuits. The builders keep biological design
-separate from explicit `build` or `buy` provenance, then materialize and
-validate the document during module compilation. So a design can arrive from
-a registry and leave for one without SBOL being a separate way into the compiler.
-
-## Stage names, concretely
-
-LAIR itself moves through three named stages, and mixing operations from two
-non-adjacent stages in the same module is rejected outright:
-
-- `Design`: artifact intent only (`design.plasmid` and similar).
-- `DesignWorkflow`: Design plus target-neutral Workflow operations
-  (`workflow.realize`, `workflow.provision`, and so on).
-- `TargetSelectedProtocol`: Design plus Protocol operations. Workflow
-  operations must be completely gone by this point; a module holding both
-  Workflow and Protocol operations at once fails to verify.
-
-You can ask for the intermediate representation directly at almost any of
-these points with `labc --emit`:
-
-```shell
-labc reporter.lab --emit source-ast
-labc reporter.lab --emit module-ir
+```text
+Lab or Python source
+    -> checked portable module IR
+    -> LAIR design and intent
+    -> method alternatives with procedure and capability requirements
+    -> graph-wide method and facility solving
+    -> allocated procedure LAIR
+    -> asset-bound adapter invocations
+    -> reviewed execution plan and device documents
+    -> run ledger, material lineage, and evidence
 ```
 
-See [CLI reference](/docs/compiler/cli-reference) for the full table of
-`--emit` targets, and [LAIR dialects](/docs/compiler/lair-dialects) for what
-the Design, Workflow, and Protocol operations actually look like.
+The first and last parts of this path are implemented today: both frontends reach one checked module model; the current LAIR vertical slice verifies typed material dataflow; SBOLInventory facility graphs are validated; reachable capability requirements are allocated to exact offerings and Assets; compatible adapters emit asset-specific bundles; and `lab run` validates a reviewed plan before simulation or supported live execution. Method alternatives and joint method/facility selection are the next compiler layer. Until that lands, the current plasmid-build lowering selects its method before allocation.
+
+## The layers and their owners
+
+| Layer                      | Representation                                  | Owns                                                                                                                                      |
+| -------------------------- | ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Source                     | Lab or Python                                   | The experiment as an author writes it                                                                                                     |
+| Portable frontend boundary | `CheckedModule`                                 | Resolved symbols, types, action contracts, biological identities, and affine material ownership                                           |
+| Transforming compiler IR   | LAIR on Pliron                                  | Design intent, typed material flow, method alternatives, procedures, capability requirements, and eventually exact allocation annotations |
+| Constraint problem         | Compiler-owned solver model                     | Joint choices over methods, offerings, Assets, adapters, MaterialLots, movement, capacity, and scheduling                                 |
+| Facility snapshot          | Validated SBOLInventory                         | Facilities, Zones, Assets, capability offerings, qualification, control modes, parameters, and MaterialLots                               |
+| Adapter invocation         | Versioned immutable record                      | The exact allocated Asset, implementation, checked profile, inputs, outputs, and device-level work to lower                               |
+| Runtime ABI                | Reviewed execution plan and child run documents | Frozen identities and digests approved for execution                                                                                      |
+| Operational record         | Ledger and output SBOLInventory document        | What ran, material changes, provenance, and evidence                                                                                      |
+
+SBOLInventory is the target-environment description, but it is not another LAIR dialect. The compiler queries an immutable validated snapshot and brings only selected identities and the inventory digest into the allocated program. Facility RDF never becomes compiler IR, and Lab does not maintain a parallel inventory TOML model.
+
+## Method selection and facility allocation are one decision
+
+A source action states scientific intent. It should not permanently own one instrument capability. A method refines that intent into a procedure: a primitive service may require one capability, while a composite method may require liquid handling, thermal cycling, transport, incubation, and measurement as several related tasks.
+
+Method refinement is facility-independent: the compiler can enumerate scientifically valid candidates without knowing where the experiment will run. Selecting an unpinned method is facility-dependent. The solver must choose a method together with exact capability offerings, Assets, adapters, material lots, movement, and scheduling. If two complete solutions remain equally valid under the stated policy, planning reports the ambiguity instead of silently taking the first.
+
+This distinction prevents two common architecture mistakes: hard-coding Golden Gate or one robot into the source action, and choosing a method before discovering that another method is the only one the selected facility can actually realize.
+
+## LAIR and Pliron
+
+LAIR is the mutable, verifier-rich middle of the compiler. Pliron provides operations, SSA values, regions, analyses, rewrite infrastructure, textual IR, and pass pipelines. Pliron is deliberately internal: adapters and Python extensions exchange compiler-owned immutable records rather than Pliron contexts, pointers, or lifetimes.
+
+The intended executable LAIR stages are:
+
+```text
+design-intent
+    -> refined-alternatives
+    -> allocated-procedure
+```
+
+`design-intent` contains reachable design facts and method-neutral work. `refined-alternatives` contains candidate method regions with Procedure tasks and first-class Capability requirements. A read-only analysis extracts the global constraint problem. The allocation pass applies one complete solution back to the exact LAIR identities, removes unselected candidates, inserts explicit movement, and produces `allocated-procedure`. No adapter may consume unresolved alternatives.
+
+The current implementation predates those names and contains Design, Workflow, and Protocol dialects. That vertical slice is useful implementation evidence, but its pre-facility `TargetSelectedProtocol` boundary is being replaced rather than generalized.
+
+## Stable boundaries around the mutable IR
+
+The compiler can rewrite LAIR aggressively because its external boundaries are ordinary versioned data:
+
+- Frontends produce `CheckedModule`.
+- Facility ingestion produces an immutable validated inventory snapshot.
+- Solvers return decisions keyed by stable method, requirement, procedure-node, and material-input identities.
+- Adapters consume immutable invocation records and emit reviewed child documents.
+- Runtime consumes `lab.execution-plan.v0`; it never runs compiler passes or reallocates resources.
+
+That is why Lab remains a compiler rather than becoming a workflow engine built around device plugins. The compiler makes and verifies decisions; adapters realize already-allocated work; runtime executes exactly what was reviewed.
+
+See [Facility planning](/docs/compiler/facility-planning) for the package and CLI workflow, and [LAIR dialects](/docs/compiler/lair-dialects) for the implemented vertical slice and its migration path.

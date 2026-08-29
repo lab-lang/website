@@ -40,9 +40,9 @@ export function HeroSection() {
              * x-height needs it to hold optical parity with 16px Archivo. */}
             <p className="type-deck max-w-[33em] text-pretty text-[clamp(1.125rem,1.6vw,1.5rem)] text-ink/78">
               The Lab compiler takes an experiment described in Python or the
-              Lab programming language, checks it, and lowers it through one
-              intermediate representation, LAIR, into work a person at a bench
-              or the instruments of a self-driving laboratory can carry out.
+              Lab programming language, checks it, and lowers it through LAIR
+              against the qualified capabilities of a real facility, producing
+              reviewed work for people and instruments.
             </p>
           </div>
 
