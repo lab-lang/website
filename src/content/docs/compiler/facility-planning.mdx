@@ -19,9 +19,12 @@ runs record material changes and evidence
 
 ## Package configuration
 
-The portable manifest points to an RDF document rather than restating the facility in TOML:
+The portable manifest can contribute facility-independent Methods and points to an RDF document rather than restating the facility in TOML:
 
 ```toml
+[methods]
+documents = ["methods/site-methods.json"]
+
 [inventory]
 document = "inventory/facility.ttl"
 # facility = "https://example.org/my-lab/facility"
@@ -30,6 +33,8 @@ document = "inventory/facility.ttl"
 Lab accepts Turtle, RDF/XML, JSON-LD, and N-Triples. It validates the document as SBOL 3 and SBOLInventory Profile 0.2 before planning. If `facility` is omitted, the document must contain exactly one Facility. If it contains several, the manifest must select one by absolute IRI.
 
 Every Zone, Asset, CapabilityOffering, PropertyValue, and MaterialLot remains in RDF. There is no `inventory.toml`, and manufacturer or model names never select compiler code.
+
+Each Method file uses the `lab.method-catalog.v1` JSON contract. It describes exact Intent-to-Procedure alternatives and their Capability requirements without naming facility resources. Lab composes documents from the runnable package and its reachable path dependencies with the standard Method set, then validates the whole registry through Rust. `lab check` rejects unknown catalog versions, duplicate Method identities, incompatible signatures, malformed task graphs, and package-relative paths that escape their owner.
 
 ## Operational adapter bindings
 
@@ -53,7 +58,7 @@ Catalog qualification and adapter implementation are separate facts. An Executab
 For a runnable package with `inventory.document`, `lab build` and `lab plan` call the same project service:
 
 1. Lower all checked program modules to verifier-valid Design and Intent LAIR.
-2. Refine reachable Intent operations through a validated Method registry into candidate Procedure and Capability graphs.
+2. Compose standard and package-contributed Method catalogs, then refine reachable Intent operations into candidate Procedure and Capability graphs.
 3. Project `lab.planning-problem.v4` from that one authoritative LAIR graph.
 4. Join exact design Component identities to active MaterialLots through `sbol:built`.
 5. Resolve explicit adapter bindings against offerings owned by their exact Assets.

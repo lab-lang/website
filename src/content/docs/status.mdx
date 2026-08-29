@@ -15,7 +15,7 @@ Lab is an experimental compiler with a connected end-to-end facility vertical sl
 | Frontends          | Lab and Python produce the same checked portable module representation.                                                                                                                                                  |
 | Language           | Packages, modules, typed declarations, roles, quantities, workflows, action contracts, acceptance claims, and affine material ownership.                                                                                 |
 | LAIR               | Design, Workflow, Method, Procedure, Capability, Allocation, and Meta dialects; verifier-valid `design-intent`, `refined-alternatives`, and `allocated-procedure`; textual IR; whole-module material-linearity analysis. |
-| Methods            | RDF-free serializable Method contract, validated built-in registry, real alternatives, typed Procedure values and materials, and Python authoring through the same Rust validator.                                       |
+| Methods            | RDF-free `lab.method-catalog.v1`, standard and package-contributed registries, real alternatives, typed Procedure values and materials, and Python authoring and persistence through the same Rust validator.            |
 | Facility ingestion | Turtle, RDF/XML, JSON-LD, and N-Triples through SBOLInventory Profile 0.2 validation; optional exact Facility selector with single-Facility inference.                                                                   |
 | Materials          | Exact design Component IRI to active MaterialLot `sbol:built` matching; no display-name matching; ambiguity fails closed.                                                                                                |
 | Requirements       | First-class requirements produced by Method refinement with exact Capability and property IRIs, qualification, control mode, typed constraints, Procedure ownership, and ancestry.                                       |
@@ -59,7 +59,7 @@ This architecture matters because it eliminates false breadth. A recognized Capa
 
 ## Important current limits
 
-- The built-in Method registry covers the current Golden Gate Intent slice, not the breadth of general laboratory work.
+- The built-in Method registry covers the current Golden Gate Intent slice. Packages can add portable Methods without changing compiler Rust, but the repository does not yet provide a broad community catalog for general laboratory work.
 - The standard library declares more actions than current source-to-Intent and Method lowering implements.
 - OT-2, Flex, and STAR support a small explicit set of Procedure operation IRIs rather than general capability languages.
 - Allocation has no general reservation service, calendar, queue, consumable depletion, dynamic rescheduling, or complete facility movement optimizer.

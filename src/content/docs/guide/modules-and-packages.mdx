@@ -83,6 +83,8 @@ my-plasmid/
     facility.ttl
   adapters/
     opentrons-ot2.toml
+  methods/
+    site-methods.json
   src/
     designs/
     workflows/
@@ -106,6 +108,9 @@ edition = "2026"
 [build]
 entry = "src/programs/main.lab"
 
+[methods]
+documents = ["methods/site-methods.json"]
+
 [inventory]
 document = "inventory/facility.ttl"
 # Optional when the document contains exactly one Facility:
@@ -123,6 +128,8 @@ some-lib = { path = "../some-lib" }
 another-lib = "0.3"
 ```
 
+`[methods] documents` names versioned `lab.method-catalog.v1` JSON files inside the package. Each file carries portable Method definitions: exact Intent identities, typed Procedure graphs, and first-class Capability requirements, but no Facility, Asset, offering, MaterialLot, adapter, schedule, or endpoint. Lab loads catalogs from the runnable package and reachable path dependencies in dependency-first order, composes them with the standard Methods, and validates the complete registry before refinement. `[[planning.methods]]` may pin one of those alternatives but does not define it.
+
 `[inventory] document` names the package's SBOLInventory graph. Lab validates the complete graph and uses its Facility, Zones, Assets, capability offerings, and MaterialLots as the target environment. If `facility` is omitted, the document must contain exactly one Facility.
 
 Each `[[execution.adapters]]` record explicitly binds one exact Asset IRI to a Lab implementation and a checked, package-relative profile. The RDF graph remains authoritative for manufacturer, model, location, capabilities, qualification, and control modes; the adapter profile contains only implementation configuration. Lab never infers a driver from product metadata.
@@ -133,11 +140,4 @@ Input material availability is also semantic. A source declaration's exact `sbol
 
 ## What's implemented today
 
-`lab-project` (the crate that loads and compiles a package graph) resolves
-**path dependencies only**. A `lab.toml` that declares a version-form,
-registry dependency is rejected outright rather than partially resolved:
-there is no package registry, no version resolution, and no lockfile
-integrity check yet. `lab check`/`lab build`/`lab metadata` all fail closed
-on an unsupported dependency rather than guessing at what you meant. A
-successful build does write a deterministic `lab.lock` alongside the path
-dependencies it did resolve.
+`lab-project` (the crate that loads and compiles a package graph) resolves **path dependencies only**. A `lab.toml` that declares a version-form, registry dependency is rejected outright rather than partially resolved: there is no package registry, no version resolution, and no lockfile integrity check yet. `lab check`/`lab build`/`lab metadata` all fail closed on an unsupported dependency rather than guessing at what you meant. A successful build does write a deterministic `lab.lock` alongside the path dependencies it did resolve.

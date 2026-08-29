@@ -20,7 +20,7 @@ Lab or Python source
     -> run ledger, material lineage, and evidence
 ```
 
-This is one connected production path. Both frontends reach the same checked module model. The shared project service lowers all checked program modules into `design-intent`, refines them with a validated facility-independent Method registry, projects one global planning problem, solves Method and resource choices together, applies the complete solution to produce `allocated-procedure`, and projects immutable exact-task adapter invocations. `lab build`, `lab plan`, and Python facility planning all call that service.
+This is one connected production path. Both frontends reach the same checked module model. The shared project service composes the compiler's standard Methods with versioned catalogs contributed by the runnable package and its reachable dependencies, validates one facility-independent registry, lowers all checked program modules into `design-intent`, projects one global planning problem, solves Method and resource choices together, applies the complete solution to produce `allocated-procedure`, and projects immutable exact-task adapter invocations. `lab build`, `lab plan`, and Python facility planning all call that service.
 
 The former fixed Protocol dialect, pre-facility Golden Gate selector, checked-module requirement reconstruction, and whole-program device lowering path have been removed.
 
@@ -46,6 +46,8 @@ SBOLInventory is the target-environment description, but it is not another LAIR 
 A source action states scientific intent. It does not permanently own one instrument capability. A Method refines that intent into a Procedure: a primitive service may require one capability, while a composite Method may require liquid handling, thermal cycling, transport, incubation, and measurement as several related tasks.
 
 Method refinement is facility-independent: the compiler can enumerate scientifically valid candidates without knowing where the experiment will run. Selecting an unpinned Method is facility-dependent. The solver chooses it together with exact capability offerings, Assets, adapters, material lots, and dependencies. If two complete solutions remain equally valid under the stated policy, planning reports the ambiguity instead of silently taking the first.
+
+Persistent Method extension does not require a compiler fork. A package names one or more `lab.method-catalog.v1` JSON documents under `[methods]`; Python's typed `MethodCatalog.write` API emits the same contract. The records contain open semantic IRIs and ordinary typed graphs rather than Pliron objects. Project loading validates each document, composes reachable dependency catalogs in deterministic order, and validates the combined registry again before constructing LAIR.
 
 The built-in Golden Gate Method shows why this matters. Reaction setup requires liquid handling, thermal cycling is a separate Procedure task with its own requirement, and a typed material edge connects them. One facility may allocate both to one OT-2; another may allocate setup to a STAR and cycling to an ODTC. The source experiment is unchanged.
 
