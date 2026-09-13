@@ -1,6 +1,6 @@
 ---
 title: Status
-eyebrow: Reference
+eyebrow: Start here
 description: Current support for protocol checking, typeset documents, facility planning, and automation.
 group: Start here
 order: 40
@@ -61,7 +61,7 @@ This architecture matters because it eliminates false breadth. A recognized Capa
 
 ## Important current limits
 
-- Document generation currently consumes facility build artifacts. A direct document path from a checked protocol, including its branches and scientific context, is planned in the [compiler architecture](/docs/compiler/pipeline#protocol-documents).
+- Document generation currently consumes facility build artifacts. A direct document path from a checked protocol, including its branches and scientific context, is planned in the [compiler architecture](/docs/compiler/architecture#protocol-documents).
 - The built-in Method registry covers the current Golden Gate Intent slice. Packages can add portable Methods without changing compiler Rust, but the repository does not yet provide a broad community catalog for general laboratory work.
 - Generic action lowering preserves exact checked declaration identities; refinement requires a compatible Method for each reachable action. The bundled Method library covers a smaller vocabulary than the standard library declares.
 - Runnable lowering rejects workflow state, conditionals, matches, loops, triggers, and event emission. Those constructs can be checked in portable modules, but are not flattened into linear runnable programs.
@@ -80,6 +80,6 @@ Caltech's Ecology and Biosphere Engineering Facility demonstrates the intended s
 
 The example deliberately does not infer adapters, control paths, or executable qualification from a public equipment page. Moving an EBEF Asset from `Described` to `Plannable`, `Simulatable`, `Executable`, or `Qualified` requires progressively stronger operational facts and evidence.
 
-The repository's [`docs/language/support.md`](https://github.com/lab-lang/lab/blob/master/docs/language/support.md) remains the feature-by-feature language matrix. [Compiler architecture](/docs/compiler/pipeline) describes the connected architecture, and [Facility planning](/docs/compiler/facility-planning) documents the implemented package workflow.
+The repository's [`docs/language/support.md`](https://github.com/lab-lang/lab/blob/master/docs/language/support.md) remains the feature-by-feature language matrix. [Compiler architecture](/docs/compiler/architecture) describes the connected architecture, and [Facility planning](/docs/compiler/facility-planning) documents the implemented package workflow.
 
-[Start contributing](/docs/toolchain/contributing) maps work to the code contributors own. [Write a pipetting method](/docs/toolchain/python-procedures) gives the complete authoring and validation path. These pages describe the development checkout; the installed CLI, SDK, and browser compiler bundle may come from different revisions.
+[Start contributing](/docs/contributing) maps work to the code contributors own. [Write a pipetting method](/docs/contributing/pipetting-methods) gives the complete authoring and validation path. These pages describe the development checkout; the installed CLI, SDK, and browser compiler bundle may come from different revisions.

@@ -3,10 +3,12 @@ title: CLI reference
 eyebrow: Compiler reference
 description: Commands for contributing packages, checking profiles, building reviewed plans, and inspecting compiler output.
 group: Compiler reference
-order: 230
+order: 40
+previous: development-setup
+next: null
 ---
 
-Use **`lab`** for projects and reviewed runs. Use **`labc`** to inspect one source file, and **`lab-opt`** to inspect or transform textual LAIR. [Development setup](/docs/toolchain/building-from-source) explains how to install them from the current checkout.
+Use **`lab`** for projects and reviewed runs. Use **`labc`** to inspect one source file, and **`lab-opt`** to inspect or transform textual LAIR. [Development setup](/docs/development-setup) explains how to install them from the current checkout.
 
 All `lab` commands accept the global `--json` flag, including after the subcommand. Commands below use the installed binaries; during development, `cargo run --locked -p lab-cli -- <command>` runs the checkout's `lab` CLI.
 
@@ -21,7 +23,7 @@ All `lab` commands accept the global `--json` flag, including after the subcomma
 | `lab new adapter <path> --driver <id>`   | A native adapter crate with explicit implementation placeholders                  |
 | `lab bindings python <path>`             | Python runtime modules and typing stubs generated from checked package interfaces |
 
-The adapter scaffold rejects work until its feasibility and lowering callbacks are implemented. Its initial conformance test checks registration. Follow the appropriate [contribution path](/docs/toolchain/contributing) for an example, implementation steps, and validation.
+The adapter scaffold rejects work until its feasibility and lowering callbacks are implemented. Its initial conformance test checks registration. Follow the appropriate [contribution path](/docs/contributing) for an example, implementation steps, and validation.
 
 ## Check and build a project
 
@@ -114,7 +116,7 @@ lab-opt [<input>] --pass-pipeline "builtin.module(check-material-linearity)"
 - `--print-before-all` and `--print-after-all` write snapshots to `--ir-printing-dir`.
 - `--list-passes` lists the registered passes.
 
-The tool understands the implemented dialects and the three runnable stages and the design-only stage described in [LAIR and compiler boundaries](/docs/compiler/lair-dialects). Method refinement, problem extraction, facility solving, and solution application are compiler APIs used by the project service; they are not dynamic `lab-opt` passes.
+The tool understands the implemented dialects and the three runnable stages and the design-only stage described in [LAIR and compiler boundaries](/docs/compiler/lair). Method refinement, problem extraction, facility solving, and solution application are compiler APIs used by the project service; they are not dynamic `lab-opt` passes.
 
 ## Update an installed release
 

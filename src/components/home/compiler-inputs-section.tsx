@@ -89,7 +89,7 @@ export function CompilerInputsSection() {
             </div>
             <Link
               className="press inline-flex w-fit shrink-0 items-center gap-2 rounded-xl border border-[#f6ece0]/20 px-5 py-2.5 text-[14px] text-[#f6ece0] hover:border-[#f6ece0]/40"
-              to="/docs/compiler/pipeline"
+              to="/docs/compiler/architecture"
             >
               See the pipeline
               <ArrowRight aria-hidden="true" size={15} />

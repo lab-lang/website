@@ -1,9 +1,9 @@
 ---
 title: Your first program
-eyebrow: Learn Lab
+eyebrow: Language guide
 description: Create a project, describe a plasmid, and follow it from a checked module all the way to a robot protocol.
 group: Language guide
-order: 20
+order: 10
 ---
 
 import { Callout } from '@/components/docs/callout'
@@ -227,7 +227,9 @@ sample came from. Transformation establishes an organism and picking isolates
 independent transformants, while diluting, recovering, plating, and measuring
 carry on the lineage that went in.
 
-### The two arrows
+<span id="the-two-arrows" />
+
+### Bindings and effects
 
 The workflow body uses both of Lab's binding forms, and they are not
 interchangeable:
@@ -403,4 +405,4 @@ lab run .lab/plan --dry-run
 
 ## Where to go next
 
-[Action contracts](/docs/guide/action-contracts) covers what `<-` resolves to and which operations lower today. [Facility planning](/docs/compiler/facility-planning) follows Methods and requirements into exact MaterialLots, offerings, Assets, adapters, and reviewed documents. [LAIR and compiler boundaries](/docs/compiler/lair-dialects) explains the implemented Method, Procedure, Capability, and Allocation stages that provide the authoritative planning and device-lowering path.
+[Action contracts](/docs/language/action-contracts) covers what `<-` resolves to and which operations lower today. [Facility planning](/docs/compiler/facility-planning) follows Methods and requirements into exact MaterialLots, offerings, Assets, adapters, and reviewed documents. [LAIR and compiler boundaries](/docs/compiler/lair) explains the implemented Method, Procedure, Capability, and Allocation stages that provide the authoritative planning and device-lowering path.

@@ -6,14 +6,14 @@ const outcomes = [
     description:
       'Check types, action contracts, and material ownership in Lab or Python, without choosing equipment.',
     link: 'Contribute scientific vocabulary',
-    to: '/docs/contributing/scientific-packages',
+    to: '/docs/contributing/scientific-vocabulary',
   },
   {
     title: 'Create beautiful documents',
     description:
       'Make laboratory work clear to the person reading it. Today, facility builds produce typeset operator documents and manual run sheets.',
     link: 'Explore document generation',
-    to: '/docs/compiler/pipeline#protocol-documents',
+    to: '/docs/compiler/architecture#protocol-documents',
   },
 ]
 
@@ -23,7 +23,7 @@ const facilityStages = [
     description:
       'Describe possible implementations as physical operations and the capabilities they need.',
     contribution: 'Python Methods',
-    to: '/docs/toolchain/python-procedures',
+    to: '/docs/contributing/pipetting-methods',
   },
   {
     title: 'Choose Methods and resources together',
@@ -44,7 +44,7 @@ const facilityStages = [
     description:
       'Freeze the plan and its files, execute supported documents, and record what happened.',
     contribution: 'Execution support',
-    to: '/docs/contributing/execution',
+    to: '/docs/contributing/execution-support',
   },
 ]
 

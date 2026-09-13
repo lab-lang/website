@@ -113,4 +113,4 @@ export function getDocNavigation(page: DocPage): {
   }
 }
 
-export const DEFAULT_DOC_SLUG = 'toolchain/contributing'
+export const DEFAULT_DOC_SLUG = 'contributing'

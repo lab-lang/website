@@ -1,9 +1,11 @@
 ---
 title: Hamilton STAR
-eyebrow: Adapters
+eyebrow: Instrument reference
 description: An asset-bound liquid-handling adapter with checked carrier planning, reviewed firmware-frame documents, simulation, and live execution.
 group: Instrument reference
-order: 330
+order: 30
+previous: contributing/instrument-profiles
+next: null
 ---
 
 The Hamilton STAR/STARlet integration is the most complete live adapter in Lab. An exact SBOLInventory Asset is bound to `hamilton.star`; global allocation assigns exact liquid-handling Procedure tasks to one qualified offering on that Asset; the adapter plans against a checked carrier-and-rail profile and emits `lab.star-run.v0` documents. Runtime replays the reviewed frames verbatim, adding only protocol command IDs.
@@ -48,7 +50,7 @@ Validation rejects a carrier outside the machine's rail span, overlaps, nonexist
 
 ## Reviewed frames are the execution boundary
 
-The adapter selects its assigned tasks from `lab.adapter-invocations.v3` and lowers supported `PipettingProgramV1` programs. Rust validates canonical liquid operations, units, material interfaces, and capability ownership; STAR code applies geometry, liquid classes, and physical constraints, then emits one typed `lab.star-run.v0` document per supported task. A [Python pipetting Method](/docs/toolchain/python-procedures) reaches this same contract without adding a biological action name to the adapter. Each document contains machine identity, channel count, ordered firmware frames, operator-facing descriptions, and manual steps. The facility execution plan freezes its digest and exact Method, task, requirement, offering, Asset, adapter, and profile bindings.
+The adapter selects its assigned tasks from `lab.adapter-invocations.v3` and lowers supported `PipettingProgramV1` programs. Rust validates canonical liquid operations, units, material interfaces, and capability ownership; STAR code applies geometry, liquid classes, and physical constraints, then emits one typed `lab.star-run.v0` document per supported task. A [Python pipetting Method](/docs/contributing/pipetting-methods) reaches this same contract without adding a biological action name to the adapter. Each document contains machine identity, channel count, ordered firmware frames, operator-facing descriptions, and manual steps. The facility execution plan freezes its digest and exact Method, task, requirement, offering, Asset, adapter, and profile bindings.
 
 ```shell
 lab run .lab/plan --dry-run
@@ -60,7 +62,7 @@ Preflight parses every child document and verifies the complete reviewed closure
 
 ## Multi-Asset procedures
 
-A STAR does not become a workcell when a thermocycler or reader is nearby. Those instruments are separate Assets with their own capability offerings and adapters. The facility-wide Procedure graph contains explicit material movement and dependencies between allocated tasks. This is what lets the same architecture compose a STAR, an [Inheco ODTC](/docs/backends/inheco-odtc), a reader, and manual work without inventing one closed machine category.
+A STAR does not become a workcell when a thermocycler or reader is nearby. Those instruments are separate Assets with their own capability offerings and adapters. The facility-wide Procedure graph contains explicit material movement and dependencies between allocated tasks. This is what lets the same architecture compose a STAR, an [Inheco ODTC](/docs/instruments/inheco-odtc), a reader, and manual work without inventing one closed machine category.
 
 ## Current boundary
 

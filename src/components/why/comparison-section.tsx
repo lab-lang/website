@@ -122,7 +122,7 @@ export function ComparisonSection() {
             labc build.lab --emit opentrons-assembly
           </code>{' '}
           produces a runnable OT-2 protocol for this same build.{' '}
-          <Link className="rule-link text-ink" to="/docs/compiler/pipeline">
+          <Link className="rule-link text-ink" to="/docs/compiler/architecture">
             Every stage in between has a name you can ask for
           </Link>
           .

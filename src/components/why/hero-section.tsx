@@ -28,7 +28,7 @@ export function HeroSection() {
         <div className="mt-8 flex flex-wrap gap-3">
           <Link
             className="press inline-flex items-center gap-2 rounded-xl bg-ink px-5 py-3 text-[14px] text-paper shadow-[0_10px_24px_-8px_rgb(43_28_17_/_0.5)]"
-            to="/docs/guide/first-program"
+            to="/docs/language/first-program"
           >
             Walk through a real build
             <ArrowRight aria-hidden="true" size={16} />

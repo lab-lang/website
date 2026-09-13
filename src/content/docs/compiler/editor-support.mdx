@@ -3,12 +3,14 @@ title: Editor support
 eyebrow: Compiler reference
 description: How editor integrations reuse the checker, where to add a feature, and what the browser and language server support today.
 group: Compiler reference
-order: 250
+order: 50
+previous: development-setup
+next: null
 ---
 
 Editor integrations use the same language model as compilation. `lab-ide` turns source analysis into diagnostics and editing operations. The language server and browser bridge expose those operations to their hosts.
 
-This boundary is useful when adding a new editor or an authoring feature. It provides source understanding; facility planning and device generation belong to the separate [project application service](/docs/compiler/pipeline#where-the-code-lives).
+This boundary is useful when adding a new editor or an authoring feature. It provides source understanding; facility planning and device generation belong to the separate [project application service](/docs/compiler/architecture#where-the-code-lives).
 
 ## Choose the code boundary
 

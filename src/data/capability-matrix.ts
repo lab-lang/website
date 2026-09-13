@@ -57,7 +57,7 @@ export const CAPABILITY_ROWS: CapabilityRow[] = [
   },
   {
     name: 'Lab',
-    href: '/docs/overview',
+    href: '/docs/describe-an-experiment',
     marks: { result: 2, deck: 2, material: 2, checked: 2, machines: 2 },
   },
 ]

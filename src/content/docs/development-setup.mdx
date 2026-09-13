@@ -6,7 +6,7 @@ group: Start here
 order: 30
 ---
 
-Start with the [contribution chooser](/docs/toolchain/contributing), then install the tools your path uses. These guides describe a checkout of the [Lab repository](https://github.com/lab-lang/lab). Tagged distributions are listed on [GitHub Releases](https://github.com/lab-lang/lab/releases); development APIs may be newer than an installed release or the browser playground.
+Start with the [contribution chooser](/docs/contributing), then install the tools your path uses. These guides describe a checkout of the [Lab repository](https://github.com/lab-lang/lab). Tagged distributions are listed on [GitHub Releases](https://github.com/lab-lang/lab/releases); development APIs may be newer than an installed release or the browser playground.
 
 ## Choose your development setup
 
@@ -29,7 +29,7 @@ uv sync --locked --all-groups
 
 Return to the repository root after installation. The examples name `crates/lab-python/.venv/bin/python` explicitly so they use this SDK. Changing a Python Method or its Lab declarations needs no native rebuild; regenerate its Method JSON or bindings as directed by that path.
 
-Continue to [Add scientific vocabulary](/docs/contributing/scientific-packages) or [Write a pipetting method](/docs/toolchain/python-procedures).
+Continue to [Add scientific vocabulary](/docs/contributing/scientific-vocabulary) or [Write a pipetting method](/docs/contributing/pipetting-methods).
 
 ## Native CLI and compiler tools
 
@@ -43,10 +43,10 @@ cargo build --locked --workspace
 package-aware CLI, and `labc`, the single-file developer compiler used
 throughout this documentation for `--emit` inspection. A third, `lab-opt`,
 operates on textual LAIR rather than source and is covered in
-[CLI reference](/docs/compiler/cli-reference). They land in
+[CLI reference](/docs/compiler/cli). They land in
 `target/debug/`, so put that on your `PATH` to run them by name below.
 
-For a package check without changing `PATH`, use `cargo run --locked -p lab-cli -- check <package>`. [Instrument profiles](/docs/contributing/instrument-profiles) use the resulting CLI. Native contributors should follow the focused test and [registration instructions](/docs/contributing/procedures#install-the-native-contribution) for their extension.
+For a package check without changing `PATH`, use `cargo run --locked -p lab-cli -- check <package>`. [Instrument profiles](/docs/contributing/instrument-profiles) use the resulting CLI. Native contributors should follow the focused test and [registration instructions](/docs/contributing/procedure-semantics#install-the-native-contribution) for their extension.
 
 ## Scaffold a project
 
@@ -70,7 +70,7 @@ point. Source lives under `src/`, conventionally split into `designs/`,
 `workflows/`, and `programs/`. A facility-aware package adds an SBOLInventory
 document under `inventory/` and checked implementation profiles under
 `adapters/`. `lab new` only scaffolds `src/programs/main.lab` to start.
-[Modules and packages](/docs/guide/modules-and-packages) covers the full
+[Modules and packages](/docs/language/modules-and-packages) covers the full
 manifest shape and module naming convention.
 
 ## Check, build, and inspect
@@ -105,4 +105,4 @@ target directly, without a `lab.toml`.
 labc reporter.lab --emit module-ir
 ```
 
-See [CLI reference](/docs/compiler/cli-reference) for the full table of `--emit` representations. `labc` inspects portable compiler artifacts; use `lab build` with a facility configuration to generate device bundles.
+See [CLI reference](/docs/compiler/cli) for the full table of `--emit` representations. `labc` inspects portable compiler artifacts; use `lab build` with a facility configuration to generate device bundles.

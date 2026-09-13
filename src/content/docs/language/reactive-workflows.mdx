@@ -1,9 +1,9 @@
 ---
 title: Reactive workflows
-eyebrow: Orchestration
+eyebrow: Language guide
 description: when every and when after let a workflow wait on the world instead of a fixed step count.
 group: Language guide
-order: 80
+order: 60
 ---
 
 Some laboratory steps don't happen on a schedule the program controls, since
@@ -83,7 +83,7 @@ ownership of any material it captured across invocations: `plate` stays
 owned by the workflow across every firing of `when every 30 min:`, not
 re-acquired each time. This is checked statically today by the same
 affine material-flow verifier that checks straight-line workflow bodies; see
-[Material flow and acceptance](/docs/guide/material-flow-and-acceptance).
+[Material flow and acceptance](/docs/language/material-flow-and-acceptance).
 
 The runtime that actually schedules and persists these handlers against a
 real clock does not exist yet. Today, `when every` and `when after` parse,

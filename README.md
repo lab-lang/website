@@ -69,7 +69,17 @@ for.
 
 ## Documentation content
 
-Documentation is organized around contributions. `/docs` opens the chooser at `/docs/toolchain/contributing`. The sidebar, mobile picker, and search browsing share this group order: Start here, Contribution paths, Language guide, Compiler reference, Instrument reference. Existing page URLs remain valid even when their navigation group changes.
+Documentation is organized around contributions. `/docs` opens the chooser at `/docs/contributing`, development setup lives at `/docs/development-setup`, and the contribution guides live under `/docs/contributing/`. The sidebar, mobile picker, and search browsing share this group order: Start here, Contribution paths, Language guide, Compiler reference, Instrument reference.
+
+| Section              | URL location                                                                                    | What belongs here                                                                                  |
+| -------------------- | ----------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Start here           | `/docs/contributing`, `/docs/describe-an-experiment`, `/docs/development-setup`, `/docs/status` | Shared starting points, in that order                                                              |
+| Contribution paths   | `/docs/contributing/<topic>`                                                                    | A focused change, working example, and validation steps                                            |
+| Language guide       | `/docs/language/<topic>`                                                                        | A learning sequence from the first program through language concepts, ending with syntax reference |
+| Compiler reference   | `/docs/compiler/<topic>`                                                                        | Architecture, LAIR, facility planning, CLI, and editor integration boundaries                      |
+| Instrument reference | `/docs/instruments/<instrument>`                                                                | Support, configuration, and implementation details for a named instrument                          |
+
+Use short topic names in URLs, action-oriented titles for contribution paths, and sentence case in page titles. Keep setup and orientation at the documentation root. A page's folder and navigation group should agree. Reference pages for individual tools or instruments return to the relevant setup or contribution guide; they do not imply that readers must visit every unrelated reference in sequence.
 
 Each contribution path states who it is for, the files to edit, a working starting example, the code or data to contribute, and how to verify and finish it. Reference pages provide depth after a reader has chosen a path. Keep setup and review instructions specific to that contribution rather than requiring every contributor to learn the whole compiler.
 
@@ -79,11 +89,11 @@ Each starts with frontmatter:
 
 ```markdown
 ---
-title: The two arrows
-eyebrow: Syntax
+title: Bindings and effects
+eyebrow: Language guide
 description: One-sentence dek shown under the page title.
 group: Language guide
-order: 50
+order: 30
 ---
 ```
 
@@ -91,18 +101,20 @@ order: 50
 - `group`: which sidebar section the page belongs to. Must match one of the
   names in `GROUP_ORDER` in `src/lib/docs-content.ts`; a new group needs a
   line added there.
-- `order`: sort key within a group. Group order comes from `GROUP_ORDER`.
-- `previous` and `next`: optional page slugs for an explicit reading path. Omit to follow adjacent pages in the same group, or use `null` to end the path. Contribution guides normally set `previous: toolchain/contributing` and `next: null`; link a next step only when it continues that contribution.
+- `order`: unique sort key within a group, in increments of ten. Group order comes from `GROUP_ORDER`.
+- `previous` and `next`: optional page slugs for an explicit reading path. Omit to follow adjacent pages in the same group, or use `null` to end the path. Contribution guides normally set `previous: contributing` and `next: null`; link a next step only when it continues that contribution.
 - `toc`: set to `false` to omit the sidebar's on-page contents, as on the contribution chooser. Other pages show it by default.
 
 Unknown groups and reading-path destinations are rejected when the documentation catalog loads, so pages cannot silently disappear from navigation.
 
 The page's URL is its file path relative to `src/content/docs/`, so
-`guide/the-two-arrows.mdx` serves at `/docs/guide/the-two-arrows`.
+`language/bindings-and-effects.mdx` serves at `/docs/language/bindings-and-effects`.
 
-`toolchain/contributing.mdx` maps contribution boundaries, and `toolchain/python-procedures.mdx` documents the development Python authoring API. The latter follows `lab/docs/contributing/python-procedures.md`; keep its snippets aligned with the runnable `lab/examples/contributing/scientific-package/methods/homogenize.py` author. Check schema versions and service claims against Rust constants and registrations when changing architecture pages. These docs describe the development checkout, independently of the committed browser compiler bundle.
+When moving a published page, update its internal links and reading-path slugs, then add an exact permanent redirect in `vercel.json`. The React router uses that same redirect list for local previews and client-side navigation, preserving query strings and section anchors. Keep old URLs as redirects rather than duplicate content so navigation, search, and canonical metadata use the new location.
 
-Search needs no wiring either. `src/lib/remark-doc-search.ts` splits each page
+`contributing.mdx` maps contribution boundaries, and `contributing/pipetting-methods.mdx` documents the development Python authoring API. The latter follows `lab/docs/contributing/python-procedures.md`; keep its snippets aligned with the runnable `lab/examples/contributing/scientific-package/methods/homogenize.py` author. Check schema versions and service claims against Rust constants and registrations when changing architecture pages. These docs describe the development checkout, independently of the committed browser compiler bundle.
+
+Search needs no wiring either. `build/remark-doc-search.ts` splits each page
 at its headings during the MDX build and exports the plaintext as `sections`,
 which `src/lib/docs-search.ts` ranks; a new page is searchable as soon as it
 renders. Results deep-link to a heading, so anchors have to match: both the
@@ -111,15 +123,14 @@ text, formatting included.
 
 The body is ordinary Markdown: headings, lists, GFM tables, blockquotes,
 styled automatically to match the rest of the site by the component map in
-`src/components/mdx-components.tsx`. Two things need no special syntax:
+`src/components/docs/mdx-components.tsx`. Two things need no special syntax:
 
 - A fenced code block's info string is its filename, and renders in the same
   bordered, dark "vessel" window used everywhere else on the site:
   ` ```lab reporter.lab `. Omit it for an unlabeled window.
 - `<Callout kind="note">…</Callout>` reproduces the site's amber note box;
   `kind="aside"` is the neutral variant. Import it from
-  `../../components/callout` (or `../../../components/callout` one level
-  deeper); MDX files are plain modules, so this is a normal import.
+  `@/components/docs/callout`; the alias remains valid when a page moves.
 
 Anything else bespoke a page needs can be authored as real JSX directly in
 the `.mdx` file, the same way. No content page should need `dangerouslySetInnerHTML`

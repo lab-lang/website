@@ -3,8 +3,8 @@ title: Add execution support
 eyebrow: Contribution path · Rust and device integration
 description: Load and execute reviewed device documents, with explicit progress, identity, and result boundaries.
 group: Contribution paths
-order: 150
-previous: toolchain/contributing
+order: 60
+previous: contributing
 next: null
 ---
 
@@ -26,7 +26,7 @@ The [runtime registration API](https://github.com/lab-lang/lab/blob/master/crate
 
 ## Start with an existing executor
 
-Follow [the ODTC registration](https://github.com/lab-lang/lab/blob/master/crates/lab-adapters/src/backend/inheco/odtc/registration.rs) for a thermal document, or the [STAR integration](/docs/backends/hamilton-star) for reviewed firmware frames.
+Follow [the ODTC registration](https://github.com/lab-lang/lab/blob/master/crates/lab-adapters/src/backend/inheco/odtc/registration.rs) for a thermal document, or the [STAR integration](/docs/instruments/hamilton-star) for reviewed firmware frames.
 
 The current executor interface is:
 
@@ -42,7 +42,7 @@ pub trait DocumentExecutor {
 
 The [source definition](https://github.com/lab-lang/lab/blob/master/crates/lab-runtime/src/execution.rs) uses `anyhow::Result`. `LoadedReviewedDocument` carries a validated typed payload; the executor retrieves the expected payload and executes it. `EventSink` records supported progress events. Returning success reports completion.
 
-Register the loader with `RuntimeDocumentRegistration::new(implementation, format, loader)`, then attach a simulation factory or live executor factory as applicable. Compose that record onto the adapter with `with_runtime_document`. The [native installation instructions](/docs/contributing/procedures#install-the-native-contribution) apply to both CLI and SDK builds.
+Register the loader with `RuntimeDocumentRegistration::new(implementation, format, loader)`, then attach a simulation factory or live executor factory as applicable. Compose that record onto the adapter with `with_runtime_document`. The [native installation instructions](/docs/contributing/procedure-semantics#install-the-native-contribution) apply to both CLI and SDK builds.
 
 ## Keep the reviewed boundary intact
 
@@ -54,7 +54,7 @@ Simulation should exercise the same document shape and observable sequencing. De
 
 The [Byonoy bridge](https://github.com/lab-lang/lab/blob/master/crates/lab-instruments/src/plate_reader/byonoy.rs) can return typed `PlateData`. The current executor interface returns completion and progress events; it does not expose a general typed result-output API that binds measurements to workflow acceptance.
 
-A complete measurement contribution therefore needs a versioned request contract, reviewed output identities, result persistence and attribution to the run and material, and the downstream acceptance behavior. Those are open implementation work, rather than an existing callback a contributor can fill in. The [Byonoy reference](/docs/backends/byonoy-absorbance96) lists the present device support.
+A complete measurement contribution therefore needs a versioned request contract, reviewed output identities, result persistence and attribution to the run and material, and the downstream acceptance behavior. Those are open implementation work, rather than an existing callback a contributor can fill in. The [Byonoy reference](/docs/instruments/byonoy-absorbance96) lists the present device support.
 
 For a first contribution here, a focused loader, executor failure case, or recorded-response test provides a smaller, independently reviewable result. Changes to the general measurement-output contract should state the intended identities and persistence behavior before expanding into driver-specific code.
 

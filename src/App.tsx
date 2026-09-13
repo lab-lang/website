@@ -1,6 +1,9 @@
 import { lazy, Suspense, useEffect } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 
+// Hosting configuration lives outside src; share its exact redirects with the router.
+// eslint-disable-next-line no-restricted-imports
+import { redirects } from '../vercel.json'
 import { DocsSearchProvider } from '@/components/docs/docs-search'
 import { SiteShell } from '@/components/site/site-shell'
 import { DEFAULT_DOC_SLUG } from '@/lib/docs-content'
@@ -18,6 +21,11 @@ const PlaygroundPage = lazy(() =>
     default: mod.PlaygroundPage,
   })),
 )
+
+function Redirect({ to }: { to: string }) {
+  const { search, hash } = useLocation()
+  return <Navigate replace to={{ pathname: to, search, hash }} />
+}
 
 function RouteEffects() {
   const { pathname, hash } = useLocation()
@@ -47,8 +55,15 @@ export default function App() {
           <Route path="/why" element={<WhyPage />} />
           <Route
             path="/docs"
-            element={<Navigate replace to={`/docs/${DEFAULT_DOC_SLUG}`} />}
+            element={<Redirect to={`/docs/${DEFAULT_DOC_SLUG}`} />}
           />
+          {redirects.map(({ source, destination }) => (
+            <Route
+              key={source}
+              path={source}
+              element={<Redirect to={destination} />}
+            />
+          ))}
           <Route path="/docs/*" element={<DocsPage />} />
           <Route
             path="/playground"

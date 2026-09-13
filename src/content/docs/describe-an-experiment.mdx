@@ -14,7 +14,7 @@ An experiment has several parts: the design you want, the physical work to produ
 
 You can author that description in Python or Lab. Both reach the same checked module model and compiler pipeline. The examples below show their corresponding forms; switching a code block changes the language shown across the site.
 
-This page introduces the authoring model. For a complete contribution you can modify and check today, start with [Write a pipetting method](/docs/toolchain/python-procedures). [Compiler architecture](/docs/compiler/pipeline) explains how checking, protocol documents, and optional automation fit together.
+This page introduces the authoring model. For a complete contribution you can modify and check today, start with [Write a pipetting method](/docs/contributing/pipetting-methods). [Compiler architecture](/docs/compiler/architecture) explains how checking, protocol documents, and optional automation fit together.
 
 SBOL is not a third way in. It is the vocabulary a design is written and
 exchanged in, and both frontends speak it: Lab grounds parts and roles in
@@ -395,8 +395,8 @@ When automation is useful, Methods supply physical operations for supported acti
 
 ## Continue from here
 
-To add something to Lab, choose a [contribution path](/docs/toolchain/contributing). Each path starts from the files and interfaces relevant to that work. The Python Method path begins with `from lab.procedures import pipetting as p` and a runnable authoring example.
+To add something to Lab, choose a [contribution path](/docs/contributing). Each path starts from the files and interfaces relevant to that work. The Python Method path begins with `from lab.procedures import pipetting as p` and a runnable authoring example.
 
-To learn the language, [Your first program](/docs/guide/first-program) walks through a plasmid project. The [playground](/playground) lets you try source checking in the browser. The Language guide explains designs, claims, and material flow in more detail.
+To learn the language, [Your first program](/docs/language/first-program) walks through a plasmid project. The [playground](/playground) lets you try source checking in the browser. The Language guide explains designs, claims, and material flow in more detail.
 
 The Compiler reference explains the architecture and its extension boundaries. The Instrument reference describes what each adapter can currently generate, simulate, or execute. [Status](/docs/status) keeps the implemented behavior and remaining work explicit.

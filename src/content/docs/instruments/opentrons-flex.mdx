@@ -1,12 +1,14 @@
 ---
 title: Opentrons Flex
-eyebrow: Adapters
+eyebrow: Instrument reference
 description: An Asset-bound adapter for the same semantic Procedure tasks, with Flex-specific planning and Protocol Designer JSON output.
 group: Instrument reference
-order: 320
+order: 20
+previous: contributing/instrument-profiles
+next: null
 ---
 
-The Flex integration demonstrates that semantic requirements and device implementation are separate. A Flex Asset can expose the same liquid-handling and thermal-cycling capability kinds as an [OT-2](/docs/backends/opentrons-ot2), while its deck, pipettes, modules, profile schema, and emitted protocol format remain Flex-specific.
+The Flex integration demonstrates that semantic requirements and device implementation are separate. A Flex Asset can expose the same liquid-handling and thermal-cycling capability kinds as an [OT-2](/docs/instruments/opentrons-ot2), while its deck, pipettes, modules, profile schema, and emitted protocol format remain Flex-specific.
 
 To contribute configuration or liquid-handling knowledge, start with [Add instrument profiles](/docs/contributing/instrument-profiles). For device features or file generation, follow [Implement an adapter](/docs/contributing/adapters).
 
@@ -44,7 +46,7 @@ The explicit driver chooses this schema before the profile is parsed. A profile 
 
 ## Exact Procedure and typed JSON lowering
 
-Flex consumes allocated `PipettingProgramV1` and `ThermalProgramV1` tasks, using the same canonical contracts as the OT-2 implementation. Rust validates parameters, units, material interfaces, and capability requirements; the Flex adapter checks supported features and physical feasibility before deck planning. A [Python pipetting Method](/docs/toolchain/python-procedures) uses this contract without a new biological-operation branch in the adapter.
+Flex consumes allocated `PipettingProgramV1` and `ThermalProgramV1` tasks, using the same canonical contracts as the OT-2 implementation. Rust validates parameters, units, material interfaces, and capability requirements; the Flex adapter checks supported features and physical feasibility before deck planning. A [Python pipetting Method](/docs/contributing/pipetting-methods) uses this contract without a new biological-operation branch in the adapter.
 
 The emitter builds Protocol Designer schema 8 documents through a typed Rust authoring layer. Loaded labware, modules, and pipettes become typed handles; commands accept only compatible handles; embedded standard labware definitions validate well names and volumes. Flex-specific resource allocation and JSON construction remain inside this adapter.
 

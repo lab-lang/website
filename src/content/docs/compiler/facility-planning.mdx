@@ -3,12 +3,13 @@ title: Facility planning
 eyebrow: Compiler reference
 description: Describe the laboratory, bind its instruments to adapters, and understand how the compiler chooses a complete plan.
 group: Compiler reference
-order: 225
+order: 30
+next: null
 ---
 
 Facility planning answers a concrete question: **which combination of Methods, materials, and instruments can perform this experiment?** It takes the alternatives produced by refinement and selects one complete plan against a particular laboratory's inventory and policy.
 
-A portable scientific package can be checked and refined without a facility. Producing device files also requires a facility description, suitable materials and offerings, and compatible adapter bindings. [Compiler architecture](/docs/compiler/pipeline) explains where this decision sits in the pipeline.
+A portable scientific package can be checked and refined without a facility. Producing device files also requires a facility description, suitable materials and offerings, and compatible adapter bindings. [Compiler architecture](/docs/compiler/architecture) explains where this decision sits in the pipeline.
 
 ## Describe the laboratory
 
@@ -45,7 +46,7 @@ Facility objects stay in RDF. The manifest points to that description rather tha
 
 Each Method file uses `lab.method-catalog.v2`. The application composes the standard Methods with catalogs from the runnable package and its reachable path dependencies. Validation rejects incompatible signatures, malformed graphs, duplicate Method identities, unsupported versions, and catalog paths that escape their package.
 
-[Python Method authors](/docs/toolchain/python-procedures) can generate those catalogs. Template and builder executions derive requirements from their validated Procedure programs; primitive executions state requirements directly. Declaring a capability does not supply its implementation.
+[Python Method authors](/docs/contributing/pipetting-methods) can generate those catalogs. Template and builder executions derive requirements from their validated Procedure programs; primitive executions state requirements directly. Declaring a capability does not supply its implementation.
 
 <span id="operational-adapter-bindings" />
 

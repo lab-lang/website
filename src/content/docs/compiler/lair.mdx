@@ -3,12 +3,12 @@ title: LAIR and compiler boundaries
 eyebrow: Compiler reference
 description: The internal representation, the main compilation stages, and the documents exchanged with planners, adapters, and runtime.
 group: Compiler reference
-order: 220
+order: 20
 ---
 
 **LAIR**, the Lab Automation Intermediate Representation, is the compiler's working model of an experiment. It retains scientific meaning and material dependencies while Methods and resources are selected. It is implemented inside `lab-compiler` using Pliron, a Rust framework for representing, transforming, and verifying programs.
 
-Read this page when changing compiler transformations or understanding a compiler artifact. Python Method authors and adapter authors normally use typed programs and records around LAIR. [Compiler architecture](/docs/compiler/pipeline) explains how those contributions fit together.
+Read this page when changing compiler transformations or understanding a compiler artifact. Python Method authors and adapter authors normally use typed programs and records around LAIR. [Compiler architecture](/docs/compiler/architecture) explains how those contributions fit together.
 
 <span id="canonical-stages" />
 
@@ -64,7 +64,7 @@ A **Procedure task** is one unit in a Method graph. It has typed ports, paramete
 
 A **Procedure program** describes the operations inside a task. `PipettingProgramV1`, for example, contains logical vessels, transfers, mixing, and fluid-path constraints. `ThermalProgramV1` describes thermal operations. Their versioned contracts define how to validate those operations and derive capability requirements.
 
-A Method task can carry a declarative template or reference a registered Rust builder. Primitive tasks can instead state a capability-backed service directly, without a canonical program body. Templates and builders produce programs validated by the same contract. Python's `lab.procedures.pipetting` API authors such templates without manipulating Pliron operations. See [Procedure semantics](/docs/contributing/procedures) for the native extension boundary.
+A Method task can carry a declarative template or reference a registered Rust builder. Primitive tasks can instead state a capability-backed service directly, without a canonical program body. Templates and builders produce programs validated by the same contract. Python's `lab.procedures.pipetting` API authors such templates without manipulating Pliron operations. See [Procedure semantics](/docs/contributing/procedure-semantics) for the native extension boundary.
 
 <span id="capability-requirements-live-in-lair" />
 
@@ -123,4 +123,4 @@ lab-opt examples/golden-gate/.lab/build/compiler/allocated.lair \
   --pass-pipeline "builtin.module(check-material-linearity)"
 ```
 
-The command prints the verified IR on success. `lab-opt` can parse textual LAIR, verify stages, and run registered passes. It does not replace the project service that loads packages, solves the facility problem, and stages adapter output. [CLI reference](/docs/compiler/cli-reference) gives the commands; [Facility planning](/docs/compiler/facility-planning) shows a complete build's artifacts.
+The command prints the verified IR on success. `lab-opt` can parse textual LAIR, verify stages, and run registered passes. It does not replace the project service that loads packages, solves the facility problem, and stages adapter output. [CLI reference](/docs/compiler/cli) gives the commands; [Facility planning](/docs/compiler/facility-planning) shows a complete build's artifacts.

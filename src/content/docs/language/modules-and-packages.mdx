@@ -1,9 +1,9 @@
 ---
 title: Modules and packages
-eyebrow: Organization
+eyebrow: Language guide
 description: use, the std registry, lab.toml, and today's path-dependency-only limit.
 group: Language guide
-order: 90
+order: 70
 ---
 
 `use` names a whole module; there is no selective import, aliasing, or
@@ -24,7 +24,7 @@ modules today:
 | `std.bio.backbones`   | Catalogued assembly backbones                                                                |
 | `std.bio.reporters`   | Reporters and the readouts they produce                                                      |
 | `std.bio.build`       | The `realize` effect                                                                         |
-| `std.lab.plasmid`     | The laboratory action contracts, see [Action contracts](/docs/guide/action-contracts)        |
+| `std.lab.plasmid`     | The laboratory action contracts, see [Action contracts](/docs/language/action-contracts)     |
 
 ### Standard modules written in Lab
 
@@ -130,7 +130,7 @@ another-lib = "0.3"
 
 `[methods] documents` names versioned `lab.method-catalog.v2` JSON files inside the package. Each file carries portable Method definitions: exact Intent identities, typed Procedure graphs, and first-class Capability requirements, but no Facility, Asset, offering, MaterialLot, adapter, schedule, or endpoint. Lab loads catalogs from the runnable package and reachable path dependencies in dependency-first order, composes them with the standard Methods, and validates the complete registry before refinement. `[[planning.methods]]` may pin one of those alternatives but does not define it.
 
-Use [Python pipetting authoring](/docs/toolchain/python-procedures) to generate a Method catalog from typed liquid operations. Keep the authoring script beside its generated JSON and regenerate after edits. Lab loads the named catalog; it does not automatically execute Python files placed under `methods/`.
+Use [Python pipetting authoring](/docs/contributing/pipetting-methods) to generate a Method catalog from typed liquid operations. Keep the authoring script beside its generated JSON and regenerate after edits. Lab loads the named catalog; it does not automatically execute Python files placed under `methods/`.
 
 `[inventory] document` names the package's SBOLInventory graph. Lab validates the complete graph and uses its Facility, Zones, Assets, capability offerings, and MaterialLots as the target environment. If `facility` is omitted, the document must contain exactly one Facility.
 

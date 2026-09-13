@@ -4,17 +4,17 @@ import { Link } from 'react-router-dom'
 import { SectionBody, SectionIntro } from '@/components/section'
 
 const references = [
-  { to: '/docs/compiler/pipeline', label: 'The compiler pipeline' },
+  { to: '/docs/compiler/architecture', label: 'Compiler architecture' },
   {
     to: '/docs/compiler/facility-planning',
     label: 'Facility planning and asset bindings',
   },
   {
-    to: '/docs/backends/opentrons-ot2',
-    label: 'How the OT-2 backend is built',
+    to: '/docs/instruments/opentrons-ot2',
+    label: 'How the OT-2 adapter is built',
   },
   {
-    to: '/docs/backends/opentrons-flex',
+    to: '/docs/instruments/opentrons-flex',
     label: 'The same operations, emitted for a Flex',
   },
 ]

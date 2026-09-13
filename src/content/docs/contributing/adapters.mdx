@@ -3,8 +3,8 @@ title: Implement an adapter
 eyebrow: Contribution path · Rust
 description: Turn an allocated Procedure into files for an instrument, using one crate with explicit validation and lowering callbacks.
 group: Contribution paths
-order: 130
-previous: toolchain/contributing
+order: 40
+previous: contributing
 next: null
 ---
 
@@ -52,11 +52,11 @@ The compiler has already selected the Method, material sources, offerings, Asset
 
 A pipetting implementation consumes `PipettingProgramV1`; a thermal implementation consumes `ThermalProgramV1`. Rust validates those programs and derives their capabilities. The adapter still owns the physical details: well assignment, geometry, liquid classes, device limits, and vendor output.
 
-Reject a feature or configuration you cannot preserve. For example, accepting tracked liquid-surface aspiration requires a compatible physical realization, not merely emitting an ordinary aspirate command. If the physical operation itself cannot be expressed by an existing contract, follow [Extend Procedure semantics](/docs/contributing/procedures).
+Reject a feature or configuration you cannot preserve. For example, accepting tracked liquid-surface aspiration requires a compatible physical realization, not merely emitting an ordinary aspirate command. If the physical operation itself cannot be expressed by an existing contract, follow [Extend procedure semantics](/docs/contributing/procedure-semantics).
 
 ## Install and check the adapter
 
-The [native composition instructions](/docs/contributing/procedures#install-the-native-contribution) connect your crate to the development CLI and SDK. Registration makes the implementation available; a project's manifest must still bind it to an exact Asset, and planning must find compatible offerings and materials.
+The [native composition instructions](/docs/contributing/procedure-semantics#install-the-native-contribution) connect your crate to the development CLI and SDK. Registration makes the implementation available; a project's manifest must still bind it to an exact Asset, and planning must find compatible offerings and materials.
 
 Run the existing example conformance test:
 
@@ -70,4 +70,4 @@ It supplies complete allocated programs to the preview adapter and checks emitte
 
 Include the adapter crate or focused changes, a complete profile, one supported canonical program, a rejected case, and inspectable output. Keep advertised features and service flags aligned with those examples. Declare simulation or runtime support only when their separate implementations are present.
 
-When file generation works, [Add execution support](/docs/contributing/execution) explains reviewed-document loaders and executors. Instrument command encoding and transport usually belong in the corresponding driver repository, with the Lab adapter consuming that library.
+When file generation works, [Add execution support](/docs/contributing/execution-support) explains reviewed-document loaders and executors. Instrument command encoding and transport usually belong in the corresponding driver repository, with the Lab adapter consuming that library.

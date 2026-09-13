@@ -1,6 +1,6 @@
 ---
 title: Start contributing
-eyebrow: Contribute to Lab
+eyebrow: Start here
 description: Start from working code and contribute science, Methods, instrument knowledge, or native integrations.
 group: Start here
 order: 10
@@ -20,13 +20,13 @@ Help scientists describe experiments, check protocols, and produce beautiful doc
     title="Add scientific vocabulary"
     tools="Lab and Python"
     description="Declare an action and call it from Python through generated bindings."
-    to="/docs/contributing/scientific-packages"
+    to="/docs/contributing/scientific-vocabulary"
   />
   <ContributionPath
     title="Write a pipetting method"
     tools="Python"
     description="Turn an action into typed liquid operations and a portable Method catalog."
-    to="/docs/toolchain/python-procedures"
+    to="/docs/contributing/pipetting-methods"
   />
   <ContributionPath
     title="Add instrument profiles"
@@ -41,26 +41,26 @@ Help scientists describe experiments, check protocols, and produce beautiful doc
     to="/docs/contributing/adapters"
   />
   <ContributionPath
-    title="Extend Procedure semantics"
+    title="Extend procedure semantics"
     tools="Rust"
     description="Add a reusable algorithm or define a new physical operation contract."
-    to="/docs/contributing/procedures"
+    to="/docs/contributing/procedure-semantics"
   />
   <ContributionPath
     title="Add execution support"
     tools="Rust and device integration"
     description="Load and execute reviewed files, or work on the instrument-result boundary."
-    to="/docs/contributing/execution"
+    to="/docs/contributing/execution-support"
   />
 </div>
 
 The first three paths work with scientific declarations, Python, and configuration. The last three involve Rust and identify the small part of the native code you need to understand.
 
-For protocol presentation, start with the [document generation boundaries](/docs/compiler/pipeline#protocol-documents): the Typst style sheet controls typography, and the document model and its producers control content.
+For protocol presentation, start with the [document generation boundaries](/docs/compiler/architecture#protocol-documents): the Typst style sheet controls typography, and the document model and its producers control content.
 
 ## Try a complete contribution
 
-If you already write Python, begin with [the pipetting Method](/docs/toolchain/python-procedures). Its authoring API starts with:
+If you already write Python, begin with [the pipetting Method](/docs/contributing/pipetting-methods). Its authoring API starts with:
 
 ```python
 from lab.procedures import pipetting as p
@@ -68,7 +68,7 @@ from lab.procedures import pipetting as p
 
 The working example has four parts: an action declaration, a Python implementation of its liquid operations, a generated Method catalog, and a Python workflow consuming that action. You can change the preparation, regenerate its catalog, and refine the workflow without touching compiler internals.
 
-The [development setup](/docs/toolchain/building-from-source#choose-your-development-setup) explains how to install the current SDK or CLI. The guides use the development checkout, so an older installed release or the browser playground may expose a different API.
+The [development setup](/docs/development-setup#choose-your-development-setup) explains how to install the current SDK or CLI. The guides use the development checkout, so an older installed release or the browser playground may expose a different API.
 
 ## Understand the boundary you are changing
 
@@ -76,7 +76,7 @@ A source **action** states scientific meaning, material ownership, and results. 
 
 For facility planning and automation, a **Method** explains how an action becomes device-neutral **Procedure** tasks. A facility describes available materials and instruments; planning chooses exact resources. An **adapter** turns the allocated Procedure into device files. **Runtime** executes supported reviewed files.
 
-You only need the references relevant to your contribution. [Action contracts](/docs/guide/action-contracts) explain scientific declarations; [the compiler pipeline](/docs/compiler/pipeline) explains the ownership of each stage. [Status](/docs/status) identifies current limits, including workflow control flow and measurement results.
+You only need the references relevant to your contribution. [Action contracts](/docs/language/action-contracts) explain scientific declarations; [compiler architecture](/docs/compiler/architecture) explains the ownership of each stage. [Status](/docs/status) identifies current limits, including workflow control flow and measurement results.
 
 ## Prepare the contribution for review
 
@@ -86,4 +86,4 @@ Keep a contribution focused enough that another scientist or engineer can reprod
 
 ## Native extensions
 
-Rust builders and adapters are statically composed into the current CLI and Python SDK. [Extend Procedure semantics](/docs/contributing/procedures#install-the-native-contribution) shows the composition point and rebuild commands. [Implement an adapter](/docs/contributing/adapters) starts from a standalone crate; [execution support](/docs/contributing/execution) adds runtime services separately.
+Rust builders and adapters are statically composed into the current CLI and Python SDK. [Extend procedure semantics](/docs/contributing/procedure-semantics#install-the-native-contribution) shows the composition point and rebuild commands. [Implement an adapter](/docs/contributing/adapters) starts from a standalone crate; [execution support](/docs/contributing/execution-support) adds runtime services separately.

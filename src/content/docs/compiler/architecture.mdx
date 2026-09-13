@@ -3,7 +3,8 @@ title: Compiler architecture
 eyebrow: Compiler reference
 description: How checking, protocol documents, and optional automation fit together, with concrete boundaries for contributors.
 group: Compiler reference
-order: 210
+order: 10
+previous: contributing
 ---
 
 import { CompilerFlow } from '@/components/docs/compiler-flow'
@@ -22,7 +23,7 @@ Checking, documentation, and automation serve different needs. A contributor can
 
 **Checking** establishes meaning and consistency without requiring a facility or an executor. **Document generation** makes the protocol readable and usable by people. The optional facility path introduces further decisions: **refinement** describes possible implementations, **allocation** commits to resources, **device lowering** generates files, and **runtime** executes supported reviewed files.
 
-Lab's internal representation, **LAIR**, carries scientific meaning through compiler transformations, including refinement and allocation. Its detailed forms are covered in [LAIR and compiler boundaries](/docs/compiler/lair-dialects); you do not need them to author a Python Method or instrument profile.
+Lab's internal representation, **LAIR**, carries scientific meaning through compiler transformations, including refinement and allocation. Its detailed forms are covered in [LAIR and compiler boundaries](/docs/compiler/lair); you do not need them to author a Python Method or instrument profile.
 
 ## Protocol documents
 
@@ -44,7 +45,7 @@ During refinement, Rust binds the task's parameters, validates the resulting pip
 
 The checked-in consumer demonstrates this portable part of the path. To proceed to device files, a consuming project must also supply a facility inventory and compatible adapter bindings. Planning selects resources; the chosen adapter assigns physical locations and emits the instrument's representation of the operations.
 
-That is the intended reuse: a new scientific Method can use the existing pipetting contract and compatible adapters. The adapter implements the physical operations, so it does not need a new biological recipe branch for every action name. See [Write a pipetting method](/docs/toolchain/python-procedures) for the complete code and checks.
+That is the intended reuse: a new scientific Method can use the existing pipetting contract and compatible adapters. The adapter implements the physical operations, so it does not need a new biological recipe branch for every action name. See [Write a pipetting method](/docs/contributing/pipetting-methods) for the complete code and checks.
 
 <span id="method-selection-and-facility-allocation-are-one-decision" />
 
@@ -91,7 +92,7 @@ There are two installation mechanisms today: package data loaded by the applicat
 
 A package contributes declarations and portable Method catalogs. Generated Python bindings expose the declarations to Python workflows. A Python author generates the Method JSON using the installed SDK, and Rust validates it when loading and refining the package.
 
-Adding or changing a Method using an existing Procedure contract needs no native registration. The compiler loads its catalog; it does not automatically execute the Python authoring script. Start with [scientific vocabulary](/docs/contributing/scientific-packages) or [pipetting Methods](/docs/toolchain/python-procedures).
+Adding or changing a Method using an existing Procedure contract needs no native registration. The compiler loads its catalog; it does not automatically execute the Python authoring script. Start with [scientific vocabulary](/docs/contributing/scientific-vocabulary) or [pipetting Methods](/docs/contributing/pipetting-methods).
 
 ### Procedure builders and contracts
 
@@ -99,13 +100,13 @@ A **builder** is a Rust callback that constructs a Procedure program from checke
 
 A **contract** defines what a kind of physical program means: its payload, material interface, validity rules, required capabilities, and features. Pipetting and thermal programs have existing contracts. New physical semantics require a contract and a compatible implementation before they can reach an instrument.
 
-Both register through `ProcedureCompiler`. The [Procedure contribution path](/docs/contributing/procedures) shows a working builder and explains when a new contract is necessary.
+Both register through `ProcedureCompiler`. The [Procedure contribution path](/docs/contributing/procedure-semantics) shows a working builder and explains when a new contract is necessary.
 
 ### Adapters and execution
 
 An adapter supplies a descriptor, profile validation, planning feasibility, and a lowering callback through `lab-adapter-api`. Its lowerer receives immutable allocated tasks and the exact invocation assigned to it. It preserves the selected Method, material sources, offerings, and Asset while choosing device details such as wells and command sequences.
 
-File generation and execution are separate integrations. A runtime contribution supplies loaders and executors for reviewed document formats. Device command encoding and transport usually live in the corresponding driver repository. See [Implement an adapter](/docs/contributing/adapters) and [Add execution support](/docs/contributing/execution).
+File generation and execution are separate integrations. A runtime contribution supplies loaders and executors for reviewed document formats. Device command encoding and transport usually live in the corresponding driver repository. See [Implement an adapter](/docs/contributing/adapters) and [Add execution support](/docs/contributing/execution-support).
 
 ### Native composition is explicit
 
@@ -121,7 +122,7 @@ LAIR is mutable compiler state built on Pliron, the Rust infrastructure for oper
 
 Each handoff narrows what the next component may decide. The solver returns a complete selection that the compiler revalidates against the original problem. An adapter realizes its allocated work. Runtime validates the frozen plan and child-document digests before execution, then records the run against those identities. A resource substitution requires a new plan and review.
 
-The versioned formats are development contracts with validation, not a promise of a permanently stable plugin ABI. [LAIR and compiler boundaries](/docs/compiler/lair-dialects#documents-at-the-boundaries) lists the current document formats and their owners.
+The versioned formats are development contracts with validation, not a promise of a permanently stable plugin ABI. [LAIR and compiler boundaries](/docs/compiler/lair#documents-at-the-boundaries) lists the current document formats and their owners.
 
 ## Where the architecture is heading
 
@@ -143,4 +144,4 @@ The language can check state, branching, loops, triggers, and events. Runnable l
 
 Allocation selects exact resources, and runtime executes a reviewed dependency graph. General reservations, time-based scheduling, consumable depletion, physical staging between tasks, and rescheduling remain separate work. They must carry resource and material identity through any new decisions.
 
-These are architectural directions, not implemented services. [Status](/docs/status) tracks support today; the [contribution paths](/docs/toolchain/contributing) identify work that can begin from existing examples.
+These are architectural directions, not implemented services. [Status](/docs/status) tracks support today; the [contribution paths](/docs/contributing) identify work that can begin from existing examples.

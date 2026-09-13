@@ -3,8 +3,8 @@ title: Add instrument profiles
 eyebrow: Contribution path · Configuration and instrument knowledge
 description: Contribute deck layouts, liquid classes, and measured operating knowledge through an existing adapter.
 group: Contribution paths
-order: 120
-previous: toolchain/contributing
+order: 30
+previous: contributing
 next: null
 ---
 
@@ -12,7 +12,7 @@ Use this path when Lab already supports the instrument and you want to contribut
 
 ## Choose the existing adapter
 
-Start with [OT-2](/docs/backends/opentrons-ot2), [Flex](/docs/backends/opentrons-flex), [Hamilton STAR](/docs/backends/hamilton-star), or [ODTC](/docs/backends/inheco-odtc). Each reference describes its profile and current implementation boundary.
+Start with [OT-2](/docs/instruments/opentrons-ot2), [Flex](/docs/instruments/opentrons-flex), [Hamilton STAR](/docs/instruments/hamilton-star), or [ODTC](/docs/instruments/inheco-odtc). Each reference describes its profile and current implementation boundary.
 
 | Contribution                                                          | Where it belongs                               |
 | --------------------------------------------------------------------- | ---------------------------------------------- |
@@ -68,4 +68,4 @@ The result should preserve selected class identities, versions, digests, and the
 
 Submit the profile or library data, its provenance, a small consuming example, and the validation result. Describe whether the evidence establishes configuration compatibility, correct file generation, or measured physical performance.
 
-If the adapter needs a physical feature it does not implement, continue to [Implement an adapter](/docs/contributing/adapters) within the existing adapter's code. If the instrument itself is already covered, a new biological Method usually belongs in [Python pipetting authoring](/docs/toolchain/python-procedures).
+If the adapter needs a physical feature it does not implement, continue to [Implement an adapter](/docs/contributing/adapters) within the existing adapter's code. If the instrument itself is already covered, a new biological Method usually belongs in [Python pipetting authoring](/docs/contributing/pipetting-methods).

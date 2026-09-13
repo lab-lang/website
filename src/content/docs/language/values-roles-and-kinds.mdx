@@ -1,9 +1,9 @@
 ---
 title: Values, roles, and kinds
-eyebrow: Semantics
+eyebrow: Language guide
 description: One data declaration, the roles that say what it is for, and the one distinction that decides how a value may be used.
 group: Language guide
-order: 30
+order: 20
 ---
 
 Structured data has one declaration form, `record`. What a record is _for_ is
@@ -59,7 +59,7 @@ checker tracks every material-typed value through a workflow and rejects
 programs that would use one after giving it away, lose it silently on some
 path through a branch, or hold inconsistent ownership where two branches of
 an `if` disagree about who has it. See
-[Material flow and acceptance](/docs/guide/material-flow-and-acceptance) for
+[Material flow and acceptance](/docs/language/material-flow-and-acceptance) for
 exactly which patterns are rejected and why.
 
 ## Evidence is not automatically proof
