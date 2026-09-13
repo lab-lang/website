@@ -1,0 +1,89 @@
+---
+title: Start contributing
+eyebrow: Contribute to Lab
+description: Start from working code and contribute science, Methods, instrument knowledge, or native integrations.
+group: Start here
+order: 10
+previous: null
+next: null
+toc: false
+---
+
+import { ContributionPath } from '@/components/docs/contribution-path'
+
+Help scientists describe experiments, check protocols, and produce beautiful documents, with automation where it is useful. Choose a path based on what you want to add. Each guide names the files you own, a working example, and the checks that make it ready for review.
+
+## Choose a contribution
+
+<div className="mt-6 grid gap-3 sm:grid-cols-2">
+  <ContributionPath
+    title="Add scientific vocabulary"
+    tools="Lab and Python"
+    description="Declare an action and call it from Python through generated bindings."
+    to="/docs/contributing/scientific-packages"
+  />
+  <ContributionPath
+    title="Write a pipetting Method"
+    tools="Python"
+    description="Turn an action into typed liquid operations and a portable Method catalog."
+    to="/docs/toolchain/python-procedures"
+  />
+  <ContributionPath
+    title="Add instrument profiles"
+    tools="Configuration and instrument knowledge"
+    description="Contribute deck layouts, liquid classes, and operating data for an existing adapter."
+    to="/docs/contributing/instrument-profiles"
+  />
+  <ContributionPath
+    title="Implement an adapter"
+    tools="Rust"
+    description="Check physical feasibility and generate device files for an instrument."
+    to="/docs/contributing/adapters"
+  />
+  <ContributionPath
+    title="Extend Procedure semantics"
+    tools="Rust"
+    description="Add a reusable algorithm or define a new physical operation contract."
+    to="/docs/contributing/procedures"
+  />
+  <ContributionPath
+    title="Add execution support"
+    tools="Rust and device integration"
+    description="Load and execute reviewed files, or work on the instrument-result boundary."
+    to="/docs/contributing/execution"
+  />
+</div>
+
+The first three paths work with scientific declarations, Python, and configuration. The last three involve Rust and identify the small part of the native code you need to understand.
+
+For protocol presentation, start with the [document generation boundaries](/docs/compiler/pipeline#protocol-documents): the Typst style sheet controls typography, and the document model and its producers control content.
+
+## Try a complete contribution
+
+If you already write Python, begin with [the pipetting Method](/docs/toolchain/python-procedures). Its authoring API starts with:
+
+```python
+from lab.procedures import pipetting as p
+```
+
+The working example has four parts: an action declaration, a Python implementation of its liquid operations, a generated Method catalog, and a Python workflow consuming that action. You can change the preparation, regenerate its catalog, and refine the workflow without touching compiler internals.
+
+The [development setup](/docs/toolchain/building-from-source#choose-your-development-setup) explains how to install the current SDK or CLI. The guides use the development checkout, so an older installed release or the browser playground may expose a different API.
+
+## Understand the boundary you are changing
+
+A source **action** states scientific meaning, material ownership, and results. The compiler checks that meaning in the protocol, whether the work is manual or automated. Protocol documents make the work readable and shareable.
+
+For facility planning and automation, a **Method** explains how an action becomes device-neutral **Procedure** tasks. A facility describes available materials and instruments; planning chooses exact resources. An **adapter** turns the allocated Procedure into device files. **Runtime** executes supported reviewed files.
+
+You only need the references relevant to your contribution. [Action contracts](/docs/guide/action-contracts) explain scientific declarations; [the compiler pipeline](/docs/compiler/pipeline) explains the ownership of each stage. [Status](/docs/status) identifies current limits, including workflow control flow and measurement results.
+
+## Prepare the contribution for review
+
+Each path ends with a concrete check. Include the changed source or configuration, any generated catalog or bindings it owns, the example that uses it, and the validation result. State the behavior the contribution adds and the part of the stack it exercises. A clearer protocol document, a checked scientific declaration, and a reusable Method are each valuable contributions in their own right.
+
+Keep a contribution focused enough that another scientist or engineer can reproduce it from the example. Use the [community](/community) to find collaborators for scientific domains or device knowledge that spans several paths.
+
+## Native extensions
+
+Rust builders and adapters are statically composed into the current CLI and Python SDK. [Extend Procedure semantics](/docs/contributing/procedures#install-the-native-contribution) shows the composition point and rebuild commands. [Implement an adapter](/docs/contributing/adapters) starts from a standalone crate; [execution support](/docs/contributing/execution) adds runtime services separately.

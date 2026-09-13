@@ -2,11 +2,13 @@
 title: Inheco ODTC
 eyebrow: Adapters
 description: A thermal-cycling Asset adapter for device-neutral reviewed profiles, simulation, and live SiLA execution.
-group: Adapters
+group: Instrument reference
 order: 350
 ---
 
 The Inheco ODTC is an independent SBOLInventory Asset exposing a `ThermalCycling` capability offering. It is not a station inside a workcell and not a compiler target. A facility-wide plan may allocate a thermal Procedure task to it and insert explicit movement between the ODTC and whichever Asset handles the plate before or after cycling.
+
+To contribute configuration or liquid-handling knowledge, start with [Add instrument profiles](/docs/contributing/instrument-profiles). For device features or file generation, follow [Implement an adapter](/docs/contributing/adapters).
 
 ## Bind the Asset
 
@@ -17,7 +19,7 @@ driver = "inheco.odtc"
 profile = "adapters/inheco-odtc.toml"
 ```
 
-The adapter supports the exact `ThermalCycling` capability under the SBOLInventory `Sila2` control mode. It provides planning compatibility, simulation, and runtime execution. It does not currently lower Allocated Procedure tasks; it consumes device-neutral `lab.thermocycle-run.v0` child documents already frozen into a reviewed facility plan.
+The adapter lowers allocated `ThermalProgramV1` tasks into device-neutral `lab.thermocycle-run.v1` documents and provides planning, simulation, and live execution services. The registration currently advertises the SBOLInventory `Sila2` control mode, while the `inheco-sila` driver implements the ODTC's SiLA 1.x HTTP/XML protocol. That control-mode mismatch remains an integration issue; the descriptor should not be read as proof of a SiLA 2 transport implementation.
 
 Network addresses and credentials do not belong in the portable manifest or inventory graph. Runtime receives the exact Asset endpoint explicitly:
 
@@ -27,28 +29,40 @@ lab run .lab/plan --asset-endpoint https://example.org/my-lab/inheco_odtc=169.25
 
 ## Device-neutral reviewed document
 
-`lab.thermocycle-run.v0` names the plate, repeated temperature steps, optional ramp and lid settings, final hold, and fill volume. The document does not name Inheco; the reviewed plan's exact Asset and adapter binding chooses the executor.
+`lab.thermocycle-run.v1` names the plate and carries one complete `run`: the temperature profile, sample count, per-sample fill volume, and optional final hold. Steps may also specify ramp and lid settings. The document does not name Inheco; the reviewed plan's exact Asset and adapter binding chooses the executor.
 
 ```json
 {
-  "format": "lab.thermocycle-run.v0",
+  "format": "lab.thermocycle-run.v1",
   "id": "transformation_heat_shock",
   "title": "Cold hold and heat shock",
   "plate": "reaction_plate",
-  "profile": {
-    "stages": [
-      {
-        "steps": [
-          { "celsius": 4.0, "hold_seconds": 1800.0 },
-          { "celsius": 42.0, "hold_seconds": 60.0 },
-          { "celsius": 4.0, "hold_seconds": 120.0 }
-        ],
-        "repeats": 1
-      }
-    ]
-  },
-  "final_hold_celsius": 4.0,
-  "fill_volume_ul": 22.0
+  "run": {
+    "profile": {
+      "stages": [
+        {
+          "steps": [
+            {
+              "celsius": 4.0,
+              "hold_seconds": 1800.0
+            },
+            {
+              "celsius": 42.0,
+              "hold_seconds": 60.0
+            },
+            {
+              "celsius": 4.0,
+              "hold_seconds": 120.0
+            }
+          ],
+          "repeats": 1
+        }
+      ]
+    },
+    "sample_count": 1,
+    "fill_volume_ul": 22.0,
+    "final_hold_celsius": 4.0
+  }
 }
 ```
 
@@ -56,4 +70,4 @@ The runtime validates the complete profile against the device envelope before an
 
 ## Current boundary
 
-The adapter is experimental. The device reports completion but not continuous run progress. Some schema fields are not yet emitted by the current compiler path, and fill-volume handling still needs a complete end-to-end audit. Physical use requires local qualification. The Method/Procedure/Capability architecture will make thermal tasks and their material ports first-class rather than recovering them from one plasmid-build plan.
+The adapter is experimental. Thermal tasks and their material ports are first-class canonical Procedure data today. Supported thermal features, profile limits, and reviewed material handoffs constrain execution. The device reports completion but not continuous run progress. Physical qualification and the control-mode vocabulary mismatch above remain separate from successful document generation.

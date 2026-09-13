@@ -69,6 +69,10 @@ for.
 
 ## Documentation content
 
+Documentation is organized around contributions. `/docs` opens the chooser at `/docs/toolchain/contributing`. The sidebar, mobile picker, and search browsing share this group order: Start here, Contribution paths, Language guide, Compiler reference, Instrument reference. Existing page URLs remain valid even when their navigation group changes.
+
+Each contribution path states who it is for, the files to edit, a working starting example, the code or data to contribute, and how to verify and finish it. Reference pages provide depth after a reader has chosen a path. Keep setup and review instructions specific to that contribution rather than requiring every contributor to learn the whole compiler.
+
 Docs pages are `.mdx` files under `src/content/docs/`, discovered
 automatically: adding a file adds a page, no route or nav wiring required.
 Each starts with frontmatter:
@@ -87,12 +91,16 @@ order: 50
 - `group`: which sidebar section the page belongs to. Must match one of the
   names in `GROUP_ORDER` in `src/lib/docs-content.ts`; a new group needs a
   line added there.
-- `order`: sort key, both within a group and for the prev/next pager across
-  the whole doc set. Leave gaps (10, 20, 30, …) so a page can be inserted
-  later without renumbering its neighbors.
+- `order`: sort key within a group. Group order comes from `GROUP_ORDER`.
+- `previous` and `next`: optional page slugs for an explicit reading path. Omit to follow adjacent pages in the same group, or use `null` to end the path. Contribution guides normally set `previous: toolchain/contributing` and `next: null`; link a next step only when it continues that contribution.
+- `toc`: set to `false` to omit the sidebar's on-page contents, as on the contribution chooser. Other pages show it by default.
+
+Unknown groups and reading-path destinations are rejected when the documentation catalog loads, so pages cannot silently disappear from navigation.
 
 The page's URL is its file path relative to `src/content/docs/`, so
 `guide/the-two-arrows.mdx` serves at `/docs/guide/the-two-arrows`.
+
+`toolchain/contributing.mdx` maps contribution boundaries, and `toolchain/python-procedures.mdx` documents the development Python authoring API. The latter follows `lab/docs/contributing/python-procedures.md`; keep its snippets aligned with the runnable `lab/examples/contributing/scientific-package/methods/homogenize.py` author. Check schema versions and service claims against Rust constants and registrations when changing architecture pages. These docs describe the development checkout, independently of the committed browser compiler bundle.
 
 Search needs no wiring either. `src/lib/remark-doc-search.ts` splits each page
 at its headings during the MDX build and exports the plaintext as `sections`,

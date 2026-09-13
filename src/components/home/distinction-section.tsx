@@ -37,7 +37,7 @@ export function DistinctionSection() {
           <SectionIntro
             className="max-w-3xl"
             kicker="The distinction"
-            lede="A protocol is a program that acts on living material, and a single run can span days. Computers restart and instruments drop offline in that time, so when a run is interrupted, the toolchain resumes it by replaying the program from the beginning against a journal of everything that already happened. That puts one question at the center of the compiler: Which lines are safe to run again?"
+            lede="A protocol describes work on physical material. Recalculating a dilution is different from pipetting it again. Lab makes that distinction explicit so the compiler can check how material is used and a reader can see which steps change the experiment. The same distinction guides the design of resumable execution."
             title="Code can run twice. An experiment happens once."
             titleClassName="max-w-[20ch] text-[clamp(1.65rem,4.2vw,3.4rem)]"
           />
@@ -61,18 +61,15 @@ export function DistinctionSection() {
                   <code className="font-mono text-[0.9em] text-ink">
                     wf.perform
                   </code>{' '}
-                  and nothing else does. It is journaled the moment it completes
-                  and read back, never redone, on every replay after. In Lab the
-                  same distinction is punctuation; here it is a call the checker
-                  requires.
+                  and declares its effects to the checker. In Lab the same
+                  distinction is punctuation; here it is an explicit call.
                 </>
               ) : (
                 <>
                   <code className="font-mono text-[0.9em] text-ink">&lt;-</code>{' '}
-                  performs a physical action, like transforming cells or
-                  consuming a tube. It is journaled the moment it completes and
-                  read back, never redone, on every replay after. One glance
-                  tells you whether a line can happen twice.
+                  marks a physical action, like transforming cells or consuming
+                  a tube, and declares its effects to the checker. One glance
+                  distinguishes a calculation from laboratory work.
                 </>
               )}
             </p>
@@ -115,7 +112,8 @@ export function DistinctionSection() {
                 </h3>
                 <p className="prose-lab mt-2.5 text-[14px] leading-[1.65] text-[#f6ece0]/60">
                   A physical or external action with a real-world consequence.
-                  Recorded once in the journal and never repeated.
+                  Resuming execution must preserve its recorded outcome without
+                  repeating completed physical work.
                 </p>
                 <p className="mt-5 break-words font-mono text-[12px] text-[#f6ece0]/60">
                   {markers.durableExample}

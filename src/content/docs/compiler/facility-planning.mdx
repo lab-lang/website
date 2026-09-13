@@ -1,27 +1,36 @@
 ---
 title: Facility planning
-eyebrow: Compiler
-description: One SBOLInventory facility graph determines which Methods, materials, qualified Assets, and explicit Lab adapters can realize an experiment.
-group: Toolchain
+eyebrow: Compiler reference
+description: Describe the laboratory, bind its instruments to adapters, and understand how the compiler chooses a complete plan.
+group: Compiler reference
 order: 225
 ---
 
-Lab does not have a separate target model. A package describes an experiment, points to an SBOLInventory document, and optionally binds exact Assets in that graph to installed Lab adapters. The selected facility is the compilation target in the meaningful sense: its Zones, Assets, capability offerings, MaterialLots, qualification, control modes, and parameters determine which complete Method graph can be planned and lowered.
+Facility planning answers a concrete question: **which combination of Methods, materials, and instruments can perform this experiment?** It takes the alternatives produced by refinement and selects one complete plan against a particular laboratory's inventory and policy.
 
-```text
-a facility contains zones
-zones locate assets and material lots
-assets expose capability offerings
-workflows require capabilities
-plans bind requirements to offerings and assets
-runs record material changes and evidence
-```
+A portable scientific package can be checked and refined without a facility. Producing device files also requires a facility description, suitable materials and offerings, and compatible adapter bindings. [Compiler architecture](/docs/compiler/pipeline) explains where this decision sits in the pipeline.
 
-## Package configuration
+## Describe the laboratory
 
-The portable manifest can contribute facility-independent Methods and points to an RDF document rather than restating the facility in TOML:
+Lab reads the facility from an SBOLInventory document. The important objects are:
 
-```toml
+- A **Facility** is the laboratory selected for planning.
+- **Zones** describe places within it.
+- An **Asset** is a particular resource, such as an instrument or manual station.
+- A **CapabilityOffering** states what that Asset can provide, including its qualification and control mode.
+- A **MaterialLot** identifies physical material available for use.
+
+A Method produces capability requirements. Planning matches those requirements to compatible offerings and checks the complete task graph. Manufacturer and model names describe equipment; the explicit adapter binding selects its implementation.
+
+The inventory is a validated snapshot. It does not provide a live booking calendar or prove that an instrument is ready now.
+
+<span id="package-configuration" />
+
+## Connect a package to its facility
+
+The manifest names the inventory document and any portable Method catalogs:
+
+```toml lab.toml
 [methods]
 documents = ["methods/site-methods.json"]
 
@@ -30,59 +39,84 @@ document = "inventory/facility.ttl"
 # facility = "https://example.org/my-lab/facility"
 ```
 
-Lab accepts Turtle, RDF/XML, JSON-LD, and N-Triples. It validates the document as SBOL 3 and SBOLInventory Profile 0.2 before planning. If `facility` is omitted, the document must contain exactly one Facility. If it contains several, the manifest must select one by absolute IRI.
+Lab accepts Turtle, RDF/XML, JSON-LD, and N-Triples. It validates the document as SBOL 3 and SBOLInventory Profile 0.2. If the document contains one Facility, Lab selects it automatically. With several Facilities, set `facility` to the exact absolute IRI of the one to use.
 
-Every Zone, Asset, CapabilityOffering, PropertyValue, and MaterialLot remains in RDF. There is no `inventory.toml`, and manufacturer or model names never select compiler code.
+Facility objects stay in RDF. The manifest points to that description rather than duplicating its Assets and lots in TOML.
 
-Each Method file uses the `lab.method-catalog.v1` JSON contract. It describes exact Intent-to-Procedure alternatives and their Capability requirements without naming facility resources. Lab composes documents from the runnable package and its reachable path dependencies with the standard Method set, then validates the whole registry through Rust. `lab check` rejects unknown catalog versions, duplicate Method identities, incompatible signatures, malformed task graphs, and package-relative paths that escape their owner.
+Each Method file uses `lab.method-catalog.v2`. The application composes the standard Methods with catalogs from the runnable package and its reachable path dependencies. Validation rejects incompatible signatures, malformed graphs, duplicate Method identities, unsupported versions, and catalog paths that escape their package.
 
-## Operational adapter bindings
+[Python Method authors](/docs/toolchain/python-procedures) can generate those catalogs. Template and builder executions derive requirements from their validated Procedure programs; primitive executions state requirements directly. Declaring a capability does not supply its implementation.
 
-An Asset becomes directly lowerable only through an explicit local binding:
+<span id="operational-adapter-bindings" />
 
-```toml
+## Bind instruments to adapters
+
+To generate device files for an Asset, bind it to an installed adapter and a checked profile:
+
+```toml lab.toml
 [[execution.adapters]]
 asset = "https://example.org/my-lab/opentrons_ot2"
 driver = "opentrons.ot2"
 profile = "adapters/opentrons-ot2.toml"
 ```
 
-The Asset IRI must resolve inside the selected Facility. The driver must explicitly support an offering's exact capability-kind and control-mode IRIs. The profile contains checked implementation configuration such as deck layout and labware; it cannot select another Asset or driver and is hashed into the reviewed plan. Endpoints and credentials stay outside the portable package and are supplied only to runtime.
+These three values have separate jobs. `asset` identifies the exact resource in the selected Facility. `driver` identifies the registered Lab adapter. `profile` supplies its configuration, such as deck layout, labware, and liquid-handling settings.
 
-Catalog qualification and adapter implementation are separate facts. An Executable offering without a compatible configured adapter is not executable through Lab. A capable adapter does not promote a merely Described or Plannable offering.
+The profile cannot select another Asset or driver. It is validated and hashed into the plan. Runtime endpoints and credentials are supplied separately from portable project configuration. The [instrument-profile contribution path](/docs/contributing/instrument-profiles) shows how to author and check this data.
 
-## One connected planning path
+An offering's qualification and an adapter's implementation are independent. A registered adapter does not promote a merely described offering to executable. Conversely, an executable offering still needs a compatible adapter for Lab to generate and run its device representation.
 
-`lab check` validates package code, the complete inventory graph, facility selection, and declared adapter profiles. Portable packages may compile without an inventory; facility planning requires one.
+## Require implementations when planning for automation
 
-For a runnable package with `inventory.document`, `lab build` and `lab plan` call the same project service:
+By default, `adapter-requirement` is `"optional"`. Planning can retain manual or planning-only facility bindings that have no configured adapter. A successful allocation therefore need not produce device files for every selected task.
 
-1. Lower all checked program modules to verifier-valid Design and Intent LAIR.
-2. Compose standard and package-contributed Method catalogs, then refine reachable Intent operations into candidate Procedure and Capability graphs.
-3. Project `lab.planning-problem.v4` from that one authoritative LAIR graph.
-4. Join exact design Component identities to active MaterialLots through `sbol:built`.
-5. Resolve explicit adapter bindings against offerings owned by their exact Assets.
-6. Solve Method, material, CapabilityOffering, Asset, adapter, and dependency choices together under manifest policy.
-7. Apply and revalidate the complete solution as Allocated Procedure LAIR.
-8. Project `lab.adapter-invocations.v5` and lower only exact tasks assigned to selected adapters.
-9. Write one `lab.execution-plan.v5` plus independently reviewed child documents.
+For a project that requires an adapter for every non-manual offering, set:
 
-Candidate ordering is never allocation. Zero complete solutions is an explained failure. Several equal complete solutions are an ambiguity unless an explicit Method pin or policy distinguishes them.
-
-`lab plan` writes this facility phase under `.lab/plan/`. `lab build` writes the same facility evidence beside portable package artifacts under `.lab/build/`.
-
-## Golden Gate example
-
-The checked-in Golden Gate package declares one Facility, exact input MaterialLots, a manual workstation, an OT-2 Asset with Plannable liquid-handling and thermal-cycling offerings, and one `opentrons.ot2` binding. Build it with:
-
-```shell
-lab build examples/golden-gate
+```toml lab.toml
+[planning]
+adapter-requirement = "non-manual"
 ```
 
-The current build selects 22 Method instances, allocates 24 requirements, and lowers eight exact OT-2 Procedure tasks. The human result names the biological products, compiler evidence, selected Facility, Asset bundle, every automation protocol, every operator PDF, and the reviewed plan.
+This requires a compatible planning adapter. Its lowering, simulation, and live-execution services still have their own contracts and readiness checks. The Golden Gate example uses this policy and explicit Method pins; it does not rely on catalog ordering.
+
+<span id="one-connected-planning-path" />
+
+## How the selection is made
+
+`lab check` validates the package and its configured inventory and profiles. For a runnable package with an inventory, `lab build` and `lab plan` then use the same `lab-project` service:
+
+1. **Refine the experiment.** Lower the entry workflow and its reachable calls, then construct compatible Method alternatives with their tasks and requirements.
+2. **Assemble the problem.** Match exact design Component identities to active MaterialLots through `sbol:built`, and resolve adapter bindings against offerings on their exact Assets.
+3. **Solve the complete graph.** Choose Methods, material sources, offerings, Assets, and adapters together under manifest policy. Adapter feasibility callbacks check whether configured implementations can realize the programs.
+4. **Verify the allocation.** Apply the complete solution to the same compiler graph and validate its selected tasks, requirements, and material bindings.
+5. **Write the reviewed bundle.** Project exact adapter invocations, lower their assigned tasks, and write the execution plan and child documents.
+
+The solver does not select a Method merely because it appears first. No complete solution is an explained failure. Several equally valid solutions are an ambiguity unless an explicit pin or policy distinguishes them.
+
+The orchestration is in [`lab-project/facility.rs`](https://github.com/lab-lang/lab/blob/master/crates/lab-project/src/facility.rs). Resource solving lives in [`lab-facility`](https://github.com/lab-lang/lab/tree/master/crates/lab-facility/src); bundle generation lives in [`lab-project/artifacts.rs`](https://github.com/lab-lang/lab/blob/master/crates/lab-project/src/artifacts.rs).
+
+<span id="golden-gate-example" />
+
+## Build and inspect the Golden Gate example
+
+From a development checkout with the CLI installed:
+
+```shell
+lab check examples/golden-gate
+lab build examples/golden-gate
+lab run examples/golden-gate/.lab/build --dry-run
+```
+
+The example declares a Facility, exact input lots, a manual workstation, and an OT-2 with plannable liquid-handling and thermal-cycling offerings. Its manifest pins temperature-staged Golden Gate assembly and automated transformation, recovery, and antibiotic selection. Provisioning and disposal use manual Methods.
+
+The dry-run checks and narrates the reviewed plan without executing hardware. For this example it reports that the plan is neither live-executable nor simulatable through Lab. The offerings are `Plannable`, and Lab exports Opentrons files for vendor tooling rather than providing an Opentrons executor. Successful document validation does not imply readiness to run.
+
+`lab build` writes portable artifacts and the facility bundle under `.lab/build/`. `lab plan` writes just the facility bundle under `.lab/plan/`; with `--program <name>`, its default becomes `.lab/plan/<name>/`. The CLI reports the actual output paths.
+
+The build keeps the evidence for each major decision:
 
 ```text
-examples/golden-gate/.lab/build/
+.lab/build/
 ├── compiler/
 │   ├── refined.lair
 │   ├── planning-problem.json
@@ -95,39 +129,36 @@ examples/golden-gate/.lab/build/
 └── assets/
     └── opentrons_ot2/
         └── tasks/
-            ├── 001-setup-golden-gate-reaction/
-            │   ├── automation_protocol.py
-            │   ├── invocation_manifest.json
-            │   └── manual_protocol.pdf
-            ├── 002-thermal-cycle-golden-gate-reaction/
-            │   ├── automation_protocol.py
-            │   ├── invocation_manifest.json
-            │   └── manual_protocol.pdf
-            └── 005-serial-dilution/
-                ├── automation_protocol.py
-                ├── invocation_manifest.json
-                └── manual_protocol.pdf
 ```
 
-The task list continues for the second plasmid and remaining strain dilutions. Manual provisioning, transformation, recovery, and plating remain exact selected Procedure tasks in the facility plan without being presented as OT-2 automation.
+Under `tasks/`, each supported allocated task has its generated protocol, invocation manifest, and operator document. Directories such as `001-pipetting-program/` and `002-thermal-program/` reflect physical programs, not a fixed list of biological operations. The pinned transformation, recovery, dilution, and selection Methods also produce supported pipetting or thermal tasks. Manual provisioning and disposal remain explicit nodes in the plan.
 
-The readable `assets/opentrons_ot2` directory comes from the exact Asset identity. A short hash is appended only when two selected Assets would otherwise collide.
+To understand a result, compare `planning-problem.json` with `facility-solution.json`: the first contains the available alternatives and requirements; the second records the choices. `allocated.lair` is the compiler's verified application of those choices. `adapter-invocations.json` records the work handed to each adapter.
 
 ## Review and execution
 
-The reviewed plan freezes the inventory hash and selected Facility IRI, planning-problem and Allocated Procedure digests, Method and material selections, offering and Asset bindings, adapter profile hashes, dependency DAG, child-document paths, and child-document digests. Runtime validates the complete closure before any executor can touch hardware.
+The execution plan freezes the selected Facility, Methods, lots, offerings, Assets, and adapter profiles. It also records the dependency graph and digests of inventory, compiler evidence, and child documents. Runtime checks that complete set of references before an executor can touch hardware.
+
+Resume is tied to the same reviewed inputs. Changed plan content, profiles, evidence, or child documents invalidates it. A resource substitution requires a newly reviewed plan; runtime does not query inventory for an alternative instrument.
+
+On completion, Lab writes a new inventory result document with run Activities, resource and input-lot Usages, output lots, lineage, and evidence attachments. The source inventory is preserved. General instrument results feeding workflow acceptance decisions are still an open integration boundary.
+
+## What allocation does not yet solve
+
+A selected material dependency says which task supplies material to another. It does not automatically propagate physical well locations or liquid-class assignments between independently emitted files. Those tasks still need explicit staging.
+
+Lab also has no general reservation service, calendar, queue, consumable depletion model, dynamic rescheduling, or complete movement optimizer. The reviewed dependency graph is a foundation for coordination; it does not claim those services already exist.
+
+<span id="ebef-as-the-architectural-example" />
+
+## Scaling to a larger facility
+
+The EBEF example models Caltech's Ecology and Biosphere Engineering Facility using nested Zones, installed Assets, and capability offerings. Public equipment information stays at `Described` with `UnspecifiedControl`, because it does not establish an operational control path.
+
+A separate synthetic extension exercises multi-Asset simulation with explicit reviewed documents:
 
 ```shell
-lab run examples/golden-gate/.lab/build --dry-run
-lab run examples/ebef/acceptance/.lab/plan --simulate
+cargo test --locked -p lab-runtime --test ebef_acceptance
 ```
 
-Runtime never re-queries inventory or chooses a substitute Asset. A change to the plan, inventory, compiler evidence, adapter profile, or child document invalidates resume. A physical substitution requires a newly reviewed plan.
-
-On completion, Lab writes a new conformant inventory result document containing run Activities, Asset and input-lot Usages, output MaterialLots, lineage, ExperimentalData, and evidence Attachments. It never edits the source inventory in place.
-
-## EBEF as the architectural example
-
-The repository's EBEF package models public information about Caltech's Ecology and Biosphere Engineering Facility as one Facility with nested Zones, installed Assets, and capability offerings. It deliberately leaves public-only offerings at `Described` with `UnspecifiedControl`, because an equipment page is not evidence of an operational control path. A separate synthetic extension exercises multi-Asset simulation without changing claims about EBEF hardware.
-
-That example is how the architecture scales past a single liquid-handler bench: incubators, readers, microscopes, environmental chambers, freezers, manual stations, and robots all enter planning through the same capability-offering model. Device categories do not become compiler targets or hard-coded workcell members.
+That test exercises runtime composition. It does not establish source-to-device compiler lowering for the whole EBEF catalog. The architectural aim is to add incubators, readers, microscopes, storage, and other resources through the same offering and contract boundaries, with the corresponding Methods, adapters, and evidence in place. [Status](/docs/status) tracks the current coverage.

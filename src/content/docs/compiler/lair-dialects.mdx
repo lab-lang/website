@@ -1,76 +1,126 @@
 ---
-title: LAIR dialects
-eyebrow: LAIR
-description: How Lab uses Pliron for progressively refined, verified scientific procedures without exposing compiler internals as its extension API.
-group: Toolchain
+title: LAIR and compiler boundaries
+eyebrow: Compiler reference
+description: The internal representation, the main compilation stages, and the documents exchanged with planners, adapters, and runtime.
+group: Compiler reference
 order: 220
 ---
 
-LAIR, the Lab Automation Intermediate Representation, is a family of Pliron dialects inside `lab-compiler`. It preserves biological meaning, typed physical materials, source ancestry, Method alternatives, Capability requirements, and exact allocation while the compiler moves from scientific intent to executable Procedure tasks.
+**LAIR**, the Lab Automation Intermediate Representation, is the compiler's working model of an experiment. It retains scientific meaning and material dependencies while Methods and resources are selected. It is implemented inside `lab-compiler` using Pliron, a Rust framework for representing, transforming, and verifying programs.
 
-LAIR is not the serialized execution plan, the SBOLInventory graph, or the adapter API. Those representations have different lifecycles: LAIR is mutable compiler state; the facility graph is an immutable query input; planning records, adapter invocations, and reviewed plans are versioned immutable projections.
+Read this page when changing compiler transformations or understanding a compiler artifact. Python Method authors and adapter authors normally use typed programs and records around LAIR. [Compiler architecture](/docs/compiler/pipeline) explains how those contributions fit together.
 
-## Implemented dialects
+<span id="canonical-stages" />
 
-- Design represents reusable DNA sequences, plasmids, strains, and declarative biological identity.
-- Workflow represents method-neutral realization, provision, transformation, recovery, dilution, and plating with typed material use-def edges.
-- Method owns compatible candidate regions for one exact Intent operation.
-- Procedure represents open semantic task and material-state IRIs, typed SSA dataflow, exact parameters, and material inputs.
-- Capability represents exact requirement and property-constraint IRIs, qualification floors, and accepted control modes.
-- Allocation records the selected Method and exact offering, Asset, adapter, and MaterialLot bindings.
-- Meta records an explicit stage contract on the module.
+<span id="three-checked-stages" />
 
-The Procedure dialect uses a small closed structural vocabulary and open semantic operation IRIs. Adding a centrifugation, imaging, chromatography, or culture Method should normally add declarative Method records and semantic identities, not a new Rust operation class for every laboratory verb.
+## Three stages in the runnable pipeline
 
-## Canonical stages
+A stage states what the compiler has established about the whole program. The runnable project pipeline uses the three stages below. Each transition produces a program that must pass the next stage's verifier.
 
-The production pipeline has three verifier-valid LAIR boundaries:
+The stage model also supports **`design`**, containing only biological design operations. It is useful for design-only IR and tooling; it is not an additional step in the current rooted workflow pipeline. [`IrStage`](https://github.com/lab-lang/lab/blob/master/crates/lab-compiler/src/stage/mod.rs) defines all four contracts.
 
-```text
-design-intent
-    -> refined-alternatives
-    -> allocated-procedure
+### 1. Scientific intent: `design-intent`
+
+The program contains design facts and reachable actions, with their checked identities, parameters, and material dependencies. No Method has been chosen. `PortableLairProgram` owns the Pliron context and module for this stage.
+
+Runnable lowering starts from an entry workflow and expands its reachable calls. It preserves their call paths and dataflow. The current path supports straight-line work; it rejects control flow and durable state that it cannot yet represent faithfully.
+
+### 2. Method alternatives: `refined-alternatives`
+
+Refinement replaces supported intent actions with `method.choice` regions. Each candidate describes one possible Method: its Procedure tasks, material flow, and required capabilities. Candidates for the same choice must return compatible typed results.
+
+A read-only analysis extracts a planning problem from this graph. The facility solver works on that owned record and returns a complete selection. It does not hold or mutate the Pliron context.
+
+### 3. Allocated work: `allocated-procedure`
+
+The compiler validates the solution against the exact problem and applies it to the refined graph. The result retains the selected Method at every choice, the selected tasks, and exact resource and material bindings. Unselected alternatives are removed.
+
+Every capability requirement has an offering and Asset binding, every material input has a source, and the program records its selected Facility and inventory digest. Adapter bindings follow the planning policy: manual and planning-only bindings may have no adapter. A valid allocation therefore does not by itself establish device-file generation or runtime readiness. Unresolved choices and source actions cannot pass this stage. Only a valid allocated program can be projected into adapter invocations.
+
+<span id="implemented-dialects" />
+
+## What the dialects represent
+
+A **dialect** groups related operation and type definitions. These dialects coexist inside a LAIR program; they are not seven separate compilation steps.
+
+| Dialect    | Responsibility                                                                   |
+| ---------- | -------------------------------------------------------------------------------- |
+| Design     | Biological identities and reusable design values, such as sequences and plasmids |
+| Workflow   | Scientific actions and their material dependencies before refinement             |
+| Method     | Alternatives for implementing one exact action                                   |
+| Procedure  | Physical tasks, typed inputs and outputs, parameters, and program bodies         |
+| Capability | What each task requires from a facility                                          |
+| Allocation | Selected Methods, offerings, Assets, adapters, and material lots                 |
+| Meta       | The program's stage contract                                                     |
+
+The structural vocabulary is small. Scientific actions and task meanings use open semantic identifiers, so adding a biological verb usually means contributing a declaration and Method. New physical semantics need a Procedure contract and implementations that understand it.
+
+The former fixed Protocol dialect and `method-selected-protocol` stage have been removed. New integrations use the Procedure and allocation boundaries described here.
+
+## The difference between a task and its program
+
+A **Procedure task** is one unit in a Method graph. It has typed ports, parameters, material references, and an execution description. Material edges connect tasks to each other.
+
+A **Procedure program** describes the operations inside a task. `PipettingProgramV1`, for example, contains logical vessels, transfers, mixing, and fluid-path constraints. `ThermalProgramV1` describes thermal operations. Their versioned contracts define how to validate those operations and derive capability requirements.
+
+A Method task can carry a declarative template or reference a registered Rust builder. Primitive tasks can instead state a capability-backed service directly, without a canonical program body. Templates and builders produce programs validated by the same contract. Python's `lab.procedures.pipetting` API authors such templates without manipulating Pliron operations. See [Procedure semantics](/docs/contributing/procedures) for the native extension boundary.
+
+<span id="capability-requirements-live-in-lair" />
+
+## What verification establishes
+
+Local operation verifiers check types and attributes. Stage verifiers check the relationships and completeness required at a pipeline boundary. A whole-program material analysis checks the selected graph before adapter projection.
+
+LAIR uses **SSA dataflow**: an output is a distinct value, and subsequent operations refer to that value explicitly. This lets the compiler follow material from its source through the tasks that use it. **Affine material ownership** prevents a physical material value from being independently consumed more than once; it does not mean that an instrument has physically measured the material.
+
+Capability requirements are also part of this graph. A requirement records its identity, owning task, capability kind, property constraints, qualification floor, and accepted control modes. An IRI is the absolute identifier used for a semantic kind or resource. The solver's selections refer back to these exact identities.
+
+The planner therefore uses the requirement graph produced by refinement. It does not reconstruct a second set of requirements from the original source. Compiler validity, adapter feasibility, and physical qualification remain separate checks.
+
+<span id="planning-is-not-another-dialect" />
+
+## Documents at the boundaries
+
+The checked frontend model is `CheckedModule`. After that boundary, the compiler transforms LAIR internally and exchanges the following versioned documents with other components:
+
+| Document                            | What it carries                                                                |
+| ----------------------------------- | ------------------------------------------------------------------------------ |
+| `lab.method-catalog.v2`             | Portable Method definitions contributed by a package                           |
+| `lab.planning-problem.v2`           | Method alternatives, tasks, requirements, materials, and dependencies to solve |
+| `lab.facility-planning-solution.v3` | One complete selection keyed to that problem                                   |
+| `lab.adapter-catalog.v4`            | The implementations and services registered in this application build          |
+| `lab.adapter-invocations.v3`        | Allocated work assigned to exact Assets and adapters                           |
+| `lab.execution-plan.v4`             | The reviewed execution graph and references to its frozen child documents      |
+
+These formats carry owned records rather than Pliron references. Schema versions are checked at their boundaries; they are development interfaces, not an unversioned promise of compatibility.
+
+The facility inventory has a separate lifecycle. It is an immutable, validated SBOLInventory snapshot used by planning. RDF objects such as Assets and MaterialLots remain in that graph; allocated LAIR records selected identities and provenance digests. Inventory is not another LAIR dialect.
+
+The format definitions live in [`method`](https://github.com/lab-lang/lab/tree/master/crates/lab-compiler/src/method), [`planning`](https://github.com/lab-lang/lab/tree/master/crates/lab-compiler/src/planning), [`lab-adapter-api`](https://github.com/lab-lang/lab/tree/master/crates/lab-adapter-api/src), and [`lab-runfmt`](https://github.com/lab-lang/lab/tree/master/crates/lab-runfmt/src).
+
+<span id="the-device-boundary" />
+
+<span id="why-pliron-stays-internal" />
+
+## What an adapter receives
+
+An invocation identifies the work allocated to one exact Asset and adapter. The lowerer receives the invocation plan, its selected invocation, a validated profile, and the Procedure contract registry. It selects its assigned tasks and emits documents attributed to the exact requirements they realize.
+
+The adapter preserves Method selection, task parameters, material bindings, and resource identities. It owns the physical realization of supported programs: locations, geometry, liquid classes, device limits, and output formats.
+
+`lab-adapter-api` re-exports the types needed for this work. An adapter can depend on that focused API without manipulating compiler contexts. A built-in adapter may use a private dialect internally, but its public handoff remains the same allocated records.
+
+## Inspect the representation
+
+For a self-contained source file with a supported `main` workflow, `labc <source.lab> --emit refined-lair` exposes Method alternatives and `--emit planning-problem` exposes the extracted constraint problem. This tool uses the built-in Methods; use `lab build` or `lab plan` to inspect a package with contributed catalogs. A facility build retains `refined.lair`, `planning-problem.json`, `facility-solution.json`, and `allocated.lair` under its `compiler/` output directory.
+
+To check the allocated artifact from the [Golden Gate build](/docs/compiler/facility-planning#golden-gate-example):
+
+```shell
+lab-opt examples/golden-gate/.lab/build/compiler/allocated.lair \
+  --input-stage allocated-procedure \
+  --pass-pipeline "builtin.module(check-material-linearity)"
 ```
 
-`design-intent` contains Design values and method-neutral Workflow/Intent operations. `PortableLairProgram` owns the Pliron context and module for this stage.
-
-`refined-alternatives` eliminates every supported refinable Intent action in favor of `method.choice` regions. Each candidate contains verifier-valid Procedure dataflow and first-class Capability requirements, and all candidates for one choice yield a compatible typed signature. The bundled registry covers every Intent in the current Golden Gate slice and retains real alternatives for artifact realization and culture recovery.
-
-A read-only analysis projects `lab.planning-problem.v4` from the refined graph. One solver selects Methods, exact MaterialLots, CapabilityOfferings, Assets, adapters, and dependencies together. The solver does not mutate LAIR, and candidate order is never allocation.
-
-The allocation pass validates the complete solution against the exact problem and applies it back to the same stable identities. `allocated-procedure` contains one selected Method for every choice, every selected task and parameter, one exact binding for every Capability requirement, one exact source for every material input, and one context naming the Facility and inventory digest. It contains no unresolved Method choice or Workflow action.
-
-Operation verifiers establish local type and attribute invariants. Stage verification establishes graph completeness and identity relationships. `MaterialLinearityAnalysis` checks whole-module affine material use over the final selected SSA graph before adapter invocation projection.
-
-The former fixed Protocol dialect and `method-selected-protocol` stage have been removed. They are not a compatibility path for new adapters.
-
-## Capability requirements live in LAIR
-
-Capability requirements are first-class operations produced by Method refinement. They carry a stable identity, semantic capability-kind IRI, minimum qualification, accepted control modes, typed property constraints, owning Procedure task, and ancestry back to the Method and source action.
-
-There is one authoritative requirement graph. The planner does not traverse `CheckedModule` to rediscover a parallel collection of strings. Allocation decisions are keyed back to the exact LAIR identities from which the problem was projected.
-
-## Planning is not another dialect
-
-The global planning problem is an owned serializable constraint representation suited to whole-graph solving. It carries stable Method choices, Procedure tasks, requirements, parameters, materials, and ancestry without Pliron pointers. The solver combines it with a validated immutable SBOLInventory snapshot, exact MaterialLot evidence, configured adapter bindings, and explicit manifest policy.
-
-SBOLInventory is the target-environment description, not a LAIR dialect. Facility, Zone, Asset, CapabilityOffering, and MaterialLot remain RDF objects. Allocated LAIR carries only exact selected IRIs and provenance digests.
-
-## The device boundary
-
-`lab.adapter-invocations.v5` is projected only from verifier-valid Allocated Procedure LAIR. It freezes the selected Method graphs, exact tasks, typed parameters and ports, material sources, requirement-to-offering-to-Asset bindings, adapter profiles, and inventory and compiler-evidence digests.
-
-Invocations group only the tasks and requirements allocated to one exact Asset and adapter. OT-2, Flex, and STAR lower those assigned tasks today. A backend cannot inspect checked source, unresolved candidates, facility RDF, or another Asset's work. Each independently executable child document names the exact Requirement it realizes.
-
-## Why Pliron stays internal
-
-Pliron is the right substrate for transformations but the wrong public ABI. Rust adapters, Python extensions, solvers, and runtimes should not depend on a compiler context being alive or manipulate raw IR pointers. Public surfaces are compiler-owned records with schema versions and validation:
-
-- portable Method definitions and Capability contracts;
-- planning problems and complete facility solutions;
-- immutable adapter descriptors and invocations; and
-- reviewed execution plans and child run documents.
-
-A built-in adapter may introduce a private dialect when device planning benefits from dataflow, rewriting, or verification. That remains behind the adapter boundary; an external consumer can use the same versioned invocation contract without linking Pliron.
-
-See [Compiler pipeline](/docs/compiler/pipeline) for the end-to-end layer map and [Facility planning](/docs/compiler/facility-planning) for the package and CLI workflow.
+The command prints the verified IR on success. `lab-opt` can parse textual LAIR, verify stages, and run registered passes. It does not replace the project service that loads packages, solves the facility problem, and stages adapter output. [CLI reference](/docs/compiler/cli-reference) gives the commands; [Facility planning](/docs/compiler/facility-planning) shows a complete build's artifacts.

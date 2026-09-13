@@ -1,61 +1,64 @@
 ---
 title: Editor support
-eyebrow: Tooling
-description: One platform-neutral analysis core, exposed as an LSP server, a WebAssembly API, and a VS Code extension.
-group: Toolchain
+eyebrow: Compiler reference
+description: How editor integrations reuse the checker, where to add a feature, and what the browser and language server support today.
+group: Compiler reference
 order: 250
 ---
 
-Editor support is built as one analysis core with two thin adapters on top,
-rather than as logic duplicated per host.
+Editor integrations use the same language model as compilation. `lab-ide` turns source analysis into diagnostics and editing operations. The language server and browser bridge expose those operations to their hosts.
 
-## `lab-ide`: the analysis core
+This boundary is useful when adding a new editor or an authoring feature. It provides source understanding; facility planning and device generation belong to the separate [project application service](/docs/compiler/pipeline#where-the-code-lives).
 
-`lab-ide` is platform-neutral: it depends on `lab-language` alone, nothing
-about LSP or the browser. Its central type, `Workspace`, holds a set of open
-documents and provides:
+## Choose the code boundary
 
-- Diagnostics, with secondary spans and a `help` line where one applies
-- Document symbols
-- Completions: keywords, plus top-level declarations from open documents,
-  each carrying the documentation its declaration was written with
-- Hover, including on a `use` path, which hovers the module it imports
-- Definition and references
-- Rename: name-based, works across documents, and is aware of comments and
-  strings so it doesn't rename inside them
-- Semantic tokens
-- Formatting, currently whitespace-only: trailing whitespace trimmed, a
-  final newline ensured. No syntax-aware reformatting yet.
+| Contribution                                          | Where it belongs                                                                                                                |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Improve diagnostics, hover, completion, or navigation | [`lab-ide`](https://github.com/lab-lang/lab/tree/master/crates/lab-ide/src), using the shared checker in `lab-language`         |
+| Connect an LSP-compatible editor                      | [`lab-language-server`](https://github.com/lab-lang/lab/tree/master/crates/lab-language-server/src) and the editor's LSP client |
+| Embed source analysis in a browser                    | [`lab-ide-wasm`](https://github.com/lab-lang/lab/tree/master/crates/lab-ide-wasm/src)                                           |
+| Add VS Code or Cursor client behavior                 | [`editors/vscode`](https://github.com/lab-lang/lab/tree/master/editors/vscode)                                                  |
 
-`Workspace` itself is I/O-free, so it cannot read a manifest. A host that can
-supplies each document's module name, and `lab-language-server` does: on open,
-it discovers the package holding the file and loads every source module in it.
-A `use` of a package sibling therefore resolves whether or not that sibling is
-open, and modules carry the name their manifest gives them rather than one
-guessed from a path. A file outside any package keeps the path-derived name,
-which is what the browser playground relies on.
+Put language-analysis behavior in the core so both hosts can use it. Keep protocol translation, document loading, and client presentation in the relevant integration.
 
-Definition, references, and rename still only see loaded documents: there's
-no persistent, project-wide symbol index yet, so a file outside the open
-package drops out of those queries.
+<span id="lab-ide-the-analysis-core" />
 
-## Two adapters, one core
+## The shared analysis core
 
-`lab-language-server` wraps `Workspace` with `lsp-server`/`lsp-types` over
-stdio, handling `didOpen`/`didChange`/`didClose` plus requests for
-completion, hover, definition, references, rename, document symbols,
-semantic tokens, and formatting. It's the server any LSP-compatible editor
-talks to. `lab-ide-wasm` re-exposes the same `Workspace` through
-`wasm-bindgen` instead, for embedding directly in a browser or another
-non-LSP host: it's what the [playground](/playground) on this site runs
-on.
+`lab-ide::Workspace` holds loaded documents and answers queries about them. Its language dependency is `lab-language`; the analysis core does not depend on LSP or browser APIs.
 
-Because both adapters call into the same `lab-ide` core, editor behavior
-can't drift between the LSP server and an embedded browser integration: a
-completion or diagnostic means the same thing either way.
+It currently provides:
 
-## VS Code extension
+- Diagnostics, including secondary source spans and contextual help.
+- Document symbols, keyword and declaration completion, and hover documentation.
+- Definition, references, and name-based rename across loaded documents. Rename avoids comments and strings.
+- Semantic tokens for highlighting.
+- Basic formatting: trimming trailing whitespace and ensuring a final newline.
 
-An editor extension for VS Code and Cursor lives under `editors/vscode/`,
-including TextMate syntax highlighting, snippets, and the client wiring to
-launch `lab-language-server` over stdio.
+Formatting is not yet syntax-aware. Definition, references, and rename use identifier names across loaded documents, without a persistent project-wide symbol index. They do not yet distinguish every same-named symbol by resolved declaration identity, so a rename is not a scope-aware refactoring.
+
+## Who loads the project
+
+`Workspace` performs no file I/O. A host supplies source text and, when available, the module name determined by the package manifest.
+
+The language server discovers the package containing an opened file and loads its source modules. Imports of package siblings can therefore resolve even when those files are not open in the editor. Files outside a discovered package use path-derived names.
+
+The browser playground supplies its own documents. It does not acquire the desktop language server's filesystem or package-loading behavior merely by using the same analysis core. A feature that needs more documents must define how its host obtains and supplies them.
+
+<span id="two-adapters-one-core" />
+
+## Language server and browser bridge
+
+`lab-language-server` exposes `Workspace` through the Language Server Protocol over standard input and output. It handles document lifecycle notifications and requests for completion, hover, definition, references, rename, symbols, semantic tokens, and formatting.
+
+`lab-ide-wasm` exposes the same analysis through `wasm-bindgen`. The website's [playground](/playground) uses this WebAssembly bridge. For a given core revision and document set, both hosts call the same language-analysis implementation.
+
+The website commits a generated compiler bundle. It can lag behind the native checkout until rebuilt, so matching architecture does not imply matching installed revisions. Changes to the analysis core need the relevant native and browser consumers rebuilt before both expose the new behavior.
+
+<span id="vs-code-extension" />
+
+## VS Code and Cursor
+
+The extension under `editors/vscode/` provides TextMate highlighting, snippets, and the client that launches `lab-language-server` over standard input and output. New protocol-independent analysis belongs in `lab-ide`; editor-specific commands and presentation belong in this client.
+
+A contribution should include the source example that demonstrates the behavior and a check at the boundary it changes. A core analysis change should be exercised with the relevant loaded document set; a host integration should also demonstrate its document loading and protocol translation.

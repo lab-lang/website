@@ -11,18 +11,20 @@ const shipped = [
   'Parsing, resolution, and type checking',
   'Typed portable module IR',
   'Action contracts and affine material flow',
+  'Typeset operator documents and manual run sheets from facility builds',
   'Method, Procedure, Capability, and Allocation LAIR',
   'Validated SBOLInventory facilities and exact MaterialLot binding',
   'Joint Method and facility allocation to exact offerings and Assets',
   'Exact-task adapter invocations and reviewed execution plans',
   'Dry-run, simulation, durable ledgers, and run provenance',
   'Editor support over LSP and WebAssembly',
-  'OT-2, Flex, STAR, ODTC, Byonoy, and semantic simulation adapters',
+  'OT-2, Flex, STAR, ODTC, and semantic simulation adapters',
 ]
 
 const pending = [
+  'Protocol documents directly from checked source, without facility planning',
   'Broad portable Method and Procedure libraries',
-  'Complete movement, reservation, and schedule solving',
+  'Reactive workflow execution and measurement-driven decisions',
   'Dynamically loaded external adapters',
   'Live inventory reservation and facility scheduling',
   'External package registry and integrity resolution',
@@ -46,16 +48,16 @@ export function StatusSection() {
           <div className="reveal" data-shown={inView} ref={ref}>
             <SectionIntro
               kicker="Where this stands"
-              lede="The connected compiler path now reaches Method and facility solving, Allocated Procedure, exact-task adapters, reviewed plans, simulation, selected live executors, and inventory provenance. Its scientific and device-operation breadth remains narrow, and every physical procedure still requires facility-specific review and qualification."
+              lede="Lab checks designs and protocols in Python and Lab. Facility builds produce typeset documents for people and device files for supported instruments. The next work broadens scientific vocabulary, makes document generation independent of facility planning, and extends optional automation."
               ledeClassName="mt-6 text-[15px] leading-[1.72]"
               title="Current state of the Lab."
               titleClassName="text-[clamp(1.65rem,3.6vw,2.9rem)]"
             />
             <Link
               className="press mt-8 inline-flex items-center gap-2 rounded-xl bg-ink px-5 py-3 text-[14px] text-paper shadow-[0_10px_24px_-8px_rgb(43_28_17_/_0.5)]"
-              to="/docs"
+              to="/docs/status"
             >
-              See what the language covers
+              See current support
               <ArrowRight aria-hidden="true" size={16} />
             </Link>
           </div>

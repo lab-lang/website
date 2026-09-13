@@ -8,6 +8,11 @@ export interface DocFrontmatter {
   description: string
   group: string
   order: number
+  /** Omit to follow this group, or set null to end the reading path. */
+  previous?: string | null
+  next?: string | null
+  /** Landing pages can keep the sidebar focused on destinations instead of local headings. */
+  toc?: boolean
 }
 
 export interface DocPage {
@@ -24,11 +29,16 @@ export interface DocGroup {
 }
 
 /**
- * Sidebar order. A page's frontmatter names one of these groups; unknown
- * group names simply never surface in the sidebar, which is the signal to
- * add them here when a new section is introduced.
+ * Contribution paths lead the documentation. References follow in their own groups.
+ * Sidebar, mobile navigation, browsing, and reading order share this sequence.
  */
-const GROUP_ORDER = ['Learn Lab', 'Toolchain', 'Adapters', 'Reference']
+const GROUP_ORDER = [
+  'Start here',
+  'Contribution paths',
+  'Language guide',
+  'Compiler reference',
+  'Instrument reference',
+]
 
 const modules = import.meta.glob<{
   default: DocPage['Component']
@@ -43,7 +53,31 @@ export const docPages: DocPage[] = Object.entries(modules)
     Component: mod.default,
     sections: mod.sections,
   }))
-  .sort((a, b) => a.frontmatter.order - b.frontmatter.order)
+  .sort(
+    (a, b) =>
+      GROUP_ORDER.indexOf(a.frontmatter.group) -
+        GROUP_ORDER.indexOf(b.frontmatter.group) ||
+      a.frontmatter.order - b.frontmatter.order,
+  )
+
+for (const page of docPages) {
+  if (!GROUP_ORDER.includes(page.frontmatter.group)) {
+    throw new Error(`Unknown documentation group in ${page.slug}`)
+  }
+  for (const destination of [
+    page.frontmatter.previous,
+    page.frontmatter.next,
+  ]) {
+    if (
+      typeof destination === 'string' &&
+      !docPages.some((entry) => entry.slug === destination)
+    ) {
+      throw new Error(
+        `Unknown reading-path destination ${destination} in ${page.slug}`,
+      )
+    }
+  }
+}
 
 export const docGroups: DocGroup[] = GROUP_ORDER.map((group) => ({
   group,
@@ -54,4 +88,29 @@ export function getDocPage(slug: string): DocPage | undefined {
   return docPages.find((page) => page.slug === slug)
 }
 
-export const DEFAULT_DOC_SLUG = 'overview'
+/** Independent contribution paths return to the chooser, not the next unrelated specialty. */
+export function getDocNavigation(page: DocPage): {
+  prev?: DocPage
+  next?: DocPage
+} {
+  const peers = docPages.filter(
+    (entry) => entry.frontmatter.group === page.frontmatter.group,
+  )
+  const index = peers.indexOf(page)
+  const resolve = (
+    destination: string | null | undefined,
+    fallback?: DocPage,
+  ) =>
+    destination === undefined
+      ? fallback
+      : destination === null
+        ? undefined
+        : getDocPage(destination)
+
+  return {
+    prev: resolve(page.frontmatter.previous, peers[index - 1]),
+    next: resolve(page.frontmatter.next, peers[index + 1]),
+  }
+}
+
+export const DEFAULT_DOC_SLUG = 'toolchain/contributing'

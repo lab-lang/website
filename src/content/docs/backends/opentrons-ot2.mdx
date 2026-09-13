@@ -2,11 +2,13 @@
 title: Opentrons OT-2
 eyebrow: Adapters
 description: An Asset-bound liquid-handling and thermal-cycling adapter that lowers exact allocated Procedure tasks into reviewed Python protocols.
-group: Adapters
+group: Instrument reference
 order: 310
 ---
 
 The OT-2 integration is a Lab adapter, not a compiler target. An SBOLInventory graph describes the physical OT-2 Asset and its qualified capability offerings. `lab.toml` explicitly binds that exact Asset IRI to the `opentrons.ot2` implementation. Global facility planning selects Methods and exact resources; only then may the adapter lower the tasks assigned to its invocation.
+
+To contribute configuration or liquid-handling knowledge, start with [Add instrument profiles](/docs/contributing/instrument-profiles). For device features or file generation, follow [Implement an adapter](/docs/contributing/adapters).
 
 ## Bind an installed Asset
 
@@ -50,15 +52,9 @@ capacity = 96
 
 ## Exact Procedure lowering
 
-The OT-2 does not consume source IR, unresolved Method alternatives, or an entire experiment. `lab.adapter-invocations.v5` gives it only the Procedure tasks and requirements allocated to this exact Asset and profile.
+The OT-2 lowerer selects its assigned tasks from `lab.adapter-invocations.v3`. Those tasks carry canonical `PipettingProgramV1` or `ThermalProgramV1` programs with validated parameters, units, material interfaces, and capability requirements. Golden Gate setup and cycling, transformation, and dilution are examples of Methods producing these contracts.
 
-The current vertical slice supports three semantic Procedure operations:
-
-- setup of a Golden Gate reaction under a `LiquidHandling` requirement;
-- thermal cycling of a Golden Gate reaction under a `ThermalCycling` requirement; and
-- serial dilution under a `LiquidHandling` requirement.
-
-Shared typed views validate the exact operation IRI, capability kind, parameter identity and type, canonical QUDT unit, material role, selected MaterialLot or upstream Method output, and allocation ownership. OT-2-specific code then assigns wells, validates deck and tip capacity, and renders the supported protocol. Unsupported operations or parameters fail explicitly.
+The adapter checks contract features and physical feasibility, assigns wells, validates deck and tip capacity, and renders the supported program. A new [Python pipetting Method](/docs/toolchain/python-procedures) can use this boundary without adding its biological action name to the adapter. It must still fit the adapter's supported features and the selected profile.
 
 ## Output
 
@@ -85,4 +81,4 @@ The embedded `lab.opentrons-ot2-task.v1` plan freezes the Facility, Asset, adapt
 
 ## Current boundary
 
-The adapter is experimental. It covers those three Golden Gate Procedure operations, not general liquid handling or arbitrary thermocycler programs. Lab emits reviewed Python files but does not upload or execute them on an OT-2. Use the appropriate Opentrons application and simulator for device-side analysis, and qualify every generated protocol for the actual facility before physical use.
+The adapter is experimental. Its declared contract features and physical profile bound the programs it can lower. Each emitted Procedure is independently staged: a logical dependency on an upstream material does not automatically carry physical well locations across protocol files. Lab emits reviewed Python files but does not upload or execute them on an OT-2. Vendor-tool validation and facility-specific qualification remain necessary for physical use.

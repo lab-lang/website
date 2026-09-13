@@ -1,42 +1,57 @@
 ---
 title: CLI reference
-eyebrow: Tooling
-description: lab for packages, facilities, adapters, reviewed plans, and runs; labc and lab-opt for compiler inspection.
-group: Toolchain
+eyebrow: Compiler reference
+description: Commands for contributing packages, checking profiles, building reviewed plans, and inspecting compiler output.
+group: Compiler reference
 order: 230
 ---
 
-`lab` is the package and facility CLI. `labc` inspects one source file. `lab-opt` parses and transforms textual LAIR. All `lab` commands accept the global `--json` flag, including after the subcommand.
+Use **`lab`** for projects and reviewed runs. Use **`labc`** to inspect one source file, and **`lab-opt`** to inspect or transform textual LAIR. [Development setup](/docs/toolchain/building-from-source) explains how to install them from the current checkout.
 
-## `lab`
+All `lab` commands accept the global `--json` flag, including after the subcommand. Commands below use the installed binaries; during development, `cargo run --locked -p lab-cli -- <command>` runs the checkout's `lab` CLI.
 
-| Command                                               | Does                                                                                                                                                             |
-| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `lab new <path> [--name <name>]`                      | Creates a package with `lab.toml` and `src/programs/main.lab`.                                                                                                   |
-| `lab check [<path>]`                                  | Checks source or a package, composes and validates reachable Method catalogs, and validates configured inventory and adapter bindings.                           |
-| `lab build [<path>] [--out-dir <dir>]`                | Writes portable compiler artifacts and, when configured, the facility solution, Allocated Procedure LAIR, adapter invocations, reviewed plan, and Asset bundles. |
-| `lab plan [<path>] [--out-dir <dir>]`                 | Writes only the complete facility-planning and adapter-lowering bundle.                                                                                          |
-| `lab adapters describe [--driver <id>]`               | Prints `lab.adapter-catalog.v3` or one descriptor, including capabilities, control modes, formats, services, and profile schema.                                 |
-| `lab adapters default <driver> [--name <name>]`       | Prints one adapter's complete canonical reference profile.                                                                                                       |
-| `lab adapters validate <driver> <profile>`            | Parses and semantically validates a profile through the explicit driver.                                                                                         |
-| `lab adapters render <driver> <profile>`              | Prints the canonical validated profile.                                                                                                                          |
-| `lab run <plan-dir> --dry-run`                        | Validates the reviewed plan and narrates the complete execution without touching hardware.                                                                       |
-| `lab run <plan-dir> --simulate`                       | Executes through configured simulation adapters.                                                                                                                 |
-| `lab run <plan-dir> [--asset-endpoint <IRI=address>]` | Executes supported live adapters after full preflight and confirmation.                                                                                          |
-| `lab metadata [<path>]`                               | Prints the resolved manifest and module list.                                                                                                                    |
-| `lab update [--check]`                                | Checks for or installs a newer `lab`, `labc`, and `lab-opt` release.                                                                                             |
+<span id="lab" />
 
-`lab build` defaults to `.lab/build`; `lab plan` defaults to `.lab/plan`. Relative `--out-dir` values are resolved from the project root. There is no `--target`, `--no-target`, or `[target]` table: the selected SBOLInventory Facility and its explicitly bound Assets determine eligible adapter invocations.
+## Start a contribution
 
-The runtime options are:
+| Command                                  | Result                                                                            |
+| ---------------------------------------- | --------------------------------------------------------------------------------- |
+| `lab new project <path> [--name <name>]` | A package with `lab.toml` and `src/programs/main.lab`                             |
+| `lab new method-pack <path>`             | Scientific vocabulary and a portable Method catalog                               |
+| `lab new adapter <path> --driver <id>`   | A native adapter crate with explicit implementation placeholders                  |
+| `lab bindings python <path>`             | Python runtime modules and typing stubs generated from checked package interfaces |
 
-- `--dry-run` validates and narrates without executing.
-- `--simulate` selects simulation execution and conflicts with `--dry-run`.
-- `--yes` skips only the initial confirmation; manual steps and physical handoffs still require the operator.
-- `--resume` continues the exact reviewed plan from its durable ledger and rejects digest changes.
-- `--asset-endpoint <ASSET_IRI=ADDRESS>` supplies a repeatable non-portable endpoint for a networked Asset.
+The adapter scaffold rejects work until its feasibility and lowering callbacks are implemented. Its initial conformance test checks registration. Follow the appropriate [contribution path](/docs/toolchain/contributing) for an example, implementation steps, and validation.
 
-## Typical facility workflow
+## Check and build a project
+
+| Command                                | Result                                                                                  |
+| -------------------------------------- | --------------------------------------------------------------------------------------- |
+| `lab check [<path>]`                   | Checks source, reachable Method catalogs, and configured inventory and adapter profiles |
+| `lab build [<path>] [--out-dir <dir>]` | Portable artifacts and, when configured, the complete facility bundle                   |
+| `lab plan [<path>] [--out-dir <dir>]`  | The facility-planning and adapter-lowering bundle                                       |
+| `lab metadata [<path>]`                | The resolved manifest and module list                                                   |
+
+`lab build` defaults to `.lab/build/`; `lab plan` defaults to `.lab/plan/`. Relative `--out-dir` values are resolved from the project root. Both commands accept `--program <name>` to select an entry under `src/programs/`. With that flag, `lab plan` defaults to `.lab/plan/<name>/`; `lab build` keeps `.lab/build/`. Both facility paths use the same application service and report the output paths.
+
+The selected SBOLInventory Facility and its adapter-bound Assets determine the resources and device implementations. There is no `--target` flag or `[target]` table. See [Facility planning](/docs/compiler/facility-planning) for the manifest and allocation model.
+
+## Inspect and validate an adapter
+
+| Command                                         | Result                                                                                             |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `lab adapters describe [--driver <id>]`         | The registered catalog or one adapter's contracts, features, formats, services, and profile schema |
+| `lab adapters default <driver> [--name <name>]` | A canonical reference profile                                                                      |
+| `lab adapters validate <driver> <profile>`      | Profile parsing and semantic validation                                                            |
+| `lab adapters render <driver> <profile>`        | The validated profile in canonical form                                                            |
+
+The catalog uses `lab.adapter-catalog.v4`. A descriptor lists the services present in this application build; it does not establish that a particular instrument is physically qualified. [Add instrument profiles](/docs/contributing/instrument-profiles) shows how profile data becomes a contribution.
+
+<span id="typical-facility-workflow" />
+
+## Review, simulate, or execute a plan
+
+A typical development workflow checks a package, builds it, and inspects the reviewed plan:
 
 ```shell
 lab check examples/golden-gate
@@ -45,36 +60,62 @@ lab build examples/golden-gate
 lab run examples/golden-gate/.lab/build --dry-run
 ```
 
-`lab build` reports every biological product and every compiler, facility, Asset, protocol, document, and reviewed-plan output path. Use `lab plan` when only the reviewed facility bundle is needed:
+`lab run` takes the directory containing the reviewed plan. A successful dry-run validates and displays the plan even when it is not ready to execute. Inspect the reported readiness issues; JSON output includes `executable`, `simulatable`, and separate issue lists. The Golden Gate example currently reports both readiness flags as `false`.
 
-```shell
-lab plan examples/ebef/acceptance
-lab run examples/ebef/acceptance/.lab/plan --simulate
-```
+Its modes are:
 
-## `labc`
+- `--dry-run`: validate and narrate the plan without execution.
+- `--simulate`: execute through registered simulation implementations. This conflicts with `--dry-run`.
+- With neither flag: use supported live executors after preflight and confirmation.
+
+An adapter's ability to generate files does not imply that simulation or live execution is installed. For example, Lab generates Opentrons files for use with vendor tooling but does not directly execute them. Consult the [service matrix](/docs/status#device-implementation-matrix).
+
+Additional runtime options are:
+
+- `--resume`: continue the same reviewed plan from its durable ledger; changed digests are rejected.
+- `--asset-endpoint <ASSET_IRI=ADDRESS>`: supply a network address for an exact Asset; repeat for several Assets.
+- `--yes`: skip the initial confirmation. Manual steps and physical handoffs still require the operator.
+
+If only the facility bundle is needed, use `lab plan examples/golden-gate` and pass `examples/golden-gate/.lab/plan` to `lab run`.
+
+<span id="labc" />
+
+## Inspect source with `labc`
 
 ```shell
 labc <source.lab> --emit <representation>
 ```
 
-`labc` is a single-file compiler-inspection tool. It has no inventory, target, adapter, device, or filesystem bundle mode. Multi-module compilation, SBOLInventory ingestion, global allocation, adapter lowering, and reviewed-plan construction belong to `lab` through the shared project service.
+`labc` operates on one file with the built-in language environment and Method registry. LAIR emission requires a supported `main` workflow. Package loading, contributed catalogs, inventory ingestion, allocation, adapter lowering, and reviewed bundle generation belong to the `lab` project service.
 
-| `--emit` value       | Produces                                                                 |
-| -------------------- | ------------------------------------------------------------------------ |
-| `human`              | A readable summary of the checked module.                                |
-| `source-ast`         | The spanned source AST as JSON.                                          |
-| `module-ir`          | The checked portable module as JSON.                                     |
-| `design-intent-lair` | Verifier-valid facility-independent Design and Intent LAIR.              |
-| `refined-lair`       | Verifier-valid Method alternatives with Procedure and Capability graphs. |
-| `planning-problem`   | The facility-independent `lab.planning-problem.v4` projection.           |
+| `--emit` value       | Representation                                            |
+| -------------------- | --------------------------------------------------------- |
+| `human`              | Readable summary of the checked module                    |
+| `source-ast`         | Parsed source with spans, as JSON                         |
+| `module-ir`          | The checked portable module, as JSON                      |
+| `design-intent-lair` | Facility-independent designs and intent                   |
+| `refined-lair`       | Method alternatives with Procedure tasks and requirements |
+| `planning-problem`   | The facility-independent constraint problem               |
 
-## `lab-opt`
+The emitted planning problem has format `lab.planning-problem.v2`. It contains the choices to solve, not an allocated facility plan.
+
+<span id="lab-opt" />
+
+## Inspect LAIR with `lab-opt`
 
 ```shell
 lab-opt [<input>] --pass-pipeline "builtin.module(check-material-linearity)"
 ```
 
-`lab-opt` reads textual Pliron IR from a file or standard input and runs a module-anchored pass pipeline. `--input-stage` requires the input to satisfy a named `IrStage`; `--verify-each` verifies before and after every pass; `--print-before-all` and `--print-after-all` write snapshots to `--ir-printing-dir`; and `--list-passes` prints the registered passes.
+`lab-opt` reads textual Pliron IR from a file or standard input. The example pass checks affine material use in an Allocated Procedure module.
 
-The textual tool exposes Design, Workflow, Method, Procedure, Capability, and Allocation operations and verifies `design-intent`, `refined-alternatives`, and `allocated-procedure`. Source-to-Method refinement, problem extraction, solving, and solution application are compiler APIs rather than dynamic `lab-opt` passes. The `check-material-linearity` pass validates affine material use in an Allocated Procedure module.
+- `--input-stage` requires the input to satisfy a named stage contract.
+- `--verify-each true` verifies before and after every pass. This is the default; the option takes an explicit `true` or `false` value.
+- `--print-before-all` and `--print-after-all` write snapshots to `--ir-printing-dir`.
+- `--list-passes` lists the registered passes.
+
+The tool understands the implemented dialects and the three runnable stages and the design-only stage described in [LAIR and compiler boundaries](/docs/compiler/lair-dialects). Method refinement, problem extraction, facility solving, and solution application are compiler APIs used by the project service; they are not dynamic `lab-opt` passes.
+
+## Update an installed release
+
+`lab update --check` checks for a newer release. `lab update` installs the release's `lab`, `labc`, and `lab-opt` binaries. Development-checkout APIs and the website's committed browser compiler may come from different revisions.

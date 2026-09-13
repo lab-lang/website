@@ -2,7 +2,7 @@
 title: Your first program
 eyebrow: Learn Lab
 description: Create a project, describe a plasmid, and follow it from a checked module all the way to a robot protocol.
-group: Learn Lab
+group: Language guide
 order: 20
 ---
 
@@ -26,7 +26,7 @@ your shell's `PATH`.
 ## Create a project
 
 ```shell
-lab new tet-reporter
+lab new project tet-reporter
 cd tet-reporter
 ```
 
@@ -308,7 +308,7 @@ ex:opentrons_ot2_thermal_cycling
     fac:controlMode fac:ReviewedFile .
 ```
 
-This excerpt shows only the automated Asset. A complete runnable graph also declares the Facility's Zones, the manual offerings used for provisioning, transformation, recovery, and plating, and exact active MaterialLots for every physical input. The [Golden Gate example](/docs/compiler/facility-planning#golden-gate-example) contains that complete shape.
+This excerpt shows only the automated Asset. A complete facility graph also declares its Zones, the manual offerings needed by the selected Methods, and exact active MaterialLots for physical inputs. The [Golden Gate example](/docs/compiler/facility-planning#golden-gate-example) includes this configuration. Its current policy selects automated transformation, recovery, and selection Methods, with manual provisioning and disposal.
 
 The manifest points to that graph and explicitly associates the exact Asset with the installed compiler adapter:
 
@@ -403,4 +403,4 @@ lab run .lab/plan --dry-run
 
 ## Where to go next
 
-[Action contracts](/docs/guide/action-contracts) covers what `<-` resolves to and which operations lower today. [Facility planning](/docs/compiler/facility-planning) follows Methods and requirements into exact MaterialLots, offerings, Assets, adapters, and reviewed documents. [LAIR dialects](/docs/compiler/lair-dialects) explains the implemented Method, Procedure, Capability, and Allocation stages that provide the authoritative planning and device-lowering path.
+[Action contracts](/docs/guide/action-contracts) covers what `<-` resolves to and which operations lower today. [Facility planning](/docs/compiler/facility-planning) follows Methods and requirements into exact MaterialLots, offerings, Assets, adapters, and reviewed documents. [LAIR and compiler boundaries](/docs/compiler/lair-dialects) explains the implemented Method, Procedure, Capability, and Allocation stages that provide the authoritative planning and device-lowering path.

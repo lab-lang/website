@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom'
 import { type DocPage } from '@/lib/docs-content'
 
 export function DocPager({ prev, next }: { prev?: DocPage; next?: DocPage }) {
+  if (!prev && !next) return null
+
   return (
     <nav
       aria-label="Page"

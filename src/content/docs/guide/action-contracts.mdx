@@ -2,7 +2,7 @@
 title: Action contracts
 eyebrow: Language guide
 description: What a durable effect resolves to, how ownership modes are declared, and which operations reach facility planning today.
-group: Learn Lab
+group: Language guide
 order: 60
 ---
 
@@ -103,33 +103,32 @@ The analysis is place-sensitive rather than name-sensitive. Taking
 ## The bundled contracts
 
 `std.lab.plasmid` exports seventeen contracts. `std.bio.build`
-exports one. The **Lowers** column is the honest part of this page: it marks
-whether the operation reaches LAIR, or only type-checks.
+exports one. The **Bundled Method** column identifies current Method coverage. Generic action lowering retains exact checked declaration identities; reaching facility planning also requires a compatible Method.
 
-| Phrase                                                | Capability                | Ownership        | Results                             | Lowers |
-| ----------------------------------------------------- | ------------------------- | ---------------- | ----------------------------------- | ------ |
-| `realize` _design_ [ `from` _deps_ ]                  | `artifact_realization`    | copy, take       | `product`                           | yes    |
-| `provision` _chassis_                                 | `inventory`               | copy             | `cells`                             | yes    |
-| `transform` _design_ `from` _plasmids_ `into` _cells_ | `chemical_transformation` | copy, take, take | `strain`, `culture`                 | yes    |
-| `recover` _culture_ `for` _duration_                  | `culture_incubation`      | take             | `culture`                           | yes    |
-| `dilute` _culture_                                    | `liquid_handling`         | take             | `culture`                           | yes    |
-| `plate` _culture_ `on` _antibiotic_                   | `antibiotic_selection`    | take, copy       | `plate`                             | yes    |
-| `capture image of` _plate_                            | `plate_imaging`           | borrow           | `image`                             | no     |
-| `synthesize` _design_                                 | `dna_synthesis`           | copy             | `fragments`                         | no     |
-| `assemble` _fragments_                                | `dna_assembly`            | take             | `construct` (a `Material<Plasmid>`) | no     |
-| `pick` _n_ `isolated colonies from` _plate_           | `colony_picking`          | borrow           | `candidates`                        | no     |
-| `screen` _candidates_ `against` _design_              | `clone_screening`         | take, copy       | `screening`                         | no     |
-| `grow` _clone_ `at` _temp_ `for` _duration_           | `culture_incubation`      | take             | `culture`                           | no     |
-| `purify` _culture_                                    | `plasmid_purification`    | take             | `plasmid`                           | no     |
-| `split` _material_                                    | `liquid_handling`         | take             | `retained`, `aliquot`               | no     |
-| `sequence` _aliquot_                                  | `sanger_sequencing`       | take             | `result`                            | no     |
-| `quantify` _material_                                 | `dna_quantification`      | borrow           | `evidence`                          | no     |
-| `store` _material_ `at` _temp_                        | `cold_storage`            | take             | `material`                          | no     |
-| `dispose` _material_                                  | `waste_handling`          | take             | —                                   | no     |
+| Phrase                                                | Capability                | Ownership        | Results                             | Bundled Method |
+| ----------------------------------------------------- | ------------------------- | ---------------- | ----------------------------------- | -------------- |
+| `realize` _design_ [ `from` _deps_ ]                  | `artifact_realization`    | copy, take       | `product`                           | yes            |
+| `provision` _chassis_                                 | `inventory`               | copy             | `cells`                             | yes            |
+| `transform` _design_ `from` _plasmids_ `into` _cells_ | `chemical_transformation` | copy, take, take | `strain`, `culture`                 | yes            |
+| `recover` _culture_ `for` _duration_                  | `culture_incubation`      | take             | `culture`                           | yes            |
+| `dilute` _culture_                                    | `liquid_handling`         | take             | `culture`                           | yes            |
+| `plate` _culture_ `on` _antibiotic_                   | `antibiotic_selection`    | take, copy       | `plate`                             | yes            |
+| `capture image of` _plate_                            | `plate_imaging`           | borrow           | `image`                             | no             |
+| `synthesize` _design_                                 | `dna_synthesis`           | copy             | `fragments`                         | no             |
+| `assemble` _fragments_                                | `dna_assembly`            | take             | `construct` (a `Material<Plasmid>`) | no             |
+| `pick` _n_ `isolated colonies from` _plate_           | `colony_picking`          | borrow           | `candidates`                        | no             |
+| `screen` _candidates_ `against` _design_              | `clone_screening`         | take, copy       | `screening`                         | no             |
+| `grow` _clone_ `at` _temp_ `for` _duration_           | `culture_incubation`      | take             | `culture`                           | no             |
+| `purify` _culture_                                    | `plasmid_purification`    | take             | `plasmid`                           | no             |
+| `split` _material_                                    | `liquid_handling`         | take             | `retained`, `aliquot`               | no             |
+| `sequence` _aliquot_                                  | `sanger_sequencing`       | take             | `result`                            | no             |
+| `quantify` _material_                                 | `dna_quantification`      | borrow           | `evidence`                          | no             |
+| `store` _material_ `at` _temp_                        | `cold_storage`            | take             | `material`                          | no             |
+| `dispose` _material_                                  | `waste_handling`          | take             | —                                   | no             |
 
-Six of eighteen lower into Intent LAIR and have built-in Method definitions that can reach facility planning. The other twelve parse, resolve, type-check, and pass material-flow verification, then stop at portable module IR. A program built from them is a valid Lab program that no Method registry bundled with this compiler can currently refine.
+The six marked actions have bundled Methods for the supported example workflows. An action declaration alone does not provide a Procedure implementation. Packages can contribute Methods for their own exact action identities, as the [Python pipetting example](/docs/toolchain/python-procedures) demonstrates. Runnable workflow control flow remains narrower than portable type checking; see [Status](/docs/status).
 
-`synthesize` and `assemble` are not hidden adapter operations. A future Method may refine those exact Intent identities, while the current automated Golden Gate Method uses explicit `SetupGoldenGateReaction` and `ThermalCycleGoldenGateReaction` Procedure operations. See [LAIR dialects](/docs/compiler/lair-dialects).
+`synthesize` and `assemble` are not hidden adapter operations. A future Method may refine those exact Intent identities, while the current automated Golden Gate Method uses explicit `SetupGoldenGateReaction` and `ThermalCycleGoldenGateReaction` Procedure operations. See [LAIR and compiler boundaries](/docs/compiler/lair-dialects).
 
 ## Phrase shapes
 
