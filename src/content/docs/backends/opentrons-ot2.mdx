@@ -1,109 +1,84 @@
 ---
 title: Opentrons OT-2
-eyebrow: Backends
-description: The first backend, with a real planner, deterministic emission, and simulator-checked Python.
-group: Backends
+eyebrow: Adapters
+description: An Asset-bound liquid-handling and thermal-cycling adapter that lowers exact allocated Procedure tasks into reviewed Python protocols.
+group: Instrument reference
 order: 310
 ---
 
-Opentrons OT-2 is the toolchain's first compilation target, and the one a
-profile gets when it names no backend at all. It accepts nothing less
-specialized than `ProtocolLairProgram`: the backend has no entry point that
-consumes a `CheckedModule` or a `PortableLairProgram` directly. The second
-backend, [Opentrons Flex](/docs/backends/opentrons-flex), consumes exactly the
-same verified operations and emits JSON instead.
+The OT-2 integration is a Lab adapter, not a compiler target. An SBOLInventory graph describes the physical OT-2 Asset and its qualified capability offerings. `lab.toml` explicitly binds that exact Asset IRI to the `opentrons.ot2` implementation. Global facility planning selects Methods and exact resources; only then may the adapter lower the tasks assigned to its invocation.
 
-## What this specialization selects
+To contribute configuration or liquid-handling knowledge, start with [Add instrument profiles](/docs/contributing/instrument-profiles). For device features or file generation, follow [Implement an adapter](/docs/contributing/adapters).
 
-Given verified Protocol operations, the OT-2 backend chooses one concrete
-realization for the plasmid-build use case:
+## Bind an installed Asset
 
-- **Golden Gate assembly** for `realize`, which produces a plasmid
-- **Heat-shock transformation** for `transform`, which produces a strain
-- **Culture recovery** for `recover`
-- **Serial dilution** for `dilute`
-- **Selective plating** for `plate`
+```toml
+[inventory]
+document = "inventory/facility.ttl"
 
-If source omits or misorders a required material transition, Workflow
-verification fails before Protocol selection is ever reached: the OT-2
-backend never sees an incomplete build. A different robot backend consuming
-the same verified Protocol operations with its own execution plan is no
-longer hypothetical: that is what the Flex backend is.
-
-## The plan is real, not templated
-
-The backend's planner allocates `Ot2ExecutionPlan` (source wells, reaction
-wells, DNA-plate wells, transformation mappings, dilution wells, and plating
-wells) and validates it against real constraints: each design's reaction
-balance against its own stated volume, replicate and dilution bounds, plate
-capacity, source-rack capacity, and tip capacity. A design that would
-overflow a plate or exceed a tip box's capacity fails planning rather than
-producing a silently-wrong protocol.
-
-## The deck is authored, not hardcoded
-
-Labware, deck slots, modules, pipettes, mounts, API level, and per-stage
-capacity come from a target profile: one TOML file per bench, selected by
-`lab build --target`. The profile rejects a slot an OT-2 does not address, a
-slot the installed thermocycler already occupies, two pieces of labware
-claiming one slot during a stage, and any key it does not recognize. Every
-field defaults to the reference bench, so a profile states only what differs.
-
-Declaring more than one slot for a plate raises the batch size a bench holds;
-well addresses are plate-and-well pairs, and allocation fills each declared
-plate in turn. Reaction chemistry stays in `.lab` source, because reagent
-volumes and thermal profiles are claims about the science rather than about a
-laboratory.
-
-Every generated artifact (the JSON manifest, the Markdown instructions, and
-all three Python scripts) is a projection of that same plan. Nothing
-re-derives or second-guesses it independently, which is what keeps the
-generated Python and the generated human instructions from disagreeing with
-each other.
-
-## Python is a maintained project, not generated text
-
-The robot-facing Python lives as a pinned, ordinarily-maintained project
-under `backend/opentrons/ot2/python/`, checked with Ruff, strict mypy, and
-pytest like any other Python codebase, not assembled from string fragments
-in Rust. Rust's part is a deterministic bundling step: it includes those
-already-checked source files verbatim, swaps the shared `Ot2ExecutionPlan`
-type-module import for the same type definitions inlined, and injects the
-serialized plan as a literal. The result is a standalone Python file a robot
-can run, produced without sacrificing normal Python tooling on the source
-that generated it. Generated protocols are then exercised against the real
-Opentrons simulator:
-
-```shell
-scripts/check-opentrons-target.sh .lab/full-build
-scripts/simulate-opentrons.sh .lab/full-build
+[[execution.adapters]]
+asset = "https://example.org/my-lab/opentrons_ot2"
+driver = "opentrons.ot2"
+profile = "adapters/opentrons-ot2.toml"
 ```
 
-## Dependency-driven builds
+The adapter declares exact support for SBOLInventory `LiquidHandling` and `ThermalCycling` under `ReviewedFile` control. It provides planning compatibility and exact-task lowering and emits standalone Opentrons Python protocols. It does not claim a Lab-managed live runtime or built-in simulation service.
 
-A single build can depend on others: `final_device` depending on
-`reporter_region`, which itself depends on `promoter_carrier`, expressed
-purely as `Material<Plasmid>` workflow parameters and dependency lists, with
-no separate "assembly level" concept in the language. Resolving that graph
-is a backend-neutral concern:
-`crates/lab-compiler/src/planning/dependencies/` projects roots, inventory
-hits, cycles, blockers, and build waves directly from verified Protocol
-operations, with no knowledge of plasmids, Golden Gate, or robots. The OT-2
-planner then specializes only the generated nodes, producing a
-`full-build-bundle`: a machine-readable graph, a human dependency report,
-and one self-contained directory per planning wave. Artifacts in one wave have
-no ordering constraint between them, so a wave is a single robot run over one
-deck, and a wave emits a protocol only for the stages its artifacts reach.
+The binding does not make the Asset executable by itself. Each selected offering must independently carry sufficient qualification and a compatible control mode in the inventory graph. Conversely, product metadata in RDF never causes Lab to select this driver.
+
+## Checked implementation profile
+
+The adapter profile describes residual machine configuration: Protocol API level, pipette models and mounts, modules, deck positions, labware, and task capacity. It cannot name an Asset or another driver. Unknown fields, invalid slots, module collisions, incompatible pipettes, and capacity contradictions fail during validation.
+
+```toml
+[protocol]
+api_level = "2.21"
+
+[instruments.small]
+model = "p20_single_gen2"
+mount = "left"
+
+[instruments.large]
+model = "p300_single_gen2"
+mount = "right"
+
+[deck.thermocycler]
+model = "thermocycler module gen2"
+labware = "nest_96_wellplate_100ul_pcr_full_skirt"
+capacity = 96
+```
+
+`lab adapters validate opentrons.ot2 adapters/opentrons-ot2.toml` validates the profile directly. During planning, Lab stages its canonical form and freezes the SHA-256 in the adapter binding, invocation, and reviewed plan.
+
+## Exact Procedure lowering
+
+The OT-2 lowerer selects its assigned tasks from `lab.adapter-invocations.v3`. Those tasks carry canonical `PipettingProgramV1` or `ThermalProgramV1` programs with validated parameters, units, material interfaces, and capability requirements. Golden Gate setup and cycling, transformation, and dilution are examples of Methods producing these contracts.
+
+The adapter checks contract features and physical feasibility, assigns wells, validates deck and tip capacity, and renders the supported program. A new [Python pipetting Method](/docs/toolchain/python-procedures) can use this boundary without adding its biological action name to the adapter. It must still fit the adapter's supported features and the selected profile.
+
+## Output
+
+For an allocated Asset whose readable identity is `opentrons_ot2`, each supported task gets its own review directory:
+
+```text
+.lab/build/assets/opentrons_ot2/
+└── tasks/
+    ├── 001-setup-golden-gate-reaction/
+    │   ├── automation_protocol.py
+    │   ├── invocation_manifest.json
+    │   └── manual_protocol.pdf
+    ├── 002-thermal-cycle-golden-gate-reaction/
+    │   ├── automation_protocol.py
+    │   ├── invocation_manifest.json
+    │   └── manual_protocol.pdf
+    └── 005-serial-dilution/
+        ├── automation_protocol.py
+        ├── invocation_manifest.json
+        └── manual_protocol.pdf
+```
+
+The embedded `lab.opentrons-ot2-task.v1` plan freezes the Facility, Asset, adapter profile, exact Requirement and offering, observed qualification and control mode, Procedure operation, typed ports and parameters, material sources, deck, and resource allocation. `plan.execution.json` references each independently executable Python protocol by Requirement and digest.
 
 ## Current boundary
 
-Emitted protocols declare `robotType: "OT-2"`. Opentrons moved OT-2 support
-into a separate application at version 9, so a 9.x app rejects them with a
-message pointing at the OT-2 download; use the 8.4.x app or the
-`Opentrons-OT2` build to see the deck.
-
-This backend does not yet query a live inventory service, resolve inventory
-lots, ingest SBOL, design compatible overhangs, normalize source
-concentrations, prepare DNA between dependent waves, or attach runtime
-evidence to acceptance decisions. Generated instructions and robot code
-require laboratory review and qualification before physical execution.
+The adapter is experimental. Its declared contract features and physical profile bound the programs it can lower. Each emitted Procedure is independently staged: a logical dependency on an upstream material does not automatically carry physical well locations across protocol files. Lab emits reviewed Python files but does not upload or execute them on an OT-2. Vendor-tool validation and facility-specific qualification remain necessary for physical use.

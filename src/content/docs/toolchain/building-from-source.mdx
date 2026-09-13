@@ -1,23 +1,42 @@
 ---
-title: Building from source
-eyebrow: Toolchain
-description: Build the compiler workspace and use the lab CLI, for contributing to the toolchain or building a new backend.
-group: Toolchain
-order: 240
+title: Development setup
+eyebrow: Start here
+description: Set up the Python SDK or native CLI for the contribution you want to make.
+group: Start here
+order: 30
 ---
 
-This page is for building and running the compiler itself: useful if you're
-contributing to the toolchain, writing a new backend, or want to inspect
-compiler internals directly. If you want to write Lab programs, the
-[playground](/playground) runs the compiler in your browser with nothing to
-install, and [Your first program](/docs/guide/first-program) is where the
-docs pick up from there.
+Start with the [contribution chooser](/docs/toolchain/contributing), then install the tools your path uses. These guides describe a checkout of the [Lab repository](https://github.com/lab-lang/lab). Tagged distributions are listed on [GitHub Releases](https://github.com/lab-lang/lab/releases); development APIs may be newer than an installed release or the browser playground.
 
-The toolchain is a Rust workspace. There is no published release yet, so
-build it from source, from the sibling `lab` repository.
+## Choose your development setup
+
+| Contribution                            | Tools you will use                                                                      |
+| --------------------------------------- | --------------------------------------------------------------------------------------- |
+| Scientific package or pipetting Method  | Python SDK, an editor, and the package checker                                          |
+| Instrument profile or liquid-class data | CLI validator and a consuming example                                                   |
+| Builder, contract, adapter, or executor | Rust workspace and focused crate tests; rebuild the SDK when testing Python integration |
+
+Python and configuration authors do not need to read or change Rust. Building the development SDK from source still requires a Rust toolchain and `uv`; use the requirements recorded in the checkout's `Cargo.toml` and `crates/lab-python/pyproject.toml`.
+
+## Python SDK
+
+From the Lab repository root:
 
 ```shell
-cargo build --workspace
+cd crates/lab-python
+uv sync --locked --all-groups
+```
+
+Return to the repository root after installation. The examples name `crates/lab-python/.venv/bin/python` explicitly so they use this SDK. Changing a Python Method or its Lab declarations needs no native rebuild; regenerate its Method JSON or bindings as directed by that path.
+
+Continue to [Add scientific vocabulary](/docs/contributing/scientific-packages) or [Write a pipetting method](/docs/toolchain/python-procedures).
+
+## Native CLI and compiler tools
+
+From the repository root, build the workspace:
+
+```shell
+cargo build --locked --workspace
 ```
 
 `cargo build` produces two binaries you'll use directly: `lab`, the
@@ -27,10 +46,12 @@ operates on textual LAIR rather than source and is covered in
 [CLI reference](/docs/compiler/cli-reference). They land in
 `target/debug/`, so put that on your `PATH` to run them by name below.
 
+For a package check without changing `PATH`, use `cargo run --locked -p lab-cli -- check <package>`. [Instrument profiles](/docs/contributing/instrument-profiles) use the resulting CLI. Native contributors should follow the focused test and [registration instructions](/docs/contributing/procedures#install-the-native-contribution) for their extension.
+
 ## Scaffold a project
 
 ```shell
-lab new my-plasmid
+lab new project my-plasmid
 ```
 
 `lab new` writes a minimal package:
@@ -46,8 +67,9 @@ my-plasmid/
 
 `lab.toml` declares the package name, version, edition, and build entry
 point. Source lives under `src/`, conventionally split into `designs/`,
-`workflows/`, and `programs/`, and a bench to compile for lives under
-`targets/`. `lab new` only scaffolds `src/programs/main.lab` to start.
+`workflows/`, and `programs/`. A facility-aware package adds an SBOLInventory
+document under `inventory/` and checked implementation profiles under
+`adapters/`. `lab new` only scaffolds `src/programs/main.lab` to start.
 [Modules and packages](/docs/guide/modules-and-packages) covers the full
 manifest shape and module naming convention.
 
@@ -62,8 +84,10 @@ lab metadata my-plasmid
 `lab check` resolves imports, type-checks, and verifies material flow for a
 single `.lab` file or a whole project. `lab build` does the same and then
 writes one `*.module.json` artifact per module plus a package index and a
-`lab.lock` file under `.lab/build/`, and compiles for the target the manifest
-names; pass `--no-target` to stop at portable module IR. `lab metadata`
+`lab.lock` file under `.lab/build/`. When the package declares an inventory,
+the same command allocates reachable requirements across its selected Facility
+and emits reviewed asset bundles. A package without an inventory stops at
+portable compiler artifacts. `lab metadata`
 prints the resolved manifest and module list without compiling anything,
 useful for confirming `lab.toml` resolved the way you expect before a build.
 
@@ -81,6 +105,4 @@ target directly, without a `lab.toml`.
 labc reporter.lab --emit module-ir
 ```
 
-See [CLI reference](/docs/compiler/cli-reference) for the full table of
-`--emit` targets, from a human-readable summary through to a generated
-Opentrons automation bundle.
+See [CLI reference](/docs/compiler/cli-reference) for the full table of `--emit` representations. `labc` inspects portable compiler artifacts; use `lab build` with a facility configuration to generate device bundles.

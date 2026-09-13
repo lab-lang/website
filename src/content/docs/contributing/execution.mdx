@@ -1,0 +1,71 @@
+---
+title: Add execution support
+eyebrow: Contribution path · Rust and device integration
+description: Load and execute reviewed device documents, with explicit progress, identity, and result boundaries.
+group: Contribution paths
+order: 150
+previous: toolchain/contributing
+next: null
+---
+
+Use this path when an adapter can produce reviewed files and you want Lab to simulate or execute them. Start with a document format and its intended behavior. Device communication belongs behind the executor; scientific Method selection and facility allocation have already happened.
+
+For general instrument measurements, this path also identifies the unfinished result boundary. A driver returning readings is one part of that contribution.
+
+## Find the code you own
+
+| Layer                        | Contribution                                                                   |
+| ---------------------------- | ------------------------------------------------------------------------------ |
+| Instrument driver repository | Device commands, transport, response decoding, and device-level tests          |
+| `lab-instruments`            | A capability-oriented bridge, such as the Byonoy plate-reader interface        |
+| Reviewed document loader     | Parse and validate a versioned device document into a typed payload            |
+| `DocumentExecutor`           | Execute that payload and report progress or failure                            |
+| Adapter runtime registration | Associate implementation and format with loaders and simulation/live factories |
+
+The [runtime registration API](https://github.com/lab-lang/lab/blob/master/crates/lab-adapters/src/runtime.rs) is a separate layer above `lab-adapter-api`. A file-only adapter does not need runtime or hardware dependencies.
+
+## Start with an existing executor
+
+Follow [the ODTC registration](https://github.com/lab-lang/lab/blob/master/crates/lab-adapters/src/backend/inheco/odtc/registration.rs) for a thermal document, or the [STAR integration](/docs/backends/hamilton-star) for reviewed firmware frames.
+
+The current executor interface is:
+
+```rust
+pub trait DocumentExecutor {
+    fn execute(
+        &mut self,
+        document: &LoadedReviewedDocument,
+        events: &mut dyn EventSink,
+    ) -> Result<()>;
+}
+```
+
+The [source definition](https://github.com/lab-lang/lab/blob/master/crates/lab-runtime/src/execution.rs) uses `anyhow::Result`. `LoadedReviewedDocument` carries a validated typed payload; the executor retrieves the expected payload and executes it. `EventSink` records supported progress events. Returning success reports completion.
+
+Register the loader with `RuntimeDocumentRegistration::new(implementation, format, loader)`, then attach a simulation factory or live executor factory as applicable. Compose that record onto the adapter with `with_runtime_document`. The [native installation instructions](/docs/contributing/procedures#install-the-native-contribution) apply to both CLI and SDK builds.
+
+## Keep the reviewed boundary intact
+
+Runtime validates the plan and child-document digests before execution. The executor must consume the exact reviewed payload and Asset binding. A retry or resume must not silently substitute a program, profile, or instrument.
+
+Simulation should exercise the same document shape and observable sequencing. Device fakes and recorded responses can establish transport and failure behavior without physical hardware. Live execution is a distinct validation step with its own instrument and configuration evidence.
+
+## Understand the measurement gap
+
+The [Byonoy bridge](https://github.com/lab-lang/lab/blob/master/crates/lab-instruments/src/plate_reader/byonoy.rs) can return typed `PlateData`. The current executor interface returns completion and progress events; it does not expose a general typed result-output API that binds measurements to workflow acceptance.
+
+A complete measurement contribution therefore needs a versioned request contract, reviewed output identities, result persistence and attribution to the run and material, and the downstream acceptance behavior. Those are open implementation work, rather than an existing callback a contributor can fill in. The [Byonoy reference](/docs/backends/byonoy-absorbance96) lists the present device support.
+
+For a first contribution here, a focused loader, executor failure case, or recorded-response test provides a smaller, independently reviewable result. Changes to the general measurement-output contract should state the intended identities and persistence behavior before expanding into driver-specific code.
+
+## Verify and finish the contribution
+
+The existing EBEF runtime acceptance test exercises explicit reviewed simulation documents, digest-bound resume, and provenance:
+
+```shell
+cargo test --locked -p lab-runtime --test ebef_acceptance
+```
+
+It uses a test registry and synthetic inventory. It establishes runtime behavior rather than general compiler support for every simulated capability. Use it as a model for a focused fixture covering your loader and executor.
+
+Include the reviewed input, expected events and completion behavior, one failure or resume case, and the observed result. State which evidence comes from a fake device, simulation, or a physical instrument. Update the adapter's service declarations and [status documentation](/docs/status) to match the implemented path.

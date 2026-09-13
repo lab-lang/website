@@ -50,43 +50,39 @@ Verified declarations
 This is verified portable module IR; no laboratory target was
 selected or executed.`
 
-const protocolIr = `builtin.module @reporter
+const allocatedLair = `builtin.module @lab_build
 {
   ^block1v1():
-    sequence_v0 = design.dna_sequence () [] [
-      sequence_name: builtin.string "reporter_sequence",
-      elements: builtin.string "ACGTACGT"]:
-      <() -> (design.dna_sequence)> !0;
-
-    design_v1 = design.plasmid (sequence_v0) [] [
-      artifact_name: builtin.string "reporter",
-      topology: design.topology Circular,
-      exact_sequence_required: builtin.bool true,
-      acceptance_minimum_concentration_ng_per_ul: <100: ui32>,
-      acceptance_minimum_volume_ul: <20: ui32>]:
-      <(design.dna_sequence) -> (design.artifact)> !1;
-
-    cells_v2 = protocol.provision () [] [
-      item: builtin.string "DH5alpha"]:
-      <() -> (protocol.material CompetentCells)> !2;
-
-    fragments_v3 = protocol.synthesize (design_v1) [] []:
-      <(design.artifact) -> (protocol.material LinearDna)> !3;
-
-    construct_v4 = protocol.assemble (fragments_v3) [] []:
-      <(protocol.material LinearDna)
-        -> (protocol.material CircularDna)> !4;
-
-    culture_v5 = protocol.transform (construct_v4, cells_v2) [] []:
-      <(protocol.material CircularDna,
-        protocol.material CompetentCells)
-        -> (protocol.material TransformedCulture)> !5
+    lair.stage () [] [stage: builtin.string "allocated-procedure"];
+    allocation.context () [] [
+      facility: builtin.string "https://example.org/facility",
+      inventory_sha256: builtin.string "…"];
+    allocation.method () [] [
+      selected_method: builtin.string
+        "https://www.lab-compiler.org/ns/method#automated-golden-gate",
+      selected_source_operation: builtin.string "std.bio.build.realize"];
+    reaction = procedure.task (design) [] [
+      operation: builtin.string
+        "https://www.lab-compiler.org/ns/procedure#SetupGoldenGateReaction"]:
+      <(design.artifact) ->
+        (procedure.material <"https://www.lab-compiler.org/ns/material-state#AssemblyReaction">)>;
+    capability.requirement () [] [
+      capability_kind: builtin.string
+        "https://sbol.io/ns/capability#LiquidHandling",
+      minimum_qualification: builtin.string
+        "https://sbol.io/ns/facility#Plannable"];
+    allocation.binding () [] [
+      bound_offering: builtin.string
+        "https://example.org/opentrons_ot2_liquid_handling",
+      bound_asset: builtin.string "https://example.org/opentrons_ot2",
+      adapter_driver: builtin.string "opentrons.ot2"]
 }`
 
 const ot2Python = `def run(protocol: protocol_api.ProtocolContext) -> None:
     profile = PLAN["deck"]
     deck = profile["deck"]
     stage = profile["stages"]["assembly"]
+    execution = PLAN["execution"]
 
     temperature = cast(
         protocol_api.TemperatureModuleContext,
@@ -112,61 +108,42 @@ const ot2Python = `def run(protocol: protocol_api.ProtocolContext) -> None:
     temperature.set_temperature(4)
     thermocycler.open_lid()
 
-    source_wells = PLAN["assembly_source_wells"]
-    for construct in PLAN["assemblies"]:
-        chemistry = construct["chemistry"]
-        part_volume = chemistry["part_volume_ul"]`
+    for destination_name in execution["reaction_wells"]:
+        destination = reaction_plate[destination_name]
+        for addition in execution["additions"]:
+            pipette.transfer(
+                addition["volume_ul"],
+                sources[addition["source_well"]],
+                destination,
+                new_tip="always",
+            )`
 
-const benchProtocol = `# Lab automated plasmid build — manual protocol
+const benchProtocol = `# Golden Gate reaction setup
 
-> Concept protocol generated for \`opentrons.ot2\`. Review and qualify it for the actual laboratory before execution.
+> Procedure task allocated to \`https://example.org/opentrons_ot2\` through the \`opentrons.ot2\` adapter. Review and qualify it for the actual laboratory before execution.
 
-## Build summary
+## Exact allocation
 
-- Plasmids assembled: 1
-- Strains built: 0
-- Workflow: Golden Gate assembly → heat-shock transformation → serial dilution and selective plating
-- Opentrons API level: 2.21
+- Capability: \`https://sbol.io/ns/capability#LiquidHandling\`
+- Offering: \`https://example.org/opentrons_ot2_liquid_handling\`
+- Control mode: \`ReviewedFileControl\`
+- Reaction well: A1
+- Final reaction volume: 20 µL
 
-## Stage 1 — Golden Gate assembly
+## Material additions
 
-Keep DNA and enzymes cold. For every reaction, add reagents in the order shown.
-
-### reporter
-
-- Reaction wells: A1
-- Final sequence length: 8 bp
-
-| Reagent | Volume per reaction |
-| --- | ---: |
-| Nuclease-free water | 2 µL |
-| T4 DNA ligase buffer | 2 µL |
-| T4 DNA ligase | 4 µL |
-| BsaI | 2 µL |
-| pSB1C3 backbone | 2 µL |
-| J23101 | 2 µL |
-| B0034 | 2 µL |
-| GFP | 2 µL |
-| B0015 | 2 µL |
-| **Total** | **20 µL** |
-
-Run 75 cycles of 37 °C for 2 min and 16 °C for 5 min; then 50 °C for 5 min, 80 °C for 10 min, and hold at 4 °C.
-
-## Stage 2 — Heat-shock transformation
-
-Load the DNA plate as shown, then for each reaction combine that strain's cells and plasmid DNA in the volumes listed below.
-
-| Strain | Host | Plasmids | DNA wells | Culture destination | Cells (µL) | DNA per plasmid (µL) | Recovery medium (µL) |
-| --- | --- | --- | --- | --- | ---: | ---: | ---: |
-
-## Stage 3 — Serial dilution and plating
-
-| Strain | Selection | Culture | Dilution wells | Agar wells by dilution | Culture transfer (µL) | Colony transfer (µL) |
-| --- | --- | --- | --- | --- | ---: | ---: |
+| Role | Exact source | Volume |
+| --- | --- | ---: |
+| Water | \`nuclease_free_water_lot\` | 2 µL |
+| Buffer | \`T4_DNA_ligase_buffer_lot\` | 2 µL |
+| Ligase | \`T4_DNA_ligase_lot\` | 4 µL |
+| Restriction enzyme | \`BsaI_lot\` | 2 µL |
+| Backbone | \`pSB1C3_lot\` | 2 µL |
+| Components | four exact part lots | 8 µL |
 
 ## Execution boundary
 
-This concept spike allocates one 96-well reaction plate, one DNA plate, one dilution plate, one agar plate, and 24-well source racks. It does not resolve inventory lots, verify DNA concentrations, design overhangs, domesticate internal restriction sites, or qualify the protocol for a specific lab.`
+This document covers one exact allocated Requirement. Thermal cycling, transformation, recovery, dilution, and plating remain separate Procedure tasks with their own bindings and reviewed documents.`
 
 export const stages: Stage[] = [
   {
@@ -205,29 +182,29 @@ export const stages: Stage[] = [
     filename: 'reporter.ir',
     headline: 'Meaning survives lowering',
     description:
-      'LAIR, the Lab Automation Intermediate Representation, is where meaning survives specialization: a design layer for artifact intent, a workflow layer for target-neutral realization, and a protocol layer for target-selected operations. Every material value is typed, and the verifier requires that each has at most one consumer. This is the textual form `lab-opt` parses, verifies, and runs passes over.',
+      'LAIR, the Lab Automation Intermediate Representation, is where meaning survives specialization. Method alternatives carry Procedure dataflow and first-class Capability requirements into one joint facility solution; Allocated Procedure freezes the exact Method, material, offering, Asset, and adapter bindings before device lowering.',
     language: 'ir',
-    body: protocolIr,
+    body: allocatedLair,
   },
   {
     id: 'ot2',
-    emit: '--emit opentrons-assembly',
+    emit: 'lab build',
     label: 'OT-2',
-    filename: 'assembly_protocol.py',
+    filename: 'automation_protocol.py',
     headline: 'Compiled to a liquid handler',
     description:
-      'The Opentrons backend consumes only verified protocol operations. It allocates deck wells, picks labware and pipettes, and emits Python at API level 2.21 that is checked against the official Opentrons simulator.',
+      'Facility allocation binds a semantic requirement to an exact qualified OT-2 offering and Asset. The explicitly bound Opentrons adapter allocates deck wells, applies the checked profile, and emits reviewed Python at API level 2.21.',
     language: 'python',
     body: ot2Python,
   },
   {
     id: 'bench',
-    emit: '--emit manual-protocol',
+    emit: 'lab build',
     label: 'Bench',
-    filename: 'manual_protocol.md',
+    filename: 'manual_protocol.pdf',
     headline: 'Or instructions a person can use',
     description:
-      'The same verified operations render as instructions for a human, with reaction tables and thermocycler settings. A lab without a robot runs the identical program.',
+      'The same exact allocated task renders as an operator document with its Requirement, offering, Asset, materials, parameters, and execution boundary. Manual and automated tasks remain distinct nodes in one reviewed facility plan.',
     language: 'markdown',
     body: benchProtocol,
   },

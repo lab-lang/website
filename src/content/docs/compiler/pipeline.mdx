@@ -1,91 +1,146 @@
 ---
-title: Compiler pipeline
-eyebrow: Compiler
-description: A design becomes a workflow, a workflow becomes a protocol, and a protocol becomes instructions for a person or a robot.
-group: Toolchain
+title: Compiler architecture
+eyebrow: Compiler reference
+description: How checking, protocol documents, and optional automation fit together, with concrete boundaries for contributors.
+group: Compiler reference
 order: 210
 ---
 
-The pipeline is one idea applied repeatedly: take a description of what
-should exist and make it progressively more concrete until something in the
-world can act on it. A `.lab` file describes a **design**: an artifact, the
-constraints it must satisfy, the evidence that would prove it worked.
-Lowering restates that design as a **workflow**: the materials that must
-move through a build for the artifact to exist, with no opinion yet about
-who or what performs any step. Selecting a target turns the workflow into a
-**protocol**: the same build committed to concrete methods on a specific
-instrument. A backend then turns the protocol into its runnable forms: a
-typeset document a person follows at the bench, a program a robot runs, or
-both from the same compilation.
+import { CompilerFlow } from '@/components/docs/compiler-flow'
 
-Each of those transitions is a stage with a name you can ask for on the
-command line, so specialization decisions stay visible rather than implied
-by a library default.
+Lab's purpose is to help scientists describe experiments, check protocols, and produce beautiful documents for people to read and use. The architecture should make those outcomes useful on their own. Automation adds another use for the same scientific description when suitable Methods and equipment are available.
 
-| Stage   | Produces                   | What happens                                                                                                                                                                                    |
-| ------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Parse   | Spanned source AST         | Surface syntax becomes a tree with byte offsets attached, for diagnostics.                                                                                                                      |
-| Check   | `CheckedModule`            | Imports resolve, types check, action contracts resolve, and affine material flow is verified. This is the portable source-compilation boundary: the last point that knows source syntax at all. |
-| Lower   | `PortableLairProgram`      | The checked module becomes LAIR, the Lab Automation Intermediate Representation: a Design layer for artifact intent, a Workflow layer for target-neutral realization.                           |
-| Select  | `ProtocolLairProgram`      | Workflow operations are replaced by Protocol operations and fully eliminated. Material linearity is re-verified at this mandatory backend boundary.                                             |
-| Compile | A backend's `Program` type | A backend consumes verified Protocol operations and plans an execution: for either Opentrons bench, deck, well, and labware allocation.                                                         |
-| Emit    | `ArtifactBundle`           | The backend's plan becomes files: generated Python for a robot, and a typeset PDF protocol for a person, rendered through Typst from the same plan.                                             |
+The common foundation is a checked protocol. Scientific packages define what actions mean; the compiler checks their types, contracts, and material ownership. Document generation presents laboratory work to a person. For facility planning and automation, Methods describe physical implementations, the compiler chooses compatible resources, and adapters translate the assigned work into device files.
 
-## Two boundaries worth knowing by name
+<span id="from-an-experiment-to-a-reviewed-run" />
 
-`CheckedModule` is the portable frontend boundary. Everything before it knows
-source syntax; nothing after it does. `lab-compiler` never re-parses source
-outside one file, `source_lowering.rs`, whose entire job is reading
-`CheckedModule` and nothing else.
+## One protocol, several uses
 
-`ProtocolLairProgram` is the mandatory backend boundary. No backend receives
-anything less specialized than this: by the time a backend sees a program,
-every workflow operation has already been replaced by a protocol operation,
-and material linearity has already been checked twice: once when Workflow
-LAIR verifies, and again after Protocol selection.
+Checking, documentation, and automation serve different needs. A contributor can improve one without implementing the others. The map below shows how they fit together; the following sections explain the current code boundaries.
 
-## One boundary, two frontends
+<CompilerFlow />
 
-The frontend boundary is what makes the compiler's inputs plural.
-Everything downstream of `CheckedModule`, which is LAIR, its verification,
-target selection, and every backend, neither knows nor cares what syntax the
-module was written in. Any frontend that produces a `CheckedModule` inherits
-the whole pipeline.
+**Checking** establishes meaning and consistency without requiring a facility or an executor. **Document generation** makes the protocol readable and usable by people. The optional facility path introduces further decisions: **refinement** describes possible implementations, **allocation** commits to resources, **device lowering** generates files, and **runtime** executes supported reviewed files.
 
-Two frontends target that boundary. Python is where most experiments are
-written, because it is the language a laboratory already has code in. Lab is
-the native language, and the one the checker's vocabulary is built around.
-Both produce the same `CheckedModule`, so neither is a wrapper over the
-other and nothing downstream can tell them apart.
+Lab's internal representation, **LAIR**, carries scientific meaning through compiler transformations, including refinement and allocation. Its detailed forms are covered in [LAIR and compiler boundaries](/docs/compiler/lair-dialects); you do not need them to author a Python Method or instrument profile.
 
-SBOL is not a third frontend. It is the vocabulary designs are exchanged in,
-and both frontends speak it: the type system grounds parts and roles in the
-ontologies SBOL names, and the Python frontend provides typed design builders
-over pySBOL3 while reading LOICA circuits. The builders keep biological design
-separate from explicit `build` or `buy` provenance, then materialize and
-validate the document during module compilation. So a design can arrive from
-a registry and leave for one without SBOL being a separate way into the compiler.
+## Protocol documents
 
-## Stage names, concretely
+A protocol document is an output for the scientist: something to review with a colleague, share with another laboratory, or follow at the bench. Clear structure, scientific context, and good typography belong in the compiler's product architecture.
 
-LAIR itself moves through three named stages, and mixing operations from two
-non-adjacent stages in the same module is rejected outright:
+The existing implementation produces typeset operator documents and manual run sheets from facility builds. In `lab-adapters`, a format-neutral document model holds headings, paragraphs, tables, and notices. A Typst renderer and shared style sheet control their presentation. `lab-project` writes the document bundle, and the CLI renders its Typst sources to PDF. The sources remain editable alongside the PDFs.
 
-- `Design`: artifact intent only (`design.plasmid` and similar).
-- `DesignWorkflow`: Design plus target-neutral Workflow operations
-  (`workflow.realize`, `workflow.provision`, and so on).
-- `TargetSelectedProtocol`: Design plus Protocol operations. Workflow
-  operations must be completely gone by this point; a module holding both
-  Workflow and Protocol operations at once fails to verify.
+This provides distinct contribution boundaries. Improving typography starts in the [Typst style sheet](https://github.com/lab-lang/lab/blob/master/crates/lab-adapters/src/backend/typst/templates/lab-style.typ). Changing what an operator document says starts with its producer and the [document model](https://github.com/lab-lang/lab/blob/master/crates/lab-adapters/src/backend/document.rs). PDF compilation lives in the [CLI typesetter](https://github.com/lab-lang/lab/blob/master/crates/lab-cli/src/typeset.rs). None of those changes requires adding a device executor.
 
-You can ask for the intermediate representation directly at almost any of
-these points with `labc --emit`:
+The next architectural step is a direct document path from a checked protocol, independent of facility allocation. It should preserve scientific context, branches, conditions, and acceptance criteria for a human reader, with equipment-specific instructions added when requested. Today's facility-generated documents are the starting implementation for that broader goal.
 
-```shell
-labc reporter.lab --emit source-ast
-labc reporter.lab --emit module-ir
-```
+## Follow one Method through the compiler
 
-See [CLI reference](/docs/compiler/cli-reference) for the full table of
-`--emit` targets, and [LAIR dialects](/docs/compiler/lair-dialects) for what
-the Design, Workflow, and Protocol operations actually look like.
+The [homogenization example](https://github.com/lab-lang/lab/blob/master/examples/contributing/scientific-package/methods/homogenize.py) makes the boundaries concrete. Its scientific action consumes a sample and returns prepared material. Its Method implements that action by transferring the sample into a product vessel and mixing it.
+
+The author starts with `from lab.procedures import pipetting as p`. Python constructs a template with logical vessels, volumes, and a continuous fluid path. The author attaches it to a Method and writes a `lab.method-catalog.v2` JSON document. The package loads that catalog through `[methods]` in `lab.toml`.
+
+During refinement, Rust binds the task's parameters, validates the resulting pipetting program, and derives its capability requirements. The program still names logical locations. It has not chosen a particular instrument, material lot, plate, or well.
+
+The checked-in consumer demonstrates this portable part of the path. To proceed to device files, a consuming project must also supply a facility inventory and compatible adapter bindings. Planning selects resources; the chosen adapter assigns physical locations and emits the instrument's representation of the operations.
+
+That is the intended reuse: a new scientific Method can use the existing pipetting contract and compatible adapters. The adapter implements the physical operations, so it does not need a new biological recipe branch for every action name. See [Write a pipetting method](/docs/toolchain/python-procedures) for the complete code and checks.
+
+<span id="method-selection-and-facility-allocation-are-one-decision" />
+
+## Choose Methods and resources together
+
+An action can have several valid Methods, and a Method can contain several tasks. The compiler must consider the entire graph before choosing one.
+
+For example, Golden Gate reaction setup needs liquid handling, while thermal cycling is a separate task. One facility may offer both on an OT-2. Another may offer liquid handling on a STAR and thermal cycling on an ODTC. The Method describes the tasks and their material dependency; allocation chooses compatible resources for both.
+
+Refinement builds these alternatives without a facility. The solver then combines them with the validated inventory, available material lots, adapter bindings, and manifest policy. Adapters contribute a read-only feasibility check so the solver can reject work a configured instrument cannot realize.
+
+A successful solution identifies the selected Methods, material sources, capability offerings, Assets, and adapters. No complete solution means a planning failure with an explanation. Equally valid complete solutions require an explicit pin or distinguishing policy; candidate order does not decide the experiment.
+
+This is allocation, not a general laboratory scheduler. Independently generated task files still require staging, and logical material lineage does not automatically carry well locations or liquid classes between files. See [Facility planning](/docs/compiler/facility-planning) for configuration and current limits.
+
+<span id="the-layers-and-their-owners" />
+
+## Where the code lives
+
+The product called the Lab Compiler spans several crates. The `lab-compiler` crate owns the transformations and their invariants. The `lab-project` crate composes them with packages, facility planning, and adapters for the CLI and Python SDK.
+
+| Boundary                                  | Code to read                                                                                                                                                                                                                                 |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Source meaning and checking               | [`lab-language`](https://github.com/lab-lang/lab/tree/master/crates/lab-language/src)                                                                                                                                                        |
+| Methods, Procedure contracts, and LAIR    | [`lab-compiler`](https://github.com/lab-lang/lab/tree/master/crates/lab-compiler/src)                                                                                                                                                        |
+| Inventory validation and resource solving | [`lab-inventory`](https://github.com/lab-lang/lab/tree/master/crates/lab-inventory/src) and [`lab-facility`](https://github.com/lab-lang/lab/tree/master/crates/lab-facility/src)                                                            |
+| Shared application operations             | [`lab-project/application.rs`](https://github.com/lab-lang/lab/blob/master/crates/lab-project/src/application.rs)                                                                                                                            |
+| Adapter callbacks and implementations     | [`lab-adapter-api`](https://github.com/lab-lang/lab/tree/master/crates/lab-adapter-api/src) and [`lab-adapters`](https://github.com/lab-lang/lab/tree/master/crates/lab-adapters/src)                                                        |
+| Protocol content and typography           | [`document.rs`](https://github.com/lab-lang/lab/blob/master/crates/lab-adapters/src/backend/document.rs) and the [Typst template](https://github.com/lab-lang/lab/blob/master/crates/lab-adapters/src/backend/typst/templates/lab-style.typ) |
+| PDF rendering                             | [`lab-cli/typeset.rs`](https://github.com/lab-lang/lab/blob/master/crates/lab-cli/src/typeset.rs), supplied through `lab-project`'s `FacilityDocumentRenderer`                                                                               |
+| Reviewed documents and execution          | [`lab-runfmt`](https://github.com/lab-lang/lab/tree/master/crates/lab-runfmt/src) and [`lab-runtime`](https://github.com/lab-lang/lab/tree/master/crates/lab-runtime/src)                                                                    |
+
+To follow one application call, start at `ProjectCompilation::load` and `plan` in `application.rs`. [`facility.rs`](https://github.com/lab-lang/lab/blob/master/crates/lab-project/src/facility.rs) lowers the entry, refines Methods, extracts the planning problem, calls the solver, applies the solution, and projects adapter invocations. [`artifacts.rs`](https://github.com/lab-lang/lab/blob/master/crates/lab-project/src/artifacts.rs) lowers those invocations and writes the reviewed bundle.
+
+The CLI and Python planning API use this shared service. An integration should enter through it rather than reproduce the sequence of compiler passes. `ProjectContext` supports embedders that supply checked modules themselves.
+
+<span id="stable-boundaries-around-mutable-ir" />
+
+## How contributions plug in
+
+There are two installation mechanisms today: package data loaded by the application, and native code composed into its build.
+
+### Scientific packages and Python Methods
+
+A package contributes declarations and portable Method catalogs. Generated Python bindings expose the declarations to Python workflows. A Python author generates the Method JSON using the installed SDK, and Rust validates it when loading and refining the package.
+
+Adding or changing a Method using an existing Procedure contract needs no native registration. The compiler loads its catalog; it does not automatically execute the Python authoring script. Start with [scientific vocabulary](/docs/contributing/scientific-packages) or [pipetting Methods](/docs/toolchain/python-procedures).
+
+### Procedure builders and contracts
+
+A **builder** is a Rust callback that constructs a Procedure program from checked task data during refinement. Use one when the algorithm needs that data to decide the shape of its operations.
+
+A **contract** defines what a kind of physical program means: its payload, material interface, validity rules, required capabilities, and features. Pipetting and thermal programs have existing contracts. New physical semantics require a contract and a compatible implementation before they can reach an instrument.
+
+Both register through `ProcedureCompiler`. The [Procedure contribution path](/docs/contributing/procedures) shows a working builder and explains when a new contract is necessary.
+
+### Adapters and execution
+
+An adapter supplies a descriptor, profile validation, planning feasibility, and a lowering callback through `lab-adapter-api`. Its lowerer receives immutable allocated tasks and the exact invocation assigned to it. It preserves the selected Method, material sources, offerings, and Asset while choosing device details such as wells and command sequences.
+
+File generation and execution are separate integrations. A runtime contribution supplies loaders and executors for reviewed document formats. Device command encoding and transport usually live in the corresponding driver repository. See [Implement an adapter](/docs/contributing/adapters) and [Add execution support](/docs/contributing/execution).
+
+### Native composition is explicit
+
+[`application_extensions()`](https://github.com/lab-lang/lab/blob/master/crates/lab-project/src/extensions.rs) is the shared composition point for the installed CLI and SDK. Its two fields hold the adapter registry and the Procedure compiler. A contributor adds a crate dependency, composes its registration there, and rebuilds the consumers. An embedding application can pass its own `ApplicationExtensions` to `load_with_extensions`.
+
+These are statically linked Rust integrations. Installing a Python package or placing a crate on disk does not add native callbacks to an existing compiler binary. The current contribution guides make that build step explicit.
+
+<span id="lair-and-pliron" />
+
+## Why these boundaries matter
+
+LAIR is mutable compiler state built on Pliron, the Rust infrastructure for operations, dataflow, and verification. Its contexts and internal references stay inside compiler transformations. Contributors exchange typed records and versioned documents at the boundaries.
+
+Each handoff narrows what the next component may decide. The solver returns a complete selection that the compiler revalidates against the original problem. An adapter realizes its allocated work. Runtime validates the frozen plan and child-document digests before execution, then records the run against those identities. A resource substitution requires a new plan and review.
+
+The versioned formats are development contracts with validation, not a promise of a permanently stable plugin ABI. [LAIR and compiler boundaries](/docs/compiler/lair-dialects#documents-at-the-boundaries) lists the current document formats and their owners.
+
+## Where the architecture is heading
+
+The direction is a compiler whose scientific vocabulary, protocol documents, and optional automation grow through contributions at clear boundaries. A direct path from checked protocols to human-readable documents is a priority alongside broader scientific and device support. The next work should make these contributions possible while keeping ownership explicit.
+
+### Broader science through reusable contracts
+
+The Python pipetting API and portable Method catalogs provide the first approachable authoring path. Further Methods can reuse existing operations. New physical domains need equally clear contracts, authoring interfaces, examples, and adapter implementations. A recognized action or capability name alone does not provide that support.
+
+### Measurements connected to decisions
+
+Runtime records provenance and evidence attachments today. General instrument results still need a typed path back to workflow values and acceptance checks. That work must define result meaning, task attribution, and validation as well as the device read itself.
+
+### Reactive workflows that can run
+
+The language can check state, branching, loops, triggers, and events. Runnable lowering currently rejects them. The next architecture must preserve their control flow and durable execution semantics through compilation and runtime before the reactive examples become executable.
+
+### Coordination across a facility
+
+Allocation selects exact resources, and runtime executes a reviewed dependency graph. General reservations, time-based scheduling, consumable depletion, physical staging between tasks, and rescheduling remain separate work. They must carry resource and material identity through any new decisions.
+
+These are architectural directions, not implemented services. [Status](/docs/status) tracks support today; the [contribution paths](/docs/toolchain/contributing) identify work that can begin from existing examples.

@@ -5,10 +5,10 @@ import { ClosingNote, SectionBody, SectionIntro } from '@/components/section'
 import { REPO_URL } from '@/lib/site'
 
 const gaps = [
-  'The durable workflow runtime does not exist yet, so nothing replays today.',
-  'Two backends, both Opentrons, and generated protocols are a compiler spike a laboratory must verify before running.',
-  'The language and its intermediate representations are still changing.',
-  'Packages resolve by path only. There is no registry, and no lockfiles.',
+  'The compiler architecture is connected, but the portable Method and Procedure library covers only a narrow biological slice.',
+  'The working automated biology path is a bounded Golden Gate vertical slice, not a general laboratory method library.',
+  'Only selected STAR and ODTC paths have live executors; every physical procedure still requires local review and qualification.',
+  'Packages resolve by path only. There is no package registry or registry integrity resolution yet.',
 ]
 
 export function GapsSection() {
@@ -19,7 +19,7 @@ export function GapsSection() {
           <div>
             <SectionIntro
               kicker="The other side"
-              lede="If you need to move liquid this week, use one of the tools above. Lab is a v0.1.0 prototype: it checks more and runs less. It is worth your time if the checking is the part you have been missing."
+              lede="Lab now demonstrates the complete facility-aware shape, but its breadth is still narrow. Use it to develop, inspect, simulate, and qualify integrations; do not mistake a supported capability IRI or typed driver for a production-ready laboratory method."
               ledeClassName="mt-6 text-[15px] leading-[1.72]"
               title="Reasons not to use Lab yet."
               titleClassName="text-[clamp(1.9rem,3.6vw,2.9rem)]"

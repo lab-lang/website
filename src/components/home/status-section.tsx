@@ -11,19 +11,23 @@ const shipped = [
   'Parsing, resolution, and type checking',
   'Typed portable module IR',
   'Action contracts and affine material flow',
-  'LAIR dialects with a verified protocol boundary',
+  'Typeset operator documents and manual run sheets from facility builds',
+  'Method, Procedure, Capability, and Allocation LAIR',
+  'Validated SBOLInventory facilities and exact MaterialLot binding',
+  'Joint Method and facility allocation to exact offerings and Assets',
+  'Exact-task adapter invocations and reviewed execution plans',
+  'Dry-run, simulation, durable ledgers, and run provenance',
   'Editor support over LSP and WebAssembly',
-  'Opentrons OT-2, Opentrons Flex, and Hamilton STAR backends',
-  'Workcell targets: a liquid handler, its instruments, and the handoffs between them',
-  'Typed drivers for the Byonoy Absorbance 96 and the Inheco ODTC',
+  'OT-2, Flex, STAR, ODTC, and semantic simulation adapters',
 ]
 
 const pending = [
-  'The durable workflow runtime',
-  'Resource-aware workflow lowering',
-  'Live inventory, lots, and provenance',
-  'External package resolution and lockfiles',
-  'Instrument scheduling across a running workcell',
+  'Protocol documents directly from checked source, without facility planning',
+  'Broad portable Method and Procedure libraries',
+  'Reactive workflow execution and measurement-driven decisions',
+  'Dynamically loaded external adapters',
+  'Live inventory reservation and facility scheduling',
+  'External package registry and integrity resolution',
   'Cloud labs',
 ]
 
@@ -44,16 +48,16 @@ export function StatusSection() {
           <div className="reveal" data-shown={inView} ref={ref}>
             <SectionIntro
               kicker="Where this stands"
-              lede="The language and its intermediate representations are still changing, and the durable workflow runtime has not been built. Generated protocols are a compiler concept spike: a laboratory must verify and qualify them before anything is executed."
+              lede="Lab checks designs and protocols in Python and Lab. Facility builds produce typeset documents for people and device files for supported instruments. The next work broadens scientific vocabulary, makes document generation independent of facility planning, and extends optional automation."
               ledeClassName="mt-6 text-[15px] leading-[1.72]"
               title="Current state of the Lab."
               titleClassName="text-[clamp(1.65rem,3.6vw,2.9rem)]"
             />
             <Link
               className="press mt-8 inline-flex items-center gap-2 rounded-xl bg-ink px-5 py-3 text-[14px] text-paper shadow-[0_10px_24px_-8px_rgb(43_28_17_/_0.5)]"
-              to="/docs"
+              to="/docs/status"
             >
-              See what the language covers
+              See current support
               <ArrowRight aria-hidden="true" size={16} />
             </Link>
           </div>

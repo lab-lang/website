@@ -6,8 +6,8 @@ import { SectionBody, SectionIntro } from '@/components/section'
 const references = [
   { to: '/docs/compiler/pipeline', label: 'The compiler pipeline' },
   {
-    to: '/docs/compiler/lair-dialects',
-    label: 'LAIR dialects and the protocol boundary',
+    to: '/docs/compiler/facility-planning',
+    label: 'Facility planning and asset bindings',
   },
   {
     to: '/docs/backends/opentrons-ot2',
@@ -26,8 +26,8 @@ export function InstrumentsSection() {
         <SectionIntro
           className="max-w-3xl"
           kicker="For whoever wires the instruments"
-          lede="Backends never see source. They consume verified protocol operations across a typed boundary, which means adding an instrument is implementing that boundary rather than reimplementing the language. Everything above it arrives intact: the type checking, the affine material-flow verifier, the acceptance coverage. Two benches consume that boundary today. The OT-2 emits Python and the Flex emits JSON protocols, from one program and one plan, each checked against Opentrons' own analyzer. Hamilton STAR is next, and it is the one that leaves the Opentrons family."
-          title="A new machine is a compiler target."
+          lede="The facility graph says which Assets exist and which qualified capabilities they offer. The compiler allocates semantic requirements to exact offerings, then invokes only adapters explicitly bound to those Assets. Adding an instrument extends that boundary without reimplementing the language or inventing another target model."
+          title="The facility is the target. Adapters implement its Assets."
           tone="dark"
         />
 

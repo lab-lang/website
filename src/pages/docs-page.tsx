@@ -7,7 +7,11 @@ import { DocsPagePicker } from '@/components/docs/docs-page-picker'
 import { DocsSidebar } from '@/components/docs/docs-sidebar'
 import { mdxComponents } from '@/components/docs/mdx-components'
 import { useDocToc } from '@/components/docs/use-doc-toc'
-import { DEFAULT_DOC_SLUG, docPages, getDocPage } from '@/lib/docs-content'
+import {
+  DEFAULT_DOC_SLUG,
+  getDocNavigation,
+  getDocPage,
+} from '@/lib/docs-content'
 import { pageTitle } from '@/lib/site'
 import { usePageMeta } from '@/lib/use-page-meta'
 
@@ -28,14 +32,16 @@ export function DocsPage() {
 
   if (!page) return <DocNotFound slug={slug} />
 
-  const index = docPages.findIndex((entry) => entry.slug === slug)
-  const prev = index > 0 ? docPages[index - 1] : undefined
-  const next = index < docPages.length - 1 ? docPages[index + 1] : undefined
+  const { prev, next } = getDocNavigation(page)
   const { Component, frontmatter } = page
 
   return (
     <div className="mx-auto grid max-w-[1480px] px-5 sm:px-8 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-14 lg:px-10">
-      <DocsSidebar active={active} slug={slug} toc={toc} />
+      <DocsSidebar
+        active={active}
+        slug={slug}
+        toc={frontmatter.toc === false ? [] : toc}
+      />
 
       <article className="min-w-0 py-10 sm:py-14 lg:py-16" ref={articleRef}>
         <DocsPagePicker slug={slug} />

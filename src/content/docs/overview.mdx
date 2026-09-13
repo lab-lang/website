@@ -1,29 +1,20 @@
 ---
-title: Overview
-eyebrow: Documentation
-description: Describe a plasmid, what must be true of it, and how you'd know it worked. Lab handles the rest.
-group: Learn Lab
-order: 10
+title: Describe an experiment
+eyebrow: Start here
+description: A tour of designs, workflows, and evidence in Python and Lab.
+group: Start here
+order: 20
 ---
 
-import { Callout } from '@/components/docs/callout'
 import { CodeSwitch } from '@/components/docs/code-switch'
 
-Lab is a compiler toolchain for the laboratory. You describe an experiment
-precisely enough that the compiler can check it and a laboratory, whether
-that's a person at a bench or a liquid-handling robot, can carry it out. You
-write down what a plasmid should be, the constraints it must satisfy before
-construction even starts, and the evidence that would prove it worked. The
-compiler checks that description for consistency, lowers it into LAIR, its
-intermediate representation, then, once a target is chosen, turns it into
-either a protocol a person can follow or a program a robot can run.
+Lab helps scientists describe experiments, check protocols, and produce beautiful documents that people can read, share, and use at the bench. Automation is an optional use of that description: when a part of the work can be automated and suitable equipment is available, the compiler can help prepare it for that equipment.
 
-The compiler accepts that description in two forms. Python is where most
-work starts, and Lab is the native language the checker is built around.
-Both are frontends onto the same checker and the same pipeline, so neither
-is a wrapper over the other. Every example on this page reads both ways, and
-the toggle on any code block switches all of them at once, with the choice
-following you across the site.
+An experiment has several parts: the design you want, the physical work to produce it, and the evidence you will use to judge the result. Lab gives those parts explicit meaning so the compiler can check types, action contracts, and how materials move through the protocol. Those checks are useful for manual work as well as automated work.
+
+You can author that description in Python or Lab. Both reach the same checked module model and compiler pipeline. The examples below show their corresponding forms; switching a code block changes the language shown across the site.
+
+This page introduces the authoring model. For a complete contribution you can modify and check today, start with [Write a pipetting method](/docs/toolchain/python-procedures). [Compiler architecture](/docs/compiler/pipeline) explains how checking, protocol documents, and optional automation fit together.
 
 SBOL is not a third way in. It is the vocabulary a design is written and
 exchanged in, and both frontends speak it: Lab grounds parts and roles in
@@ -36,7 +27,7 @@ package adds is what SBOL has no vocabulary for: artifact declarations,
 provenance, the acceptance claims a build is judged on, and the durable
 workflows that carry it out.
 
-A small project usually has a few files like these.
+## Describe the design
 
 A **design**, such as a plasmid, says what should exist and which claims
 must be supported by evidence:
@@ -129,6 +120,8 @@ package of your own can declare words the standard library never heard of.
 `across` says what a claim is believed on: three independent transformants,
 not three readings of one culture.
 
+## Describe material flow
+
 A **workflow** says how physical materials move through a build once a
 design exists. It can also react to the world instead of following a fixed
 script, waking on a timer and settling into a tagged result:
@@ -213,6 +206,8 @@ def grow_colonies(wf, plate: Material[Plate]) -> ColonyGrowth:
 ```
 
 </CodeSwitch>
+
+## Describe a genetic circuit
 
 A plasmid can also carry a reusable **circuit**, which says which signal it
 answers to and which protein it expresses. In Lab a circuit composes parts
@@ -320,9 +315,9 @@ writes `regulation = repressed` rather than making you compare two numbers
 to learn whether a circuit inverts. A plasmid carries the whole network as
 its `cargo`.
 
-A **program** ties designs, policies, and workflows together into something
-runnable, and reacts to what happens. This is the entry point a project
-actually builds:
+## Choose an entry workflow
+
+A **program** ties designs and workflows together around an entry point. This example describes what should happen when colonies are ready and when observation times out. The compiler checks the result types and material use across both branches:
 
 <CodeSwitch>
 
@@ -388,52 +383,20 @@ def main(wf) -> Material[Strain]:
 
 </CodeSwitch>
 
-You don't write instrument-specific steps anywhere in this. The compiler
-figures out the rest for whichever laboratory ends up running it.
+The workflow makes the experimental decision explicit and gives the compiler something meaningful to check. A scientist can read and review that decision whether the work will be carried out by hand, with instruments, or through a mixture of both.
 
-<Callout kind="note">
-  **Early prototype.** Parsing, checking, and an experimental Opentrons OT-2
-  backend exist today. The durable workflow runtime, the part that would
-  actually run a program against a real laboratory over time, does not.
-  Generated protocols must be reviewed and qualified before anyone executes
-  them.
-</Callout>
+When automation is useful, Methods supply physical operations for supported actions, facility planning selects compatible resources, and adapters generate the device files. The scientific description remains the shared starting point.
 
-## How these docs are organized
+<span id="how-these-docs-are-organized" />
 
-**Learn Lab**, starting with [Your first program](/docs/guide/first-program),
-covers designs, claims, material flow, and reactive workflows. That's most of
-this site, and where to start if you're new here. Its examples are written in
-Lab, because the language names these ideas in the fewest words, and each one
-has the Python form shown on this page: an `accept` claim is a predicate in
-`accept=[...]`, `<-` is `wf.perform`, and a typed SBOL design produces a
-validated pySBOL3 component underneath when its declaration is compiled.
+<span id="where-to-start" />
 
-Two smaller sections are for a different audience. **Toolchain** covers the
-compiler's internals, useful if you're contributing to it or want to
-understand how a design becomes a protocol. **Backends** covers adding
-support for a new instrument. Neither is required reading to write a
-program.
+<span id="what-exists-today" />
 
-## Where to start
+## Continue from here
 
-[Your first program](/docs/guide/first-program) walks through a real plasmid
-design end to end. If you'd rather try Lab directly, the
-[playground](/playground) runs the compiler in your browser with nothing to
-install.
+To add something to Lab, choose a [contribution path](/docs/toolchain/contributing). Each path starts from the files and interfaces relevant to that work. The Python Method path begins with `from lab.procedures import pipetting as p` and a runnable authoring example.
 
-## What exists today
+To learn the language, [Your first program](/docs/guide/first-program) walks through a plasmid project. The [playground](/playground) lets you try source checking in the browser. The Language guide explains designs, claims, and material flow in more detail.
 
-The toolchain parses and checks artifact kinds, designs, generic circuits,
-and workflows; verifies action contracts, material ownership, and the
-evidence a claim is believed on; and includes an initial Opentrons OT-2
-backend, checked against the real Opentrons simulator. Most of the standard
-library is itself written in Lab. Editor support (an LSP server and a
-WebAssembly API) gives a `.lab` file diagnostics, documentation on hover, and
-completions like any other language. The type system grounds parts and roles
-in the same ontologies SBOL uses. The durable workflow runtime, the part that
-would execute a program continuously against a real laboratory and react to
-what it observes, has not been built yet.
-
-[Status](/docs/status) tracks exactly what's implemented, feature by
-feature.
+The Compiler reference explains the architecture and its extension boundaries. The Instrument reference describes what each adapter can currently generate, simulate, or execute. [Status](/docs/status) keeps the implemented behavior and remaining work explicit.

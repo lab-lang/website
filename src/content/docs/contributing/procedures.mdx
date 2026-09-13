@@ -1,0 +1,105 @@
+---
+title: Extend Procedure semantics
+eyebrow: Contribution path · Rust
+description: Add a reusable refinement-time algorithm or define a new device-neutral physical operation contract.
+group: Contribution paths
+order: 140
+previous: toolchain/contributing
+next: null
+---
+
+Use this path when a Procedure needs an algorithm driven by checked action data during refinement, or when its physical semantics do not fit an existing contract. Ordinary pipetting templates can be [authored in Python](/docs/toolchain/python-procedures). This path owns native builders and contracts, with no need to work directly with Pliron or the facility solver.
+
+## Choose the contribution you need
+
+| Need                                                           | Contribution                      | Result                                                              |
+| -------------------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------- |
+| Different liquid operations or fixed repetition                | A Python template                 | An existing canonical pipetting program                             |
+| Program shape depends on the resolved action during refinement | A registered Rust builder         | An existing canonical Procedure program                             |
+| A new physical language, such as a measurement request         | A versioned contract and analyzer | A validated payload, material interface, capabilities, and features |
+
+A new algorithm using `PipettingProgramV1` needs no new contract. A new contract needs an adapter implementation before it produces device output.
+
+## Start with the registered builder
+
+The [pipetting-extension example](https://github.com/lab-lang/lab/blob/master/examples/contributing/pipetting-extension/src/lib.rs) is a complete standalone crate. Its registration associates an absolute builder IRI, the pipetting contract IRI, and a callback. A Method selects it with `BuilderExecution`.
+
+The callback receives `ProcedureProgramBuildContext`. This excerpt from the working builder shows the contribution itself:
+
+```rust
+fn homogenize(task: &ProcedureProgramBuildContext<'_>) -> Result<ProcedureProgram, String> {
+    task.require_io(1, 1)?;
+    task.require_material_roles(&[])?;
+    let volume = task.volume_parameter("sample_volume")?;
+    let mut program = PipettingBuilder::new();
+    let source = program.input("sample", 0, 1, volume.clone())?;
+    let product = program.product("prepared", task.output(0)?, 1)?;
+    {
+        let mut path =
+            program.continuous_path("sample-path", FluidPathPolicy::IsolatedDestinations)?;
+        path.transfer(
+            "move-sample",
+            source.position(0)?,
+            product.position(0)?,
+            &TransferSettings {
+                volume,
+                technique: Default::default(),
+            },
+        )?;
+        path.mix(
+            "mix-sample",
+            product.position(0)?,
+            &MixSettings {
+                cycles: task.integer_parameter("mix_cycles", None)?,
+                volume: task.volume_parameter("mix_volume")?,
+                technique: Default::default(),
+            },
+        )?;
+    }
+    Ok(ProcedureProgram::from_pipetting(&program.finish()?))
+}
+```
+
+The `?` operator returns a failed check to the caller. The inner block ends the fluid-path borrow before `finish()` validates the complete program. The vessel handles remain logical: no instrument, plate, or deck slot is chosen here. The linked crate supplies the imports and registration around this function.
+
+## Define a contract only when the semantics are new
+
+The contract boundary is [ProcedureContractRegistration](https://github.com/lab-lang/lab/blob/master/crates/lab-compiler/src/procedure/contract.rs). Its analyzer receives a JSON payload and returns `ProcedureContractAnalysis` after validating it.
+
+| Analyzer responsibility | What a contribution must establish                                        |
+| ----------------------- | ------------------------------------------------------------------------- |
+| Decode and validate     | The exact versioned payload shape and its physical invariants             |
+| Material interface      | Referenced task inputs, materials, outputs, and material-reference policy |
+| Capability formula      | Requirements derived from the actual program and their binding scope      |
+| Features                | Semantic operations an adapter must preserve                              |
+
+Use typed Rust payloads and the existing contract implementations as the model. Register the analyzer with `ProcedureCompiler::with_contract`. Keep capability derivation beside validation so a Method cannot independently assert weaker requirements than its program needs.
+
+The built-in contracts cover pipetting and thermal programs. A general measurement contract and its result path still require design and integration work; there is no complete out-of-tree measurement example to copy today.
+
+## Install the native contribution
+
+The CLI and Python SDK share [application_extensions](https://github.com/lab-lang/lab/blob/master/crates/lab-project/src/extensions.rs). To install your extension in that application:
+
+1. Add its crate dependency to `crates/lab-project/Cargo.toml`.
+2. Compose its builder or contract with the `procedures` registry in `application_extensions()`; an adapter uses the `adapters` registry.
+3. Rebuild the consuming CLI and development SDK.
+
+```shell
+cargo build --locked -p lab-cli
+cd crates/lab-python
+uv run --locked maturin develop --locked
+```
+
+Embedders can instead supply their own `ApplicationExtensions` through `load_with_extensions`. Native callbacks are statically linked. Installing a Python package or placing a crate on disk does not register one in an already-built compiler.
+
+## Verify and finish the contribution
+
+```shell
+cargo test --locked -p lab-project --test contributing
+cargo test --locked -p lab-compiler --test pipetting_authoring
+```
+
+The existing tests compare the registered homogenization builder with its declarative template, including decoded program and derived requirements, and reject missing registration and invalid units. Use the same pattern for an algorithm: ordinary valid inputs, a semantic failure, and equivalence to independently stated expected operations.
+
+For a new contract, include valid and rejected payloads, exact interface and capability expectations, and a consuming Method. State whether an adapter for the contract is included or remains separate. Continue to [Implement an adapter](/docs/contributing/adapters) when device lowering is the next contribution.

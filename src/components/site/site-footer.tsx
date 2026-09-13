@@ -14,8 +14,8 @@ export function SiteFooter() {
           <div className="max-w-sm">
             <Wordmark size={28} />
             <p className="prose-lab mt-4 text-[14px] leading-[1.7] text-umber">
-              The Lab compiler turns experiments described in Lab or Python into
-              work a laboratory can run.
+              Describe experiments, check protocols, and create beautiful
+              documents in Lab or Python. Automate where it helps.
             </p>
           </div>
 

@@ -26,22 +26,18 @@ export function ReactiveSection() {
             kicker="Reactive control"
             lede={
               <>
-                A workflow is a deterministic state machine, not a script.{' '}
+                A workflow can describe repeated observations and decisions.{' '}
                 <code className="font-mono text-[0.88em] text-ink">
                   {python ? '@wf.every' : 'when every'}
                 </code>{' '}
-                wakes it on a schedule and{' '}
+                specifies an observation schedule and{' '}
                 <code className="font-mono text-[0.88em] text-ink">
                   {python ? '@wf.after' : 'when after'}
                 </code>{' '}
-                sets a deadline. Each wake-up replays from the same durable
-                journal that protects{' '}
-                <code className="font-mono text-[0.88em] text-ink">
-                  {python ? 'wf.perform' : '<-'}
-                </code>
-                . Below, a workflow checks a plate every 30 minutes and gives up
-                after 18 hours if nothing has grown: two reactive clauses, no
-                polling loop.
+                sets a deadline. Below, the protocol calls for checking a plate
+                every 30 minutes and stopping after 18 hours if nothing has
+                grown. The conditions are explicit for a person to review, and
+                the compiler checks the types and material use.
               </>
             }
             title="The workflow knows when to check back, and when to give up."

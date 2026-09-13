@@ -38,8 +38,8 @@ export function CompilerInputsSection() {
           <SectionIntro
             className="max-w-3xl"
             kicker="The compiler"
-            lede="Python and Lab are two ways of writing the same thing. The compiler checks both into one form, and everything after that point is shared: the same checks, the same intermediate representation, the same generated protocols and robot programs. Which one you wrote in stops mattering as soon as it compiles."
-            title="Two ways in. One way down."
+            lede="Python and Lab describe the same scientific model. Both reach the same checker and intermediate representation, so protocol checking, document generation, and optional automation share one foundation. Choose the language that fits your work."
+            title="Two languages. One shared model."
           />
         </div>
 
@@ -80,10 +80,11 @@ export function CompilerInputsSection() {
               <span className="micro text-gfp">LAIR</span>
               <p className="prose-lab mt-3 text-[15px] leading-[1.72] text-[#f6ece0]/70">
                 Every input arrives at LAIR, the Lab Automation Intermediate
-                Representation. From there one pipeline verifies material flow,
-                selects a target, and emits what the laboratory needs: a program
-                for a robot, a typeset protocol for a person, or both from the
-                same compilation.
+                Representation. The compiler verifies material flow and
+                preserves scientific meaning through its transformations. When
+                you request facility planning, it refines Methods and selects
+                compatible resources. The resulting build can include typeset
+                operator documents and files for supported instruments.
               </p>
             </div>
             <Link

@@ -120,8 +120,8 @@ const plasmidsFile: PlaygroundFile = {
  * computes an assembled sequence rather than taking one on trust.
  *
  * The reaction chemistry in each design is scientific intent and travels with
- * the artifact; where the reaction physically happens is a target profile's
- * concern.
+ * the artifact; where the reaction physically happens is decided by facility
+ * allocation against qualified capability offerings.
  */
 
 use std.bio.designs

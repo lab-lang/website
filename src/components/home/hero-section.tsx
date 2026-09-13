@@ -39,10 +39,10 @@ export function HeroSection() {
             {/* The serif deck never sets below 18px: Crimson Pro's small
              * x-height needs it to hold optical parity with 16px Archivo. */}
             <p className="type-deck max-w-[33em] text-pretty text-[clamp(1.125rem,1.6vw,1.5rem)] text-ink/78">
-              The Lab compiler takes an experiment described in Python or the
-              Lab programming language, checks it, and lowers it through one
-              intermediate representation, LAIR, into work a person at a bench
-              or the instruments of a self-driving laboratory can carry out.
+              Describe experiments in Python or Lab. Check your protocols and
+              produce beautiful documents to share and use at the bench. When
+              automation helps, prepare supported steps for the equipment in
+              your laboratory.
             </p>
           </div>
 

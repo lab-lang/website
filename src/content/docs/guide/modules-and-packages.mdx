@@ -2,7 +2,7 @@
 title: Modules and packages
 eyebrow: Organization
 description: use, the std registry, lab.toml, and today's path-dependency-only limit.
-group: Learn Lab
+group: Language guide
 order: 90
 ---
 
@@ -79,8 +79,12 @@ then accepts them.
 ```text
 my-plasmid/
   lab.toml
-  targets/
+  inventory/
+    facility.ttl
+  adapters/
     opentrons-ot2.toml
+  methods/
+    site-methods.json
   src/
     designs/
     workflows/
@@ -103,11 +107,19 @@ edition = "2026"
 
 [build]
 entry = "src/programs/main.lab"
-target = "opentrons-ot2"
+
+[methods]
+documents = ["methods/site-methods.json"]
 
 [inventory]
-materials = ["B0034", "B0015", "DH5alpha", "chloramphenicol", "pSB1C3"]
-artifacts = []
+document = "inventory/facility.ttl"
+# Optional when the document contains exactly one Facility:
+# facility = "https://example.org/my-lab/facility"
+
+[[execution.adapters]]
+asset = "https://example.org/my-lab/opentrons_ot2"
+driver = "opentrons.ot2"
+profile = "adapters/opentrons-ot2.toml"
 
 [dependencies]
 # path form
@@ -116,28 +128,18 @@ some-lib = { path = "../some-lib" }
 another-lib = "0.3"
 ```
 
-`target` names a file under `targets/`, and is what a plain `lab build`
-compiles for; `lab build --target <name>` picks another, and `lab build
---no-target` stops at portable module IR. That profile's own `[target]
-backend` key selects which machine compiles the build, so one package can
-carry a profile per bench and produce a package for each.
-`[inventory]` is what this laboratory has on hand: a material listed there is
-available to a reaction, and an artifact listed there is already realized and
-need not be built again.
+`[methods] documents` names versioned `lab.method-catalog.v2` JSON files inside the package. Each file carries portable Method definitions: exact Intent identities, typed Procedure graphs, and first-class Capability requirements, but no Facility, Asset, offering, MaterialLot, adapter, schedule, or endpoint. Lab loads catalogs from the runnable package and reachable path dependencies in dependency-first order, composes them with the standard Methods, and validates the complete registry before refinement. `[[planning.methods]]` may pin one of those alternatives but does not define it.
 
-`entry` is what makes a package a program rather than a library, so the
-module it names must declare `workflow main`. That is not a build-order
-directive — order comes from the material each call consumes — it is the
-program stating the work it runs. A package with no `entry` is a library and
-needs no `main`.
+Use [Python pipetting authoring](/docs/toolchain/python-procedures) to generate a Method catalog from typed liquid operations. Keep the authoring script beside its generated JSON and regenerate after edits. Lab loads the named catalog; it does not automatically execute Python files placed under `methods/`.
+
+`[inventory] document` names the package's SBOLInventory graph. Lab validates the complete graph and uses its Facility, Zones, Assets, capability offerings, and MaterialLots as the target environment. If `facility` is omitted, the document must contain exactly one Facility.
+
+Each `[[execution.adapters]]` record explicitly binds one exact Asset IRI to a Lab implementation and a checked, package-relative profile. The RDF graph remains authoritative for manufacturer, model, location, capabilities, qualification, and control modes; the adapter profile contains only implementation configuration. Lab never infers a driver from product metadata.
+
+Input material availability is also semantic. A source declaration's exact `sbol_identity` must match an active MaterialLot whose `sbol:built` points to that same SBOL Component. Display names, declaration names, supplier identifiers, and IRI prefixes are not substitutes. Zero lots leaves the requirement blocked; several eligible lots are an allocation ambiguity.
+
+`entry` is what makes a package a program rather than a library, so the module it names must declare `workflow main`. That is not a build-order directive: order comes from typed material dataflow. A package with no `entry` is a library and needs no `main` or facility plan.
 
 ## What's implemented today
 
-`lab-project` (the crate that loads and compiles a package graph) resolves
-**path dependencies only**. A `lab.toml` that declares a version-form,
-registry dependency is rejected outright rather than partially resolved:
-there is no package registry, no version resolution, and no lockfile
-integrity check yet. `lab check`/`lab build`/`lab metadata` all fail closed
-on an unsupported dependency rather than guessing at what you meant. A
-successful build does write a deterministic `lab.lock` alongside the path
-dependencies it did resolve.
+`lab-project` (the crate that loads and compiles a package graph) resolves **path dependencies only**. A `lab.toml` that declares a version-form, registry dependency is rejected outright rather than partially resolved: there is no package registry, no version resolution, and no lockfile integrity check yet. `lab check`/`lab build`/`lab metadata` all fail closed on an unsupported dependency rather than guessing at what you meant. A successful build does write a deterministic `lab.lock` alongside the path dependencies it did resolve.

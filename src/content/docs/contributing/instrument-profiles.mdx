@@ -1,0 +1,71 @@
+---
+title: Add instrument profiles
+eyebrow: Contribution path · Configuration and instrument knowledge
+description: Contribute deck layouts, liquid classes, and measured operating knowledge through an existing adapter.
+group: Contribution paths
+order: 120
+previous: toolchain/contributing
+next: null
+---
+
+Use this path when Lab already supports the instrument and you want to contribute its configuration or operating knowledge. You will write configuration and supporting examples. Existing profile fields need no Rust changes; a new geometry model or physical feature may require an adapter extension.
+
+## Choose the existing adapter
+
+Start with [OT-2](/docs/backends/opentrons-ot2), [Flex](/docs/backends/opentrons-flex), [Hamilton STAR](/docs/backends/hamilton-star), or [ODTC](/docs/backends/inheco-odtc). Each reference describes its profile and current implementation boundary.
+
+| Contribution                                                          | Where it belongs                               |
+| --------------------------------------------------------------------- | ---------------------------------------------- |
+| Instrument identity, containment, capability offerings, material lots | The project's SBOLInventory document           |
+| Deck, pipettes, supported labware, liquid-class selection             | The adapter's TOML profile                     |
+| An exact Asset-to-adapter binding                                     | `[[execution.adapters]]` in `lab.toml`         |
+| Runtime network or USB endpoint                                       | The run command's Asset endpoint configuration |
+
+Keeping these responsibilities separate lets the same Method work with different facilities and profiles. The [facility-planning reference](/docs/compiler/facility-planning) explains their composition.
+
+## Start with a validated profile
+
+Use the development CLI to obtain and check an adapter's reference profile:
+
+```shell
+lab adapters default hamilton.star > hamilton-star.toml
+lab adapters validate hamilton.star hamilton-star.toml
+```
+
+Edit the fields relevant to your instrument. Validation checks the selected driver's schema and physical configuration. If your proposed field is rejected, consult that adapter's reference before adding it to a file; unsupported configuration cannot be made effective just by naming it.
+
+## Contribute liquid-handling knowledge
+
+The [Hamilton profile fixture](https://github.com/lab-lang/lab/blob/master/examples/contributing/hamilton-profile.toml) is a complete example. It selects a versioned library, defines which liquids, tips, labware, techniques, and volumes each class applies to, and records correction curves, speeds, margins, and provenance.
+
+Its library selection is ordinary TOML:
+
+```toml
+[liquid_handling]
+default_liquid = "example-reference-liquid"
+
+[liquid_classes.selected_library]
+id = "org.example.hamilton.liquid-classes"
+version = "1.0.0"
+```
+
+Those lines select data declared elsewhere in the complete profile. The example uses transcribed reference curves to exercise the interface. For measured data, contribute the measurement source, conditions, instrument, operator, date, and applicability alongside the values.
+
+An existing liquid class or profile can be contributed as data. A new STAR labware shape currently requires catalog code and geometry tests; there is no arbitrary external labware-file import in this profile path.
+
+## Verify that the data reaches the output
+
+Schema validation is the first check. Also compile a small Procedure that uses the changed configuration and inspect the emitted invocation and device document. The contributed-profile regression demonstrates this with a distinct aspiration speed and exact library/class identities:
+
+```shell
+cargo test --locked -p lab-cli --test project_workflow \
+  a_facility_can_lower_exact_requirements_through_several_assets
+```
+
+The result should preserve selected class identities, versions, digests, and the authored settings in the generated artifacts. Include a case outside the class's applicability to establish its limits.
+
+## Finish the contribution
+
+Submit the profile or library data, its provenance, a small consuming example, and the validation result. Describe whether the evidence establishes configuration compatibility, correct file generation, or measured physical performance.
+
+If the adapter needs a physical feature it does not implement, continue to [Implement an adapter](/docs/contributing/adapters) within the existing adapter's code. If the instrument itself is already covered, a new biological Method usually belongs in [Python pipetting authoring](/docs/toolchain/python-procedures).
