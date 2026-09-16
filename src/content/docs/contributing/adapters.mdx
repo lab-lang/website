@@ -1,14 +1,26 @@
 ---
-title: Implement an adapter
+title: Generate instrument files
 eyebrow: Contribution path · Rust
-description: Turn an allocated Procedure into files for an instrument, using one crate with explicit validation and lowering callbacks.
+description: Teach Lab to generate reviewed instruction files for an instrument, or add a missing device feature.
 group: Contribution paths
 order: 40
 previous: contributing
 next: null
 ---
 
-Use this path to generate work for another instrument or add a physical feature to an existing adapter. You will own profile interpretation, feasibility checks, and device output. Start with file generation; live execution is a separate contribution.
+An **adapter** teaches Lab how an instrument can perform shared operations such as liquid transfers, mixing, or thermal cycling. It checks whether the planned work fits the configured instrument and generates its instruction files.
+
+Choose this path when Lab cannot generate files for your instrument, or when its existing adapter lacks a physical feature. For example, you might make the same Python pipetting method produce a protocol for another liquid-handler model. Your adapter handles physical wells, device limits, and the required output format; the scientific recipe stays in the method.
+
+You contribute Rust code for profile validation, feasibility checks, and file generation, with examples showing accepted work, rejected work, and the emitted files. The result gives scientists files they can inspect and use with the intended instrument software or executor.
+
+## Decide whether you need an adapter change
+
+- **Only the values of supported settings differ:** [contribute an instrument profile](/docs/contributing/instrument-profiles).
+- **A new model, geometry, physical feature, or output format is needed:** implement or extend an adapter here.
+- **The files already exist and need to be sent to hardware by Lab:** [add execution support](/docs/contributing/execution-support).
+
+An adapter can be valuable without a live executor in Lab. The Opentrons integrations, for example, generate files for vendor tooling. If you want Lab to operate the device directly, add that separately once the instruction format is established.
 
 ## Start with the preview adapter
 
@@ -28,7 +40,7 @@ The generated conformance test exercises registration. Its feasibility and lower
 
 | Code                 | What you supply                                                                       |
 | -------------------- | ------------------------------------------------------------------------------------- |
-| Descriptor           | Supported Procedure contracts, features, capability kinds, formats, and service flags |
+| Descriptor           | Supported procedure contracts, features, capability kinds, formats, and service flags |
 | Profile validator    | Typed configuration, semantic checks, and canonical profile serialization             |
 | Feasibility callback | Whether this exact program can be realized under the profile                          |
 | Lowering callback    | Device files and reviewed-document records for the assigned tasks                     |
@@ -46,9 +58,9 @@ fn lower(
 
 `lab-adapter-api` exports the Lab types in these callbacks. The plan contains allocated tasks; your lowerer selects those assigned to `invocation`. Each emitted document must retain exact task and requirement attribution. The preview implementation shows the traversal and returned records in working code.
 
-The compiler has already selected the Method, material sources, offerings, Assets, and implementation. Preserve those decisions. A Method's biological operation name is retained for attribution; support is determined by the canonical Procedure contract and features you can implement.
+The compiler has already selected the method, material sources, offerings, assets, and implementation. Preserve those decisions. A method's biological operation name is retained for attribution; support is determined by the canonical procedure contract and features you can implement.
 
-## Reuse the existing Procedure contracts
+## Reuse the existing procedure contracts
 
 A pipetting implementation consumes `PipettingProgramV1`; a thermal implementation consumes `ThermalProgramV1`. Rust validates those programs and derives their capabilities. The adapter still owns the physical details: well assignment, geometry, liquid classes, device limits, and vendor output.
 
@@ -70,4 +82,4 @@ It supplies complete allocated programs to the preview adapter and checks emitte
 
 Include the adapter crate or focused changes, a complete profile, one supported canonical program, a rejected case, and inspectable output. Keep advertised features and service flags aligned with those examples. Declare simulation or runtime support only when their separate implementations are present.
 
-When file generation works, [Add execution support](/docs/contributing/execution-support) explains reviewed-document loaders and executors. Instrument command encoding and transport usually belong in the corresponding driver repository, with the Lab adapter consuming that library.
+When file generation works, [Run instruments from Lab](/docs/contributing/execution-support) explains reviewed-document loaders and executors. Instrument command encoding and transport usually belong in the corresponding driver repository, with the Lab adapter consuming that library.

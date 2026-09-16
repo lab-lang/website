@@ -1,14 +1,26 @@
 ---
-title: Add instrument profiles
+title: Configure a supported instrument
 eyebrow: Contribution path · Configuration and instrument knowledge
-description: Contribute deck layouts, liquid classes, and measured operating knowledge through an existing adapter.
+description: Share configuration and measured liquid-handling data for an instrument Lab can already generate files for.
 group: Contribution paths
 order: 30
 previous: contributing
 next: null
 ---
 
-Use this path when Lab already supports the instrument and you want to contribute its configuration or operating knowledge. You will write configuration and supporting examples. Existing profile fields need no Rust changes; a new geometry model or physical feature may require an adapter extension.
+An **instrument profile** is configuration for an adapter Lab already has. Use this path when the file generator works for your instrument, but needs the deck setup, supported labware choices, or liquid-handling settings used in your laboratory.
+
+For example, you might have measured aspiration speeds and volume corrections for a particular liquid on a Hamilton STAR. Contributing those values, their applicability, and their provenance lets the existing adapter use that knowledge when generating instructions. Other contributors can reuse the data without rewriting the adapter or the scientific method.
+
+You contribute a TOML profile or liquid-class library, supporting evidence, and a small example that demonstrates the effect on generated files. Existing fields need no Rust changes.
+
+## Check that configuration is the missing piece
+
+- **The setting already exists:** use this guide to contribute its value and evidence.
+- **The instrument or physical feature is unsupported:** [generate instrument files](/docs/contributing/adapters) by adding or extending an adapter. A new STAR labware geometry currently needs Rust code and geometry tests.
+- **The files are correct, but Lab cannot operate the device:** [add execution support](/docs/contributing/execution-support). Changing a profile does not implement device communication.
+
+Instrument identity, location, and available capabilities belong to the facility inventory. The table below distinguishes those facts from an adapter's operating configuration.
 
 ## Choose the existing adapter
 
@@ -21,7 +33,7 @@ Start with [OT-2](/docs/instruments/opentrons-ot2), [Flex](/docs/instruments/ope
 | An exact Asset-to-adapter binding                                     | `[[execution.adapters]]` in `lab.toml`         |
 | Runtime network or USB endpoint                                       | The run command's Asset endpoint configuration |
 
-Keeping these responsibilities separate lets the same Method work with different facilities and profiles. The [facility-planning reference](/docs/compiler/facility-planning) explains their composition.
+Keeping these responsibilities separate lets the same method work with different facilities and profiles. The [facility-planning reference](/docs/compiler/facility-planning) explains their composition.
 
 ## Start with a validated profile
 
@@ -55,7 +67,7 @@ An existing liquid class or profile can be contributed as data. A new STAR labwa
 
 ## Verify that the data reaches the output
 
-Schema validation is the first check. Also compile a small Procedure that uses the changed configuration and inspect the emitted invocation and device document. The contributed-profile regression demonstrates this with a distinct aspiration speed and exact library/class identities:
+Schema validation is the first check. Also compile a small procedure that uses the changed configuration and inspect the emitted invocation and device document. The contributed-profile regression demonstrates this with a distinct aspiration speed and exact library/class identities:
 
 ```shell
 cargo test --locked -p lab-cli --test project_workflow \
@@ -68,4 +80,4 @@ The result should preserve selected class identities, versions, digests, and the
 
 Submit the profile or library data, its provenance, a small consuming example, and the validation result. Describe whether the evidence establishes configuration compatibility, correct file generation, or measured physical performance.
 
-If the adapter needs a physical feature it does not implement, continue to [Implement an adapter](/docs/contributing/adapters) within the existing adapter's code. If the instrument itself is already covered, a new biological Method usually belongs in [Python pipetting authoring](/docs/contributing/pipetting-methods).
+If the adapter needs a physical feature it does not implement, continue to [Generate instrument files](/docs/contributing/adapters) within the existing adapter's code. If the instrument itself is already covered, a new biological method usually belongs in [Python pipetting authoring](/docs/contributing/pipetting-methods).

@@ -1,16 +1,26 @@
 ---
-title: Add execution support
+title: Run instruments from Lab
 eyebrow: Contribution path · Rust and device integration
-description: Load and execute reviewed device documents, with explicit progress, identity, and result boundaries.
+description: Let Lab operate an instrument from reviewed instructions, with progress, completion, and failure reporting.
 group: Contribution paths
 order: 60
 previous: contributing
 next: null
 ---
 
-Use this path when an adapter can produce reviewed files and you want Lab to simulate or execute them. Start with a document format and its intended behavior. Device communication belongs behind the executor; scientific Method selection and facility allocation have already happened.
+**Execution support** connects a reviewed instrument document to the code that carries it out. Choose this path when Lab can produce the instructions and you want `lab run` to operate the device and record progress, completion, or failure.
 
-For general instrument measurements, this path also identifies the unfinished result boundary. A driver returning readings is one part of that contribution.
+For example, a thermocycler adapter can describe the temperature steps to perform. Its live executor uses a device driver to send those steps to the cycler, observe completion, and report an error if communication fails. A simulator can exercise the same document without operating hardware; simulation and live execution are registered separately.
+
+You contribute a loader that validates the document, a simulator or live executor, and focused examples of success and failure. Reuse the instrument's driver or vendor SDK where possible. Add missing command encoding or transport in the driver repository; connect it to reviewed Lab documents through the executor.
+
+## Decide whether Lab needs to run the device
+
+If you plan to load generated files into vendor software and run them there, file generation may be all you need. The current Opentrons integrations work this way. Add execution support when running through Lab would give you the progress and run records you need.
+
+If Lab cannot yet generate the instructions, start with [the adapter guide](/docs/contributing/adapters). If only supported operating settings differ, use [an instrument profile](/docs/contributing/instrument-profiles). Scientific method selection and facility allocation happen before an executor receives the reviewed work.
+
+Returning measurements into a scientific workflow is further work: a driver returning readings does not by itself connect those readings to Lab's acceptance claims. The [measurement boundary below](#understand-the-measurement-gap) explains what remains to be implemented.
 
 ## Find the code you own
 
