@@ -1,128 +1,28 @@
 {
   "redirects": [
     {
-      "source": "/docs/backends/byonoy-absorbance96",
-      "destination": "/docs/instruments/byonoy-absorbance96",
+      "source": "/why/:path*",
+      "destination": "/",
       "permanent": true
     },
     {
-      "source": "/docs/backends/hamilton-star",
-      "destination": "/docs/instruments/hamilton-star",
+      "source": "/docs/:path*",
+      "destination": "/",
       "permanent": true
     },
     {
-      "source": "/docs/backends/inheco-odtc",
-      "destination": "/docs/instruments/inheco-odtc",
+      "source": "/playground/:path*",
+      "destination": "/",
       "permanent": true
     },
     {
-      "source": "/docs/backends/opentrons-flex",
-      "destination": "/docs/instruments/opentrons-flex",
+      "source": "/community/:path*",
+      "destination": "/",
       "permanent": true
     },
     {
-      "source": "/docs/backends/opentrons-ot2",
-      "destination": "/docs/instruments/opentrons-ot2",
-      "permanent": true
-    },
-    {
-      "source": "/docs/compiler/cli-reference",
-      "destination": "/docs/compiler/cli",
-      "permanent": true
-    },
-    {
-      "source": "/docs/compiler/lair-dialects",
-      "destination": "/docs/compiler/lair",
-      "permanent": true
-    },
-    {
-      "source": "/docs/compiler/pipeline",
-      "destination": "/docs/compiler/architecture",
-      "permanent": true
-    },
-    {
-      "source": "/docs/contributing/execution",
-      "destination": "/docs/contributing/execution-support",
-      "permanent": true
-    },
-    {
-      "source": "/docs/contributing/procedures",
-      "destination": "/docs/contributing/procedure-semantics",
-      "permanent": true
-    },
-    {
-      "source": "/docs/contributing/python-procedures",
-      "destination": "/docs/contributing/pipetting-methods",
-      "permanent": true
-    },
-    {
-      "source": "/docs/contributing/scientific-packages",
-      "destination": "/docs/contributing/scientific-vocabulary",
-      "permanent": true
-    },
-    {
-      "source": "/docs/guide/action-contracts",
-      "destination": "/docs/language/action-contracts",
-      "permanent": true
-    },
-    {
-      "source": "/docs/guide/first-program",
-      "destination": "/docs/language/first-program",
-      "permanent": true
-    },
-    {
-      "source": "/docs/guide/material-flow-and-acceptance",
-      "destination": "/docs/language/material-flow-and-acceptance",
-      "permanent": true
-    },
-    {
-      "source": "/docs/guide/modules-and-packages",
-      "destination": "/docs/language/modules-and-packages",
-      "permanent": true
-    },
-    {
-      "source": "/docs/guide/reactive-workflows",
-      "destination": "/docs/language/reactive-workflows",
-      "permanent": true
-    },
-    {
-      "source": "/docs/guide/syntax-reference",
-      "destination": "/docs/language/syntax",
-      "permanent": true
-    },
-    {
-      "source": "/docs/guide/the-two-arrows",
-      "destination": "/docs/language/bindings-and-effects",
-      "permanent": true
-    },
-    {
-      "source": "/docs/guide/values-and-kinds",
-      "destination": "/docs/language/values-roles-and-kinds",
-      "permanent": true
-    },
-    {
-      "source": "/docs/overview",
-      "destination": "/docs/describe-an-experiment",
-      "permanent": true
-    },
-    {
-      "source": "/docs/toolchain/building-from-source",
-      "destination": "/docs/development-setup",
-      "permanent": true
-    },
-    {
-      "source": "/docs/toolchain/contributing",
-      "destination": "/docs/contributing",
-      "permanent": true
-    },
-    {
-      "source": "/docs/toolchain/python-procedures",
-      "destination": "/docs/contributing/pipetting-methods",
-      "permanent": true
-    },
-    {
-      "source": "/docs/tooling/editor-support",
-      "destination": "/docs/compiler/editor-support",
+      "source": "/brand",
+      "destination": "/",
       "permanent": true
     }
   ],

@@ -1,10 +1,9 @@
 import { ArrowRight } from 'lucide-react'
-import { Link } from 'react-router-dom'
 
-import { HeroSpecimen } from '@/components/hero'
 import { InstallCommand } from '@/components/home/install-command'
+import { LiquidHandler } from '@/components/liquid-handler'
 import { SectionBody } from '@/components/section'
-import { SHOW_INSTALL_COMMAND } from '@/lib/site'
+import { REPO_URL, SHOW_INSTALL_COMMAND } from '@/lib/site'
 import { useLatestRelease } from '@/lib/use-latest-release'
 
 export function HeroSection() {
@@ -12,7 +11,7 @@ export function HeroSection() {
 
   return (
     <section className="agar-wash relative overflow-hidden" id="intro">
-      <SectionBody className="pb-14 pt-6 sm:pb-20 sm:pt-10 lg:pb-28">
+      <SectionBody className="pb-8 pt-6 sm:pb-10 sm:pt-10 lg:pb-12">
         <p className="micro text-umber">
           <span className="normal-case">v</span>
           {version} · early prototype
@@ -39,36 +38,26 @@ export function HeroSection() {
             {/* The serif deck never sets below 18px: Crimson Pro's small
              * x-height needs it to hold optical parity with 16px Archivo. */}
             <p className="type-deck max-w-[33em] text-pretty text-[clamp(1.125rem,1.6vw,1.5rem)] text-ink/78">
-              Describe experiments in Python or Lab. Check your protocols and
-              produce beautiful documents to share and use at the bench. When
-              automation helps, prepare supported steps for the equipment in
-              your laboratory.
+              Describe experiments in Python. Check your protocols and produce
+              beautiful documents to share and use at the bench. When automation
+              helps, prepare supported steps for the equipment in your
+              laboratory.
             </p>
           </div>
 
           <div className="min-w-0 lg:w-[474px] lg:shrink-0">
-            {/* One row on a phone: stacked full-width buttons push the
-             * specimen most of a screen further down. */}
-            <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-row">
-              <Link
+            <div className="flex">
+              <a
                 className="press inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-ink px-3 py-3 text-[14px] text-paper shadow-[0_10px_24px_-8px_rgb(43_28_17_/_0.5)] sm:px-5"
-                to="/docs"
+                href={REPO_URL}
+                rel="noreferrer"
+                target="_blank"
               >
-                Read the docs
+                View on GitHub
                 <ArrowRight aria-hidden="true" size={16} />
-              </Link>
-              <Link
-                className="press inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-ink/20 px-3 py-3 text-[14px] text-ink hover:border-ink/40 sm:px-5"
-                to="/playground"
-              >
-                Open the playground
-              </Link>
+              </a>
             </div>
-            {/*
-             * Desktop only: curl-pipe-sh is a workstation action. The phone
-             * visitor meets the same command in the closing note instead,
-             * once the page has made its case.
-             */}
+            {/* Desktop only: curl-pipe-sh is a workstation action. */}
             {SHOW_INSTALL_COMMAND && (
               <div className="mt-3 hidden sm:block">
                 <InstallCommand />
@@ -77,14 +66,8 @@ export function HeroSection() {
           </div>
         </div>
 
-        {/*
-         * Desktop only: the specimen is an illustration sized for a wide
-         * viewport, and on a phone it costs several screens of scrolling
-         * without room to breathe. The phone visitor goes straight to the
-         * prose sections instead.
-         */}
-        <div className="mt-8 hidden sm:block">
-          <HeroSpecimen />
+        <div className="mt-8 overflow-hidden rounded-[20px] border border-ink/25 bg-vessel shadow-[0_30px_80px_-20px_rgb(43_28_17_/_0.45)]">
+          <LiquidHandler />
         </div>
       </SectionBody>
     </section>

@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 /**
  * Whether the element is on screen right now, flipping both ways — for
  * ambient loops that should play while watched and pause while scrolled
- * past. `useInView` is the one-shot counterpart for settle-in reveals.
+ * past.
  */
 export function useVisible<T extends HTMLElement>(threshold = 0.2) {
   const ref = useRef<T | null>(null)

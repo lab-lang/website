@@ -7,7 +7,7 @@ import globals from 'globals'
 import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
-  { ignores: ['dist', 'src/wasm'] },
+  { ignores: ['dist'] },
   {
     files: ['**/*.{ts,tsx}'],
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
@@ -73,13 +73,6 @@ export default tseslint.config(
         },
       ],
     },
-  },
-  {
-    // A map from MDX element names to renderers is the module's whole purpose,
-    // so it exports a table of components rather than a component. Fast refresh
-    // cannot follow that shape, and no arrangement of the file would let it.
-    files: ['src/components/docs/mdx-components.tsx'],
-    rules: { 'react-refresh/only-export-components': 'off' },
   },
   // Last: it turns off the stylistic rules prettier already decides.
   prettier,

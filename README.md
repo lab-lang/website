@@ -1,6 +1,6 @@
 # Lab website
 
-The static marketing, documentation, and playground frontend for the [Lab programming language](https://github.com/lab-lang/lab).
+The single-page website for the [Lab programming language](https://github.com/lab-lang/lab).
 
 ## Stack
 
@@ -23,18 +23,17 @@ pnpm build
 pnpm preview
 ```
 
-The host must serve `index.html` as the fallback for client-side routes such as `/docs` and `/playground`.
+The homepage contains the introduction and a full-width liquid handler animation, followed by a compact footer. Retired page URLs (`/community`, `/playground`, `/docs`, `/why`, and `/brand`) redirect home. `vercel.json` defines the hosting redirects, which the React router also uses in local previews. The `/brand` redirect is exact so downloadable assets under `public/brand/` remain available.
+
+The host must serve `index.html` as the fallback for client-side routes. Unknown URLs show the not-found page.
 
 ## Structure
 
-- `src/pages/home-page.tsx`: marketing page
-- `src/pages/docs-page.tsx`: documentation layout, sidebar, on-page TOC, pager
-- `src/pages/playground-page.tsx`: editable playground shell
-- `src/components/`: shared site and source-code presentation
-- `src/data/examples.ts`: representative Lab examples
-- `src/content/docs/`: documentation content, see below
-- `src/lib/use-page-meta.ts`: per-route title, description, canonical and card tags
-- `public/brand/`: brand assets, generated, see below
+- `src/pages/home-page.tsx`: homepage
+- `src/components/liquid-handler.tsx`: liquid handler animation
+- `src/components/site/`: header, footer, and theme controls
+- `src/lib/use-page-meta.ts`: homepage and not-found metadata
+- `public/brand/`: generated brand assets
 
 ## Brand assets
 
@@ -64,90 +63,4 @@ Do not hand-edit these files. The word in each wordmark is emitted as outlines
 rather than live text, so there is nothing editable in them anyway; that is
 deliberate, because librsvg synthesizes bold for a variable face instead of
 selecting its 600 instance and would otherwise set the PNG about a quarter
-wider than the SVG. The brand page at `/brand` documents what each asset is
-for.
-
-## Documentation content
-
-Documentation is organized around contributions. `/docs` opens the chooser at `/docs/contributing`, development setup lives at `/docs/development-setup`, and the contribution guides live under `/docs/contributing/`. The sidebar, mobile picker, and search browsing share this group order: Start here, Contribution paths, Language guide, Compiler reference, Instrument reference.
-
-| Section              | URL location                                                                                    | What belongs here                                                                                  |
-| -------------------- | ----------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| Start here           | `/docs/contributing`, `/docs/describe-an-experiment`, `/docs/development-setup`, `/docs/status` | Shared starting points, in that order                                                              |
-| Contribution paths   | `/docs/contributing/<topic>`                                                                    | A focused change, working example, and validation steps                                            |
-| Language guide       | `/docs/language/<topic>`                                                                        | A learning sequence from the first program through language concepts, ending with syntax reference |
-| Compiler reference   | `/docs/compiler/<topic>`                                                                        | Architecture, LAIR, facility planning, CLI, and editor integration boundaries                      |
-| Instrument reference | `/docs/instruments/<instrument>`                                                                | Support, configuration, and implementation details for a named instrument                          |
-
-Use short topic names in URLs, action-oriented titles for contribution paths, and sentence case in page titles. Keep setup and orientation at the documentation root. A page's folder and navigation group should agree. Reference pages for individual tools or instruments return to the relevant setup or contribution guide; they do not imply that readers must visit every unrelated reference in sequence.
-
-Each contribution path states who it is for, the files to edit, a working starting example, the code or data to contribute, and how to verify and finish it. Reference pages provide depth after a reader has chosen a path. Keep setup and review instructions specific to that contribution rather than requiring every contributor to learn the whole compiler.
-
-Docs pages are `.mdx` files under `src/content/docs/`, discovered
-automatically: adding a file adds a page, no route or nav wiring required.
-Each starts with frontmatter:
-
-```markdown
----
-title: Bindings and effects
-eyebrow: Language guide
-description: One-sentence dek shown under the page title.
-group: Language guide
-order: 30
----
-```
-
-- `title`, `eyebrow`, `description`: rendered in the page header.
-- `group`: which sidebar section the page belongs to. Must match one of the
-  names in `GROUP_ORDER` in `src/lib/docs-content.ts`; a new group needs a
-  line added there.
-- `order`: unique sort key within a group, in increments of ten. Group order comes from `GROUP_ORDER`.
-- `previous` and `next`: optional page slugs for an explicit reading path. Omit to follow adjacent pages in the same group, or use `null` to end the path. Contribution guides normally set `previous: contributing` and `next: null`; link a next step only when it continues that contribution.
-- `toc`: set to `false` to omit the sidebar's on-page contents, as on the contribution chooser. Other pages show it by default.
-
-Unknown groups and reading-path destinations are rejected when the documentation catalog loads, so pages cannot silently disappear from navigation.
-
-The page's URL is its file path relative to `src/content/docs/`, so
-`language/bindings-and-effects.mdx` serves at `/docs/language/bindings-and-effects`.
-
-When moving a published page, update its internal links and reading-path slugs, then add an exact permanent redirect in `vercel.json`. The React router uses that same redirect list for local previews and client-side navigation, preserving query strings and section anchors. Keep old URLs as redirects rather than duplicate content so navigation, search, and canonical metadata use the new location.
-
-`contributing.mdx` maps contribution boundaries, and `contributing/pipetting-methods.mdx` documents the development Python authoring API. The latter follows `lab/docs/contributing/python-procedures.md`; keep its snippets aligned with the runnable `lab/examples/contributing/scientific-package/methods/homogenize.py` author. Check schema versions and service claims against Rust constants and registrations when changing architecture pages. These docs describe the development checkout, independently of the committed browser compiler bundle.
-
-Search needs no wiring either. `build/remark-doc-search.ts` splits each page
-at its headings during the MDX build and exports the plaintext as `sections`,
-which `src/lib/docs-search.ts` ranks; a new page is searchable as soon as it
-renders. Results deep-link to a heading, so anchors have to match: both the
-index and the rendered heading id come from `slugify` over the heading's full
-text, formatting included.
-
-The body is ordinary Markdown: headings, lists, GFM tables, blockquotes,
-styled automatically to match the rest of the site by the component map in
-`src/components/docs/mdx-components.tsx`. Two things need no special syntax:
-
-- A fenced code block's info string is its filename, and renders in the same
-  bordered, dark "vessel" window used everywhere else on the site:
-  ` ```lab reporter.lab `. Omit it for an unlabeled window.
-- `<Callout kind="note">…</Callout>` reproduces the site's amber note box;
-  `kind="aside"` is the neutral variant. Import it from
-  `@/components/docs/callout`; the alias remains valid when a page moves.
-
-Anything else bespoke a page needs can be authored as real JSX directly in
-the `.mdx` file, the same way. No content page should need `dangerouslySetInnerHTML`
-or a one-off page component; if a new visual pattern is needed on more than
-one page, add it to `mdx-components.tsx` or as a shared component instead of
-repeating the JSX per file.
-
-## Playground compiler integration
-
-The playground runs the real compiler frontend in the browser. `src/wasm/lab-ide-wasm/` holds a generated `wasm-bindgen` bundle of the `lab-ide-wasm` crate from the sibling Lab checkout, which wraps the same `lab-ide` workspace the LSP server uses. Diagnostics, document symbols, completions, hover, definition, references, rename, semantic tokens, and formatting are answered by the compiler, not by a JavaScript approximation of it.
-
-`src/lib/lab-engine/engine.ts` is the only thing that touches the wasm module. `LabEngine` owns one `LabWorkspace`, keeps the last text set per path, and converts every span at the boundary: the Rust side is UTF-8 byte-offset native and CodeMirror is UTF-16 index native, so `byte-offset.ts` translates in both directions, including for spans returned against a file other than the active one. Every method is async even though the underlying calls are synchronous, so moving the workspace to a Web Worker stays an internal change. `use-lab-engine.ts` is the React binding, and `src/components/playground/lab-editor.tsx` is its only consumer.
-
-The wasm bundle is committed, because there is no Rust toolchain at deploy time. Regenerate it with `scripts/build-wasm.sh` whenever `lab-ide-wasm` or its `lab-ide`/`lab-language` dependencies change, then commit the result:
-
-```sh
-LAB_REPO=/path/to/lab scripts/build-wasm.sh
-```
-
-The script defaults `LAB_REPO` to a sibling `../lab` checkout, and fails with a remediation message if the `wasm-bindgen` CLI is missing, if its version does not match the crate version pinned in the Lab workspace's `Cargo.lock`, or if the `wasm32-unknown-unknown` target is not installed. Do not hand-edit anything under `src/wasm/`.
+wider than the SVG. The generated assets remain available directly under `/brand/`.

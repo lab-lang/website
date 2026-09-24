@@ -867,8 +867,8 @@ export function LiquidHandler() {
       : frame.tip + 1
 
   return (
-    <div className="flex h-full flex-col" ref={ref}>
-      <div className="flex items-center justify-between px-5 pt-3">
+    <div className="flex flex-col" ref={ref}>
+      <div className="flex flex-wrap items-center justify-between gap-3 px-5 pt-5 sm:px-8 sm:pt-6">
         <div className="flex items-center gap-2">
           <span
             className="size-1.5 rounded-full"
@@ -883,11 +883,11 @@ export function LiquidHandler() {
         <span className="micro text-[#f6ece0]/30">opentrons ot-2</span>
       </div>
 
-      {/* A deck is wider than a phone, so it pans instead of shrinking. */}
-      <div className="rail min-h-0 flex-1">
+      {/* Scale the complete deck to the available width at every breakpoint. */}
+      <div>
         <svg
           aria-label="An Opentrons OT-2 liquid handler distributes each reagent of twelve Golden Gate assemblies across row A with one tip per reagent, refilling that same tip when needed and ejecting it only after all twelve wells are filled, then runs the thermocycler profile."
-          className="h-full w-full min-w-[600px] sm:min-w-0"
+          className="block h-auto w-full"
           role="img"
           viewBox="0 0 640 300"
         >
@@ -953,7 +953,7 @@ export function LiquidHandler() {
         </svg>
       </div>
 
-      <div className="flex items-center justify-between gap-3 px-5 pb-3">
+      <div className="flex items-center justify-between gap-3 px-5 pb-5 sm:px-8 sm:pb-6">
         <span className="min-w-0 truncate font-mono text-[11px] text-[#f6ece0]/55">
           {caption}
         </span>

@@ -2,5 +2,4 @@ dist
 node_modules
 .venv
 pnpm-lock.yaml
-src/wasm
 public

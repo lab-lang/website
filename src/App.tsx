@@ -1,26 +1,12 @@
-import { lazy, Suspense, useEffect } from 'react'
+import { useEffect } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 
 // Hosting configuration lives outside src; share its exact redirects with the router.
 // eslint-disable-next-line no-restricted-imports
 import { redirects } from '../vercel.json'
-import { DocsSearchProvider } from '@/components/docs/docs-search'
 import { SiteShell } from '@/components/site/site-shell'
-import { DEFAULT_DOC_SLUG } from '@/lib/docs-content'
-import { BrandPage } from '@/pages/brand-page'
-import { CommunityPage } from '@/pages/community-page'
-import { DocsPage } from '@/pages/docs-page'
 import { HomePage } from '@/pages/home-page'
 import { NotFoundPage } from '@/pages/not-found-page'
-import { WhyPage } from '@/pages/why-page'
-
-// CodeMirror and the wasm compiler are heavy and only ever used on this one
-// route — code-split it so the rest of the site's first load stays light.
-const PlaygroundPage = lazy(() =>
-  import('@/pages/playground-page').then((mod) => ({
-    default: mod.PlaygroundPage,
-  })),
-)
 
 function Redirect({ to }: { to: string }) {
   const { search, hash } = useLocation()
@@ -32,7 +18,7 @@ function RouteEffects() {
 
   useEffect(() => {
     if (hash) {
-      const target = document.querySelector(hash)
+      const target = document.getElementById(hash.slice(1))
       if (target) {
         target.scrollIntoView({ behavior: 'instant', block: 'start' })
         return
@@ -47,37 +33,19 @@ function RouteEffects() {
 
 export default function App() {
   return (
-    <DocsSearchProvider>
-      <SiteShell>
-        <RouteEffects />
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/why" element={<WhyPage />} />
+    <SiteShell>
+      <RouteEffects />
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        {redirects.map(({ source, destination }) => (
           <Route
-            path="/docs"
-            element={<Redirect to={`/docs/${DEFAULT_DOC_SLUG}`} />}
+            key={source}
+            path={source.replace('/:path*', '/*')}
+            element={<Redirect to={destination} />}
           />
-          {redirects.map(({ source, destination }) => (
-            <Route
-              key={source}
-              path={source}
-              element={<Redirect to={destination} />}
-            />
-          ))}
-          <Route path="/docs/*" element={<DocsPage />} />
-          <Route
-            path="/playground"
-            element={
-              <Suspense fallback={null}>
-                <PlaygroundPage />
-              </Suspense>
-            }
-          />
-          <Route path="/community" element={<CommunityPage />} />
-          <Route path="/brand" element={<BrandPage />} />
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-      </SiteShell>
-    </DocsSearchProvider>
+        ))}
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </SiteShell>
   )
 }

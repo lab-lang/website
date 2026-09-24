@@ -3,9 +3,6 @@ export const REPO_SLUG = 'lab-lang/lab'
 
 export const REPO_URL = `https://github.com/${REPO_SLUG}`
 
-/** Durable project strategy, governance, SIG charters, and WG charters. */
-export const COMMUNITY_REPO_URL = 'https://github.com/lab-lang/community'
-
 /**
  * Where the site is served. Canonical links and social card URLs have to be
  * absolute, so a crawler resolving them has nothing relative to fall back on.
@@ -18,8 +15,7 @@ export const SITE_NAME = 'Lab'
  * The install card is held back while the Python package is being finished:
  * it prints commands that do not resolve yet, and an install line a visitor
  * pastes into a terminal is the worst place on the site to be aspirational.
- * Set to `true` to bring it back on the homepage, in the hero and in the
- * phone-width closing note both.
+ * Set to `true` to bring it back in the desktop hero.
  */
 export const SHOW_INSTALL_COMMAND = false
 

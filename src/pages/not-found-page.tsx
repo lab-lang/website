@@ -23,7 +23,7 @@ export function NotFoundPage() {
         </h1>
         <p className="prose-lab mt-5 text-[16px] leading-[1.65] text-umber">
           That page is not part of this experiment. Check the address, or start
-          again from the documentation.
+          again from the homepage.
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Link
@@ -32,12 +32,6 @@ export function NotFoundPage() {
           >
             <ArrowLeft aria-hidden="true" size={15} />
             Back home
-          </Link>
-          <Link
-            className="press inline-flex items-center gap-2 rounded-xl border border-ink/20 px-5 py-3 text-[14px] hover:border-ink/40"
-            to="/docs"
-          >
-            Read the docs
           </Link>
         </div>
       </div>
